@@ -14,9 +14,6 @@ yarn-error.log*
 pnpm-debug.log*
 docs/*
 
-# local preview artifacts
-artifacts/
-
 # environment variables
 .env
 .env.production
