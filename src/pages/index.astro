@@ -1,4 +1,5 @@
 ---
+import '../styles/global.css';
 ---
 
 <!doctype html>
@@ -16,30 +17,3 @@
 		</main>
 	</body>
 </html>
-
-<style>
-	:global(*) {
-		box-sizing: border-box;
-	}
-
-	:global(body) {
-		margin: 0;
-		font-family: sans-serif;
-		line-height: 1.7;
-	}
-
-	main {
-		inline-size: min(100% - 2rem, 48rem);
-		margin-inline: auto;
-		padding-block: 4rem;
-	}
-
-	h1,
-	p {
-		margin-block: 0;
-	}
-
-	p {
-		margin-block-start: 1rem;
-	}
-</style>
