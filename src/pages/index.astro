@@ -8,12 +8,70 @@ import '../styles/global.css';
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>ポートフォリオ（準備中）</title>
+		<meta
+			name="description"
+			content="Tsukimi41 / 薪のポートフォリオ。電気通信大学 情報理工学域 Ⅱ類で学んでいます。"
+		/>
+		<title>Tsukimi41 / 薪 | ポートフォリオ</title>
 	</head>
 	<body>
 		<main>
-			<h1>ポートフォリオ基盤</h1>
-			<p>掲載内容は、次の開発ステップから追加します。</p>
+			<section class="introduction" aria-labelledby="introduction-title">
+				<p class="introduction__label">Portfolio / Profile</p>
+				<h1 id="introduction-title" class="introduction__name">
+					<span>Tsukimi41</span>
+					<span class="introduction__separator" aria-hidden="true">/</span>
+					<span lang="ja">薪</span>
+				</h1>
+				<p class="introduction__affiliation">
+					<span>電気通信大学</span>
+					<span>情報理工学域 Ⅱ類</span>
+				</p>
+			</section>
 		</main>
 	</body>
 </html>
+
+<style>
+	.introduction {
+		padding: clamp(var(--space-3), 6vw, var(--space-5));
+		border: 1px solid var(--color-border);
+		border-radius: 1.5rem;
+		background: var(--color-surface);
+	}
+
+	.introduction__label {
+		display: inline-flex;
+		margin: 0;
+		padding: var(--space-1) var(--space-2);
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		color: var(--color-accent);
+		font-size: 0.875rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		line-height: 1.4;
+		text-transform: uppercase;
+	}
+
+	.introduction__name {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 var(--space-2);
+		margin-block-start: var(--space-3);
+		word-break: keep-all;
+	}
+
+	.introduction__separator {
+		color: var(--color-border);
+		font-weight: 400;
+	}
+
+	.introduction__affiliation {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		margin-block-start: var(--space-3);
+		font-weight: 600;
+	}
+</style>
