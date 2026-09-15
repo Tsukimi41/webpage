@@ -40,18 +40,24 @@ import '../styles/global.css';
 <style>
 	.introduction {
 		position: relative;
+		display: grid;
+		align-content: center;
 		overflow: hidden;
-		padding: clamp(var(--space-3), 6vw, var(--space-5));
+		min-block-size: min(42rem, 72svh);
+		padding: clamp(var(--space-3), 7vw, 6rem);
 		border: 1px solid var(--color-border);
-		border-radius: var(--radius-medium);
-		background: var(--color-surface);
+		border-radius: var(--radius-small);
+		background:
+			linear-gradient(135deg, var(--color-surface-raised) 0 1px, transparent 1px) 100% 0 / 8rem 8rem no-repeat,
+			color-mix(in srgb, var(--color-surface) 92%, transparent);
 		box-shadow: 0 1.5rem 4rem var(--color-shadow);
 	}
 
 	.introduction::before {
 		position: absolute;
 		inset-block-start: 0;
-		inset-inline: 0;
+		inset-inline-start: 0;
+		inline-size: min(42%, 24rem);
 		block-size: 0.1875rem;
 		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
 		content: '';
@@ -60,17 +66,32 @@ import '../styles/global.css';
 		animation: accent-line-enter 600ms 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 	}
 
+	.introduction::after {
+		position: absolute;
+		inset-block-end: clamp(var(--space-2), 3vw, var(--space-4));
+		inset-inline-end: clamp(var(--space-2), 3vw, var(--space-4));
+		inline-size: clamp(2rem, 6vw, 4rem);
+		aspect-ratio: 1;
+		border-inline-end: 1px solid var(--color-accent);
+		border-block-end: 1px solid var(--color-accent);
+		content: '';
+		opacity: 0.65;
+	}
+
 	.introduction__name {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0 var(--space-2);
+		align-items: baseline;
+		gap: 0 clamp(var(--space-1), 2vw, var(--space-3));
+		max-inline-size: 11ch;
 		word-break: keep-all;
 		animation: content-enter 420ms 100ms ease-out both;
 	}
 
 	.introduction__separator {
-		color: var(--color-border);
-		font-weight: 400;
+		color: var(--color-accent-strong);
+		font-weight: 300;
+		transform: translateY(-0.06em);
 	}
 
 	.introduction__affiliation {
@@ -78,6 +99,8 @@ import '../styles/global.css';
 		flex-direction: column;
 		gap: var(--space-1);
 		margin-block-start: var(--space-3);
+		padding-inline-start: var(--space-2);
+		border-inline-start: 1px solid var(--color-accent);
 		font-weight: 600;
 		animation: content-enter 420ms 180ms ease-out both;
 	}
@@ -109,6 +132,23 @@ import '../styles/global.css';
 
 		.introduction::before {
 			transform: scaleX(1);
+		}
+	}
+
+	@media (min-width: 48rem) {
+		.introduction__affiliation {
+			inline-size: max-content;
+			margin-inline-start: min(44%, 22rem);
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.introduction {
+			min-block-size: 70svh;
+		}
+
+		.introduction__name {
+			max-inline-size: 8ch;
 		}
 	}
 </style>
