@@ -1,6 +1,7 @@
 ---
 import ThemeInitializer from '../components/ThemeInitializer.astro';
 import ThemeSwitcher from '../components/ThemeSwitcher.astro';
+import SkipLink from '../components/SkipLink.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -23,9 +24,18 @@ const { title, description, lang = 'ja' } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+		<SkipLink />
 		<main>
 			<ThemeSwitcher />
-			<slot />
+			<div id="main-content" class="page-content" tabindex="-1">
+				<slot />
+			</div>
 		</main>
 	</body>
 </html>
+
+<style>
+	.page-content:focus {
+		outline: none;
+	}
+</style>
