@@ -18,16 +18,16 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 						class="social-links__link"
 						href={link.href}
 						aria-label={`${link.label}（新しいタブで開く）`}
+						title={link.label}
 						target="_blank"
 						rel="me noopener noreferrer"
 					>
 						<Icon
 							class="social-links__icon"
 							name={link.icon}
-							size="1.25rem"
+							size="1.375rem"
 							aria-hidden="true"
 						/>
-						<span>{link.label}</span>
 					</a>
 				</li>
 			))
@@ -38,6 +38,7 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 <style>
 	.social-links {
 		margin-block-start: var(--space-3);
+		animation: social-links-enter 420ms 260ms ease-out both;
 	}
 
 	.social-links__list {
@@ -53,16 +54,12 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		inline-size: 2.75rem;
 		min-block-size: 2.75rem;
-		gap: 0.625rem;
-		padding: 0.625rem 0.875rem;
 		border: 1px solid var(--color-border);
-		border-radius: 999px;
-		background: var(--color-canvas);
-		color: var(--color-accent);
-		font-size: 0.9375rem;
-		font-weight: 700;
-		line-height: 1.4;
+		border-radius: var(--radius-small);
+		background: var(--color-surface-raised);
+		color: var(--color-text-muted);
 		text-decoration: none;
 		transition:
 			background-color 160ms ease,
@@ -74,7 +71,7 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 	.social-links__link:hover {
 		border-color: var(--color-accent);
 		background: var(--color-accent);
-		color: var(--color-surface);
+		color: var(--color-canvas);
 		transform: translateY(-0.125rem);
 	}
 
@@ -87,8 +84,22 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 		flex: none;
 	}
 
+	@keyframes social-links-enter {
+		from {
+			opacity: 0;
+			transform: translateY(0.5rem);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
+		.social-links,
 		.social-links__link {
+			animation: none;
 			transition: none;
 		}
 
