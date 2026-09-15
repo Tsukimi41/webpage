@@ -1,8 +1,18 @@
 ---
-import { DEFAULT_THEME_ID, THEME_STORAGE_KEY, themes } from '../data/themes';
+import {
+	DEFAULT_THEME_ID,
+	THEME_STORAGE_KEY,
+	themeIds,
+	type ThemeId,
+} from '../data/themes';
 
 const menuId = 'color-theme-menu';
-const menuHeadingId = 'color-theme-menu-heading';
+
+const accessibleThemeNames: Readonly<Record<ThemeId, string>> = {
+	'light-blue': 'ライト配色',
+	'dark-blue': 'ダーク配色',
+	'dark-green': 'グリーン配色',
+};
 ---
 
 <div
@@ -14,7 +24,7 @@ const menuHeadingId = 'color-theme-menu-heading';
 		class="theme-switcher__trigger"
 		type="button"
 		data-theme-trigger
-		aria-label="配色テーマを選択（現在：グリーン）"
+		aria-label="配色を変更（現在：グリーン配色）"
 		aria-haspopup="menu"
 		aria-expanded="false"
 		aria-controls={menuId}
@@ -37,28 +47,24 @@ const menuHeadingId = 'color-theme-menu-heading';
 		id={menuId}
 		data-theme-menu
 		role="menu"
-		aria-labelledby={menuHeadingId}
+		aria-label="配色"
 		hidden
 	>
-		<p class="theme-switcher__heading" id={menuHeadingId} role="presentation">配色テーマ</p>
 		{
-			themes.map((theme) => (
+			themeIds.map((themeId) => (
 				<button
 					class="theme-switcher__option"
 					type="button"
-					data-theme-id={theme.id}
-					data-theme-label={theme.label}
+					data-theme-id={themeId}
+					data-theme-accessible-name={accessibleThemeNames[themeId]}
 					role="menuitemradio"
-					aria-checked={theme.id === DEFAULT_THEME_ID ? 'true' : 'false'}
+					aria-label={accessibleThemeNames[themeId]}
+					aria-checked={themeId === DEFAULT_THEME_ID ? 'true' : 'false'}
 				>
-					<span class={`theme-switcher__swatch theme-switcher__swatch--${theme.id}`} aria-hidden="true">
+					<span class={`theme-switcher__swatch theme-switcher__swatch--${themeId}`} aria-hidden="true">
 						<span />
 						<span />
 						<span />
-					</span>
-					<span>
-						<span class="theme-switcher__option-label">{theme.label}</span>
-						<span class="theme-switcher__option-description">{theme.description}</span>
 					</span>
 				</button>
 			))
@@ -76,19 +82,19 @@ const menuHeadingId = 'color-theme-menu-heading';
 		switchers.forEach((switcher) => {
 			const trigger = switcher.querySelector<HTMLButtonElement>('[data-theme-trigger]');
 			const options = switcher.querySelectorAll<HTMLButtonElement>('[data-theme-id]');
-			let selectedThemeLabel = '';
+			let selectedThemeAccessibleName = '';
 
 			options.forEach((option) => {
 				const isSelected = option.dataset.themeId === themeId;
 				option.setAttribute('aria-checked', String(isSelected));
 
 				if (isSelected) {
-					selectedThemeLabel = option.dataset.themeLabel ?? '';
+					selectedThemeAccessibleName = option.dataset.themeAccessibleName ?? '';
 				}
 			});
 
-			if (trigger && selectedThemeLabel) {
-				trigger.setAttribute('aria-label', `配色テーマを選択（現在：${selectedThemeLabel}）`);
+			if (trigger && selectedThemeAccessibleName) {
+				trigger.setAttribute('aria-label', `配色を変更（現在：${selectedThemeAccessibleName}）`);
 			}
 		});
 	}
@@ -238,7 +244,9 @@ const menuHeadingId = 'color-theme-menu-heading';
 		z-index: 10;
 		inset-block-start: calc(100% + var(--space-1));
 		inset-inline-end: 0;
-		inline-size: min(17rem, calc(100vw - var(--space-4)));
+		display: grid;
+		grid-template-columns: repeat(3, 2.75rem);
+		gap: var(--space-1);
 		padding: var(--space-1);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-medium);
@@ -251,28 +259,18 @@ const menuHeadingId = 'color-theme-menu-heading';
 		display: none;
 	}
 
-	.theme-switcher__heading {
-		margin: 0;
-		padding: 0.375rem 0.5rem 0.625rem;
-		color: var(--color-text-muted);
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-	}
-
 	.theme-switcher__option {
-		display: grid;
-		grid-template-columns: auto 1fr;
+		position: relative;
+		display: inline-flex;
 		align-items: center;
-		inline-size: 100%;
-		gap: 0.75rem;
-		padding: 0.625rem;
+		justify-content: center;
+		inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		padding: 0;
 		border: 1px solid transparent;
 		border-radius: var(--radius-small);
 		background: transparent;
 		color: var(--color-text-muted);
-		font: inherit;
-		text-align: start;
 		cursor: pointer;
 	}
 
@@ -284,7 +282,23 @@ const menuHeadingId = 'color-theme-menu-heading';
 	}
 
 	.theme-switcher__option[aria-checked='true'] {
-		border-inline-start-color: var(--color-accent);
+		border-color: var(--color-accent);
+		box-shadow: inset 0 0 0 1px var(--color-accent);
+	}
+
+	.theme-switcher__option::after {
+		position: absolute;
+		inset-block-start: 0.25rem;
+		inset-inline-end: 0.25rem;
+		inline-size: 0.375rem;
+		block-size: 0.375rem;
+		background: var(--color-accent);
+		content: '';
+		opacity: 0;
+	}
+
+	.theme-switcher__option[aria-checked='true']::after {
+		opacity: 1;
 	}
 
 	.theme-switcher__trigger:focus-visible,
@@ -293,29 +307,11 @@ const menuHeadingId = 'color-theme-menu-heading';
 		outline-offset: 0.1875rem;
 	}
 
-	.theme-switcher__option-label,
-	.theme-switcher__option-description {
-		display: block;
-	}
-
-	.theme-switcher__option-label {
-		font-size: 0.875rem;
-		font-weight: 700;
-		line-height: 1.4;
-	}
-
-	.theme-switcher__option-description {
-		margin-block-start: 0.125rem;
-		color: var(--color-text-muted);
-		font-size: 0.75rem;
-		line-height: 1.4;
-	}
-
 	.theme-switcher__swatch {
 		display: grid;
-		grid-template-columns: repeat(3, 0.375rem);
+		grid-template-columns: repeat(3, 0.5rem);
 		overflow: hidden;
-		block-size: 1.125rem;
+		block-size: 1.5rem;
 		border: 1px solid currentColor;
 		border-radius: var(--radius-small);
 	}
