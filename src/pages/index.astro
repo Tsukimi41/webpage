@@ -80,10 +80,12 @@ import '../styles/global.css';
 
 	.introduction__name {
 		display: flex;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
 		align-items: baseline;
 		gap: 0 clamp(var(--space-1), 2vw, var(--space-3));
-		max-inline-size: 11ch;
+		inline-size: max-content;
+		max-inline-size: 100%;
+		white-space: nowrap;
 		word-break: keep-all;
 		animation: content-enter 420ms 100ms ease-out both;
 	}
@@ -148,7 +150,7 @@ import '../styles/global.css';
 		}
 
 		.introduction__name {
-			max-inline-size: 8ch;
+			font-size: clamp(1.65rem, 8vw, 2rem);
 		}
 	}
 </style>
