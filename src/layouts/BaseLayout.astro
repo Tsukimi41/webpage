@@ -1,5 +1,6 @@
 ---
 import ThemeInitializer from '../components/ThemeInitializer.astro';
+import ThemeSwitcher from '../components/ThemeSwitcher.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -22,6 +23,9 @@ const { title, description, lang = 'ja' } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
-		<slot />
+		<main>
+			<ThemeSwitcher />
+			<slot />
+		</main>
 	</body>
 </html>

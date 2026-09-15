@@ -1,6 +1,5 @@
 ---
 import ProfileIntroduction from '../components/ProfileIntroduction.astro';
-import ThemeSwitcher from '../components/ThemeSwitcher.astro';
 import { profile, profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
@@ -9,8 +8,5 @@ const pageDescription = `${profileDisplayName}のポートフォリオ。${profi
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
-	<main>
-		<ThemeSwitcher />
-		<ProfileIntroduction />
-	</main>
+	<ProfileIntroduction />
 </BaseLayout>
