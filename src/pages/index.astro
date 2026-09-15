@@ -2,7 +2,10 @@
 import SocialLinks from '../components/SocialLinks.astro';
 import ThemeInitializer from '../components/ThemeInitializer.astro';
 import ThemeSwitcher from '../components/ThemeSwitcher.astro';
+import { profile, profileDisplayName } from '../data/profile';
 import '../styles/global.css';
+
+const pageDescription = `${profileDisplayName}のポートフォリオ。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
 ---
 
 <!doctype html>
@@ -14,22 +17,22 @@ import '../styles/global.css';
 		<ThemeInitializer />
 		<meta
 			name="description"
-			content="Tsukimi41 / 薪のポートフォリオ。電気通信大学 情報理工学域 Ⅱ類で学んでいます。"
+			content={pageDescription}
 		/>
-		<title>Tsukimi41 / 薪 | ポートフォリオ</title>
+		<title>{profileDisplayName} | ポートフォリオ</title>
 	</head>
 	<body>
 		<main>
 			<ThemeSwitcher />
 			<section class="introduction" aria-labelledby="introduction-title">
 				<h1 id="introduction-title" class="introduction__name">
-					<span>Tsukimi41</span>
+					<span>{profile.handle}</span>
 					<span class="introduction__separator" aria-hidden="true">/</span>
-					<span lang="ja">薪</span>
+					<span lang="ja">{profile.penName}</span>
 				</h1>
 				<p class="introduction__affiliation">
-					<span>電気通信大学</span>
-					<span>情報理工学域 Ⅱ類</span>
+					<span>{profile.affiliation.university}</span>
+					<span>{profile.affiliation.faculty}</span>
 				</p>
 				<SocialLinks />
 			</section>
