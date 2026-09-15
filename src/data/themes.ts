@@ -3,18 +3,18 @@ export const THEME_STORAGE_KEY = 'tsukimi41-color-theme';
 export const themes = [
 	{
 		id: 'light-blue',
-		label: 'ライト',
-		description: '白・青・灰色',
+		label: '',
+		description: '',
 	},
 	{
 		id: 'dark-blue',
 		label: 'ダーク',
-		description: '白・青・灰色のダークモード',
+		description: '',
 	},
 	{
 		id: 'dark-green',
 		label: 'グリーン',
-		description: '黒・緑・灰色',
+		description: '',
 	},
 ] as const;
 

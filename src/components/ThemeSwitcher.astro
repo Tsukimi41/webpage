@@ -1,5 +1,4 @@
 ---
-import { Icon } from 'astro-icon/components';
 import { DEFAULT_THEME_ID, THEME_STORAGE_KEY, themes } from '../data/themes';
 
 const menuId = 'color-theme-menu';
@@ -20,7 +19,17 @@ const menuHeadingId = 'color-theme-menu-heading';
 		aria-expanded="false"
 		aria-controls={menuId}
 	>
-		<Icon name="theme" size="1.375rem" aria-hidden="true" />
+		<svg
+			class="theme-switcher__trigger-icon"
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			aria-hidden="true"
+		>
+			<path d="M12 3a9 9 0 1 0 0 18V3Z" fill="currentColor"></path>
+			<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+		</svg>
 	</button>
 
 	<div
@@ -218,6 +227,10 @@ const menuHeadingId = 'color-theme-menu-heading';
 		border-color: var(--color-accent);
 		background: var(--color-surface-raised);
 		color: var(--color-accent);
+	}
+
+	.theme-switcher__trigger-icon {
+		flex: none;
 	}
 
 	.theme-switcher__menu {
