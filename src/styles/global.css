@@ -1,4 +1,5 @@
-:root {
+:root,
+:root[data-theme='dark-green'] {
 	--color-canvas: #101310;
 	--color-surface: #191d1a;
 	--color-surface-raised: #222723;
@@ -8,6 +9,8 @@
 	--color-accent-strong: #9af5a1;
 	--color-border: #3b453d;
 	--color-shadow: rgb(0 0 0 / 35%);
+	--color-backdrop-glow: rgb(99 230 110 / 10%);
+	color-scheme: dark;
 
 	--font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 
@@ -20,6 +23,35 @@
 	--radius-small: 0.125rem;
 	--radius-medium: 0.375rem;
 }
+
+:root[data-theme='light-blue'] {
+	--color-canvas: #ffffff;
+	--color-surface: #ffffff;
+	--color-surface-raised: #edf4fb;
+	--color-text: #172033;
+	--color-text-muted: #56677c;
+	--color-accent: #176fc1;
+	--color-accent-strong: #3b91df;
+	--color-border: #c8d3df;
+	--color-shadow: rgb(29 53 78 / 14%);
+	--color-backdrop-glow: rgb(23 111 193 / 10%);
+	color-scheme: light;
+}
+
+:root[data-theme='dark-blue'] {
+	--color-canvas: #0d1117;
+	--color-surface: #161b22;
+	--color-surface-raised: #21262d;
+	--color-text: #f0f6fc;
+	--color-text-muted: #9da7b3;
+	--color-accent: #58a6ff;
+	--color-accent-strong: #79c0ff;
+	--color-border: #30363d;
+	--color-shadow: rgb(0 0 0 / 38%);
+	--color-backdrop-glow: rgb(88 166 255 / 10%);
+	color-scheme: dark;
+}
+
 
 *,
 *::before,
@@ -39,8 +71,11 @@ body {
 	min-block-size: 100vh;
 	margin: 0;
 	background:
-		radial-gradient(circle at 12% 0%, rgb(99 230 110 / 10%), transparent 30rem),
+		radial-gradient(circle at 12% 0%, var(--color-backdrop-glow), transparent 30rem),
 		var(--color-canvas);
+	transition:
+		background-color 180ms ease,
+		color 180ms ease;
 }
 
 main {
@@ -79,7 +114,9 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+	body,
 	main {
 		animation: none;
+		transition: none;
 	}
 }

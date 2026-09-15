@@ -1,0 +1,30 @@
+---
+import { DEFAULT_THEME_ID, THEME_STORAGE_KEY, themeIds } from '../data/themes';
+---
+
+<script
+	is:inline
+	define:vars={{
+		defaultThemeId: DEFAULT_THEME_ID,
+		themeStorageKey: THEME_STORAGE_KEY,
+		validThemeIds: themeIds,
+	}}
+>
+	(() => {
+		let selectedThemeId = defaultThemeId;
+
+		try {
+			const savedThemeId = localStorage.getItem(themeStorageKey);
+
+			if (savedThemeId && validThemeIds.includes(savedThemeId)) {
+				selectedThemeId = savedThemeId;
+			}
+		} catch {
+			// 保存領域が使用できない環境では、既定テーマで表示を続ける。
+		}
+
+		document.documentElement.dataset.theme = selectedThemeId;
+		document.documentElement.style.colorScheme =
+			selectedThemeId === 'light-blue' ? 'light' : 'dark';
+	})();
+</script>

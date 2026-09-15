@@ -1,5 +1,7 @@
 ---
 import SocialLinks from '../components/SocialLinks.astro';
+import ThemeInitializer from '../components/ThemeInitializer.astro';
+import ThemeSwitcher from '../components/ThemeSwitcher.astro';
 import '../styles/global.css';
 ---
 
@@ -9,6 +11,7 @@ import '../styles/global.css';
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+		<ThemeInitializer />
 		<meta
 			name="description"
 			content="Tsukimi41 / 薪のポートフォリオ。電気通信大学 情報理工学域 Ⅱ類で学んでいます。"
@@ -17,6 +20,7 @@ import '../styles/global.css';
 	</head>
 	<body>
 		<main>
+			<ThemeSwitcher />
 			<section class="introduction" aria-labelledby="introduction-title">
 				<h1 id="introduction-title" class="introduction__name">
 					<span>Tsukimi41</span>
