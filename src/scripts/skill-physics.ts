@@ -1,0 +1,495 @@
+export type PhysicsMaterial = 'bubble' | 'marble';
+
+export interface PhysicsCircle {
+	x: number;
+	y: number;
+	vx: number;
+	vy: number;
+	radius: number;
+	inverseMass: number;
+	material: PhysicsMaterial;
+}
+
+export interface CollisionResult {
+	readonly normalX: number;
+	readonly normalY: number;
+	readonly overlap: number;
+	readonly impulse: number;
+}
+
+interface RenderedCircle extends PhysicsCircle {
+	readonly element: HTMLElement;
+	readonly phase: number;
+	deformation: number;
+	deformationAngle: number;
+	dragPointerId?: number;
+	lastPointerX: number;
+	lastPointerY: number;
+	lastPointerTime: number;
+	dragOffsetX: number;
+	dragOffsetY: number;
+}
+
+const FIXED_TIME_STEP = 1 / 120;
+const MAX_FRAME_TIME = 1 / 20;
+const GRAVITY = 980;
+const MARBLE_RESTITUTION = 0.68;
+const BUBBLE_RESTITUTION = 0.9;
+const MIXED_RESTITUTION = 0.78;
+
+function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {
+	if (left.material === 'bubble' && right.material === 'bubble') {
+		return BUBBLE_RESTITUTION;
+	}
+
+	if (left.material === 'marble' && right.material === 'marble') {
+		return MARBLE_RESTITUTION;
+	}
+
+	return MIXED_RESTITUTION;
+}
+
+function getClosingSpeed(left: PhysicsCircle, right: PhysicsCircle): number {
+	const deltaX = right.x - left.x;
+	const deltaY = right.y - left.y;
+	const distance = Math.max(Math.hypot(deltaX, deltaY), 0.0001);
+	const relativeVelocityX = right.vx - left.vx;
+	const relativeVelocityY = right.vy - left.vy;
+
+	return Math.max(
+		0,
+		-(relativeVelocityX * deltaX + relativeVelocityY * deltaY) / distance,
+	);
+}
+
+export function resolveCircleCollision(
+	left: PhysicsCircle,
+	right: PhysicsCircle,
+): CollisionResult | undefined {
+	const deltaX = right.x - left.x;
+	const deltaY = right.y - left.y;
+	const minimumDistance = left.radius + right.radius;
+	const squaredDistance = deltaX * deltaX + deltaY * deltaY;
+
+	if (squaredDistance >= minimumDistance * minimumDistance) {
+		return undefined;
+	}
+
+	const distance = Math.max(Math.sqrt(squaredDistance), 0.0001);
+	const normalX = squaredDistance === 0 ? 1 : deltaX / distance;
+	const normalY = squaredDistance === 0 ? 0 : deltaY / distance;
+	const overlap = minimumDistance - distance;
+	const inverseMassSum = left.inverseMass + right.inverseMass;
+
+	if (inverseMassSum === 0) {
+		return { normalX, normalY, overlap, impulse: 0 };
+	}
+
+	const correction = Math.max(overlap - 0.01, 0) / inverseMassSum;
+	left.x -= normalX * correction * left.inverseMass;
+	left.y -= normalY * correction * left.inverseMass;
+	right.x += normalX * correction * right.inverseMass;
+	right.y += normalY * correction * right.inverseMass;
+
+	const relativeVelocityX = right.vx - left.vx;
+	const relativeVelocityY = right.vy - left.vy;
+	const normalVelocity = relativeVelocityX * normalX + relativeVelocityY * normalY;
+
+	if (normalVelocity >= 0) {
+		return { normalX, normalY, overlap, impulse: 0 };
+	}
+
+	const impulse = (-(1 + getRestitution(left, right)) * normalVelocity) / inverseMassSum;
+	const impulseX = impulse * normalX;
+	const impulseY = impulse * normalY;
+
+	left.vx -= impulseX * left.inverseMass;
+	left.vy -= impulseY * left.inverseMass;
+	right.vx += impulseX * right.inverseMass;
+	right.vy += impulseY * right.inverseMass;
+
+	return { normalX, normalY, overlap, impulse };
+}
+
+function parseNumber(value: string | undefined, fallback: number): number {
+	const parsed = Number.parseFloat(value ?? '');
+	return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function createCircle(
+	element: HTMLElement,
+	fieldWidth: number,
+	fieldHeight: number,
+	index: number,
+): RenderedCircle {
+	const bounds = element.getBoundingClientRect();
+	const radius = Math.max(bounds.width / 2, 8);
+	const material: PhysicsMaterial = element.dataset.physicsMaterial === 'marble' ? 'marble' : 'bubble';
+	const percentageX = parseNumber(element.dataset.physicsX, 50) / 100;
+	const percentageY = parseNumber(element.dataset.physicsY, 50) / 100;
+	const density = material === 'marble' ? 1 : 0.055;
+	const mass = Math.PI * radius * radius * density;
+
+	return {
+		element,
+		material,
+		radius,
+		x: Math.min(Math.max(fieldWidth * percentageX, radius), fieldWidth - radius),
+		y:
+			material === 'marble'
+				? Math.min(Math.max(fieldHeight - fieldHeight * percentageY - radius, radius), fieldHeight - radius)
+				: Math.min(Math.max(fieldHeight * percentageY, radius), fieldHeight - radius),
+		vx: material === 'bubble' ? ((index % 3) - 1) * 13 : 0,
+		vy: material === 'bubble' ? -9 - (index % 4) * 2 : 0,
+		inverseMass: 1 / mass,
+		phase: index * 1.73,
+		deformation: 0,
+		deformationAngle: 0,
+		lastPointerX: 0,
+		lastPointerY: 0,
+		lastPointerTime: 0,
+		dragOffsetX: 0,
+		dragOffsetY: 0,
+	};
+}
+
+function constrainToField(body: RenderedCircle, width: number, height: number): void {
+	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
+
+	if (body.x < body.radius) {
+		body.x = body.radius;
+		body.vx = Math.abs(body.vx) * restitution;
+	} else if (body.x > width - body.radius) {
+		body.x = width - body.radius;
+		body.vx = -Math.abs(body.vx) * restitution;
+	}
+
+	if (body.y < body.radius) {
+		body.y = body.radius;
+		body.vy = Math.abs(body.vy) * restitution;
+	} else if (body.y > height - body.radius) {
+		body.y = height - body.radius;
+		body.vy = -Math.abs(body.vy) * restitution;
+
+		if (body.material === 'marble') {
+			body.vx *= 0.86;
+			if (Math.abs(body.vy) < 16) {
+				body.vy = 0;
+			}
+		}
+	}
+}
+
+function deformBubble(
+	body: RenderedCircle,
+	impact: number,
+	normalX: number,
+	normalY: number,
+): void {
+	if (body.material !== 'bubble') {
+		return;
+	}
+
+	body.deformation = Math.min(0.24, Math.max(body.deformation, impact));
+	body.deformationAngle = Math.atan2(normalY, normalX);
+}
+
+function renderCircle(body: RenderedCircle): void {
+	body.element.style.inset = '0 auto auto 0';
+	body.element.style.transform = `translate3d(${body.x - body.radius}px, ${body.y - body.radius}px, 0)`;
+
+	if (body.material === 'bubble') {
+		body.element.style.setProperty('--deform-x', String(1 + body.deformation));
+		body.element.style.setProperty('--deform-y', String(1 - body.deformation * 0.72));
+		body.element.style.setProperty('--deform-angle', `${body.deformationAngle}rad`);
+	}
+}
+
+function findNearestMarble(
+	bodies: readonly RenderedCircle[],
+	x: number,
+	y: number,
+): RenderedCircle | undefined {
+	let nearest: RenderedCircle | undefined;
+	let nearestDistance = Number.POSITIVE_INFINITY;
+
+	for (const body of bodies) {
+		if (body.material !== 'marble') {
+			continue;
+		}
+
+		const distance = Math.hypot(x - body.x, y - body.y);
+		if (distance <= body.radius + 14 && distance < nearestDistance) {
+			nearest = body;
+			nearestDistance = distance;
+		}
+	}
+
+	return nearest;
+}
+
+export function startSkillPhysics(field: HTMLElement): () => void {
+	if (field.dataset.physicsReady === 'true') {
+		return () => undefined;
+	}
+
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	if (reducedMotion.matches) {
+		return () => undefined;
+	}
+
+	field.dataset.physicsReady = 'true';
+	const elements = Array.from(
+		field.querySelectorAll<HTMLElement>('[data-physics-object]'),
+	);
+	let fieldBounds = field.getBoundingClientRect();
+	const bodies = elements.map((element, index) =>
+		createCircle(element, fieldBounds.width, fieldBounds.height, index),
+	);
+	const bodiesByElement = new Map(bodies.map((body) => [body.element, body]));
+	let draggedBody: RenderedCircle | undefined;
+	let pointerX = -10000;
+	let pointerY = -10000;
+	let previousTime = performance.now();
+	let accumulator = 0;
+	let animationFrame = 0;
+
+	const getLocalPointer = (event: PointerEvent): { x: number; y: number } => ({
+		x: event.clientX - fieldBounds.left,
+		y: event.clientY - fieldBounds.top,
+	});
+
+	const onPointerDown = (event: PointerEvent): void => {
+		fieldBounds = field.getBoundingClientRect();
+		const pointer = getLocalPointer(event);
+		const marble = findNearestMarble(bodies, pointer.x, pointer.y);
+
+		if (marble) {
+			event.preventDefault();
+			draggedBody = marble;
+			marble.dragPointerId = event.pointerId;
+			marble.lastPointerX = pointer.x;
+			marble.lastPointerY = pointer.y;
+			marble.lastPointerTime = event.timeStamp;
+			marble.dragOffsetX = marble.x - pointer.x;
+			marble.dragOffsetY = marble.y - pointer.y;
+			marble.vx = 0;
+			marble.vy = 0;
+			marble.element.classList.add('is-dragged');
+			field.setPointerCapture(event.pointerId);
+			return;
+		}
+
+		for (const body of bodies) {
+			if (body.material !== 'bubble') {
+				continue;
+			}
+
+			const deltaX = body.x - pointer.x;
+			const deltaY = body.y - pointer.y;
+			const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
+			if (distance > body.radius + 42) {
+				continue;
+			}
+
+			const impulse = 115 * (1 - distance / (body.radius + 42));
+			body.vx += (deltaX / distance) * impulse;
+			body.vy += (deltaY / distance) * impulse;
+			deformBubble(body, 0.18, deltaX / distance, deltaY / distance);
+		}
+	};
+
+	const onPointerMove = (event: PointerEvent): void => {
+		fieldBounds = field.getBoundingClientRect();
+		const pointer = getLocalPointer(event);
+		pointerX = pointer.x;
+		pointerY = pointer.y;
+
+		if (draggedBody?.dragPointerId === event.pointerId) {
+			event.preventDefault();
+			const elapsed = Math.max((event.timeStamp - draggedBody.lastPointerTime) / 1000, 1 / 240);
+			draggedBody.vx = (pointer.x - draggedBody.lastPointerX) / elapsed;
+			draggedBody.vy = (pointer.y - draggedBody.lastPointerY) / elapsed;
+			draggedBody.x = pointer.x + draggedBody.dragOffsetX;
+			draggedBody.y = pointer.y + draggedBody.dragOffsetY;
+			draggedBody.lastPointerX = pointer.x;
+			draggedBody.lastPointerY = pointer.y;
+			draggedBody.lastPointerTime = event.timeStamp;
+			constrainToField(draggedBody, fieldBounds.width, fieldBounds.height);
+			return;
+		}
+
+		for (const body of bodies) {
+			if (body.material !== 'bubble') {
+				continue;
+			}
+
+			const deltaX = body.x - pointer.x;
+			const deltaY = body.y - pointer.y;
+			const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
+			const range = body.radius + 74;
+
+			if (distance < range) {
+				const force = (1 - distance / range) * 8;
+				body.vx += (deltaX / distance) * force;
+				body.vy += (deltaY / distance) * force;
+				deformBubble(body, force * 0.015, deltaX / distance, deltaY / distance);
+			}
+		}
+	};
+
+	const releaseDraggedBody = (event: PointerEvent): void => {
+		if (draggedBody?.dragPointerId !== event.pointerId) {
+			return;
+		}
+
+		draggedBody.vx = Math.max(-1250, Math.min(1250, draggedBody.vx));
+		draggedBody.vy = Math.max(-1250, Math.min(1250, draggedBody.vy));
+		draggedBody.element.classList.remove('is-dragged');
+		draggedBody.dragPointerId = undefined;
+		draggedBody = undefined;
+
+		if (field.hasPointerCapture(event.pointerId)) {
+			field.releasePointerCapture(event.pointerId);
+		}
+	};
+
+	const onPointerLeave = (): void => {
+		pointerX = -10000;
+		pointerY = -10000;
+	};
+
+	const onKeyDown = (event: KeyboardEvent): void => {
+		if (!(event.target instanceof HTMLElement)) {
+			return;
+		}
+
+		const element = event.target.closest<HTMLElement>('[data-physics-object]');
+		const body = element ? bodiesByElement.get(element) : undefined;
+		if (!body) {
+			return;
+		}
+
+		const impulses: Readonly<Record<string, readonly [number, number]>> = {
+			ArrowLeft: [-150, 0],
+			ArrowRight: [150, 0],
+			ArrowUp: [0, -180],
+			ArrowDown: [0, 150],
+			Enter: [body.material === 'bubble' ? 80 : 0, -220],
+			' ': [body.material === 'bubble' ? -80 : 0, -220],
+		};
+		const impulse = impulses[event.key];
+
+		if (!impulse) {
+			return;
+		}
+
+		event.preventDefault();
+		body.vx += impulse[0];
+		body.vy += impulse[1];
+		deformBubble(body, 0.12, impulse[0], impulse[1]);
+	};
+
+	const resizeObserver = new ResizeObserver(() => {
+		fieldBounds = field.getBoundingClientRect();
+		for (const body of bodies) {
+			constrainToField(body, fieldBounds.width, fieldBounds.height);
+		}
+	});
+
+	const simulate = (elapsed: number, time: number): void => {
+		for (const body of bodies) {
+			if (body.dragPointerId !== undefined) {
+				continue;
+			}
+
+			if (body.material === 'marble') {
+				body.vy += GRAVITY * elapsed;
+				body.vx *= Math.pow(0.998, elapsed * 60);
+			} else {
+				const wind = Math.sin(time * 0.0007 + body.phase) * 5.5;
+				body.vx += wind * elapsed;
+				body.vy -= (18 + Math.cos(body.phase) * 5) * elapsed;
+				body.vx *= Math.pow(0.993, elapsed * 60);
+				body.vy *= Math.pow(0.995, elapsed * 60);
+
+				const pointerDistance = Math.hypot(body.x - pointerX, body.y - pointerY);
+				if (pointerDistance < body.radius + 56) {
+					deformBubble(body, 0.04, body.x - pointerX, body.y - pointerY);
+				}
+			}
+
+			body.x += body.vx * elapsed;
+			body.y += body.vy * elapsed;
+			body.deformation *= Math.exp(-7 * elapsed);
+			constrainToField(body, fieldBounds.width, fieldBounds.height);
+		}
+
+		for (let pass = 0; pass < 2; pass += 1) {
+			for (let leftIndex = 0; leftIndex < bodies.length; leftIndex += 1) {
+				for (let rightIndex = leftIndex + 1; rightIndex < bodies.length; rightIndex += 1) {
+					const left = bodies[leftIndex];
+					const right = bodies[rightIndex];
+					if (!left || !right) {
+						continue;
+					}
+
+					const leftInverseMass = left.inverseMass;
+					const rightInverseMass = right.inverseMass;
+					if (left.dragPointerId !== undefined) left.inverseMass = 0;
+					if (right.dragPointerId !== undefined) right.inverseMass = 0;
+
+					const closingSpeed = getClosingSpeed(left, right);
+					const collision = resolveCircleCollision(left, right);
+					left.inverseMass = leftInverseMass;
+					right.inverseMass = rightInverseMass;
+
+					if (collision) {
+						const relativeOverlap = collision.overlap / Math.max(Math.min(left.radius, right.radius), 1);
+						const impact = Math.min(0.24, closingSpeed / 850 + relativeOverlap * 0.12);
+						deformBubble(left, impact, -collision.normalX, -collision.normalY);
+						deformBubble(right, impact, collision.normalX, collision.normalY);
+					}
+				}
+			}
+		}
+	};
+
+	const frame = (time: number): void => {
+		const frameTime = Math.min((time - previousTime) / 1000, MAX_FRAME_TIME);
+		previousTime = time;
+		accumulator += frameTime;
+
+		while (accumulator >= FIXED_TIME_STEP) {
+			simulate(FIXED_TIME_STEP, time);
+			accumulator -= FIXED_TIME_STEP;
+		}
+
+		for (const body of bodies) {
+			renderCircle(body);
+		}
+
+		animationFrame = window.requestAnimationFrame(frame);
+	};
+
+	field.addEventListener('pointerdown', onPointerDown);
+	field.addEventListener('pointermove', onPointerMove);
+	field.addEventListener('pointerup', releaseDraggedBody);
+	field.addEventListener('pointercancel', releaseDraggedBody);
+	field.addEventListener('pointerleave', onPointerLeave);
+	field.addEventListener('keydown', onKeyDown);
+	resizeObserver.observe(field);
+	animationFrame = window.requestAnimationFrame(frame);
+
+	return () => {
+		window.cancelAnimationFrame(animationFrame);
+		resizeObserver.disconnect();
+		field.removeEventListener('pointerdown', onPointerDown);
+		field.removeEventListener('pointermove', onPointerMove);
+		field.removeEventListener('pointerup', releaseDraggedBody);
+		field.removeEventListener('pointercancel', releaseDraggedBody);
+		field.removeEventListener('pointerleave', onPointerLeave);
+		field.removeEventListener('keydown', onKeyDown);
+		delete field.dataset.physicsReady;
+	};
+}

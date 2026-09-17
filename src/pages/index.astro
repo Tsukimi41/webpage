@@ -2,7 +2,7 @@
 import ProfileIntroduction from '../components/ProfileIntroduction.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
 import SkillShowcase from '../components/SkillShowcase.astro';
-import { getFeaturedProjects, getProjects } from '../content/projects';
+import { getFeaturedProjects } from '../content/projects';
 import { getSkills } from '../content/skills';
 import { profile, profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -11,11 +11,10 @@ const pageTitle = `${profileDisplayName} | ポートフォリオ`;
 const pageDescription = `${profileDisplayName}のポートフォリオ。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
 const featuredProjects = getFeaturedProjects({ limit: 3 });
 const skills = getSkills();
-const projects = getProjects();
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<ProfileIntroduction />
-	<SkillShowcase skills={skills} projects={projects} />
+	<SkillShowcase skills={skills} />
 	<ProjectShowcase projects={featuredProjects} />
 </BaseLayout>
