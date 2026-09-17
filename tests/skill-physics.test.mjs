@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
 	applyFloorFriction,
 	resolveCircleCollision,
+	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
 } from '../src/scripts/skill-physics.ts';
 
@@ -21,6 +22,14 @@ function circle(overrides = {}) {
 		...overrides,
 	};
 }
+
+test('physics tuning is immutable and keeps material relationships explicit', () => {
+	assert.equal(Object.isFrozen(SKILL_PHYSICS_TUNING), true);
+	assert.ok(SKILL_PHYSICS_TUNING.floorStaticFriction > SKILL_PHYSICS_TUNING.floorDynamicFriction);
+	assert.ok(SKILL_PHYSICS_TUNING.marbleStaticFriction > SKILL_PHYSICS_TUNING.marbleDynamicFriction);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleRestitution < SKILL_PHYSICS_TUNING.marbleRestitution);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleNetBuoyancy > 0);
+});
 
 test('separated circles do not produce a collision', () => {
 	const left = circle();
