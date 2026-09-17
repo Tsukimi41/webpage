@@ -23,11 +23,20 @@ const {
 					<div class="project-timeline__card">
 						<ProjectCard project={project} headingLevel={cardHeadingLevel} />
 					</div>
-					<div class="project-timeline__node" aria-hidden="true">
-						<span class="project-timeline__ticks" />
-						<span class="project-timeline__orbit" />
-						<span class="project-timeline__core" />
-					</div>
+					<button
+						class="project-timeline__node"
+						type="button"
+						aria-label={`「${project.title}」のノードアニメーションを再生`}
+						data-project-node
+					>
+						<span class="project-timeline__ticks" aria-hidden="true" />
+						<span class="project-timeline__orbit" aria-hidden="true" />
+						<span class="project-timeline__scan" aria-hidden="true" />
+						<span class="project-timeline__sparks" aria-hidden="true" />
+						<span class="project-timeline__pulse project-timeline__pulse--outer" aria-hidden="true" />
+						<span class="project-timeline__pulse project-timeline__pulse--inner" aria-hidden="true" />
+						<span class="project-timeline__core" aria-hidden="true" />
+					</button>
 				</li>
 			))}
 		</ul>
@@ -35,6 +44,37 @@ const {
 		<p class="project-grid__empty">{emptyMessage}</p>
 	)
 }
+
+<script>
+	const projectNodes = document.querySelectorAll<HTMLButtonElement>('[data-project-node]');
+	const replayTimers = new WeakMap<HTMLButtonElement, number>();
+
+	projectNodes.forEach((node) => {
+		if (node.dataset.animationReady === 'true') {
+			return;
+		}
+
+		node.dataset.animationReady = 'true';
+		node.addEventListener('click', () => {
+			const previousTimer = replayTimers.get(node);
+
+			if (previousTimer !== undefined) {
+				window.clearTimeout(previousTimer);
+			}
+
+			node.classList.remove('project-timeline__node--activated');
+			void node.offsetWidth;
+			node.classList.add('project-timeline__node--activated');
+
+			const timer = window.setTimeout(() => {
+				node.classList.remove('project-timeline__node--activated');
+				replayTimers.delete(node);
+			}, 1600);
+
+			replayTimers.set(node, timer);
+		});
+	});
+</script>
 
 <style>
 	.project-timeline {
@@ -122,6 +162,7 @@ const {
 		place-items: center;
 		inline-size: var(--timeline-node-size);
 		aspect-ratio: 1;
+		padding: 0;
 		border: 0.1875rem solid var(--color-accent);
 		border-radius: 50%;
 		background:
@@ -132,16 +173,42 @@ const {
 			0 0 0 0.5rem var(--color-border),
 			0 0 1.75rem var(--color-backdrop-glow),
 			inset 0 0 1.25rem var(--color-shadow);
+		color: inherit;
+		cursor: pointer;
+		font: inherit;
+		touch-action: manipulation;
 		transform: scale(0) rotate(-135deg);
+		-webkit-appearance: none;
+		appearance: none;
 		animation: timeline-node-enter 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 		animation-delay: var(--timeline-delay);
 	}
 
+	.project-timeline__node::before {
+		position: absolute;
+		z-index: -1;
+		inset: -0.1875rem;
+		border: 0.1875rem solid var(--color-accent-strong);
+		border-radius: inherit;
+		content: '';
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.project-timeline__node:focus-visible {
+		outline: 0.1875rem solid var(--color-accent-strong);
+		outline-offset: 0.625rem;
+	}
+
 	.project-timeline__ticks,
 	.project-timeline__orbit,
+	.project-timeline__scan,
+	.project-timeline__sparks,
+	.project-timeline__pulse,
 	.project-timeline__core {
 		position: absolute;
 		border-radius: 50%;
+		pointer-events: none;
 	}
 
 	.project-timeline__ticks {
@@ -162,8 +229,6 @@ const {
 		box-shadow:
 			0 0 0 0.1875rem color-mix(in srgb, var(--color-accent) 12%, transparent),
 			inset 0 0 0.75rem var(--color-backdrop-glow);
-		animation: timeline-orbit-calibrate 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
-		animation-delay: calc(var(--timeline-delay) + 280ms);
 	}
 
 	.project-timeline__orbit::before,
@@ -197,20 +262,94 @@ const {
 		box-shadow:
 			0 0 0 0.1875rem var(--color-accent-strong),
 			0 0 1rem var(--color-accent);
-		animation: timeline-core-boot 800ms ease-out both;
-		animation-delay: calc(var(--timeline-delay) + 420ms);
 	}
 
 	.project-timeline__node:hover .project-timeline__orbit,
+	.project-timeline__node:focus-visible .project-timeline__orbit,
 	.project-timeline__card:hover + .project-timeline__node .project-timeline__orbit,
 	.project-timeline__card:focus-within + .project-timeline__node .project-timeline__orbit {
 		animation: timeline-orbit-spin 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
 
 	.project-timeline__node:hover .project-timeline__ticks,
+	.project-timeline__node:focus-visible .project-timeline__ticks,
 	.project-timeline__card:hover + .project-timeline__node .project-timeline__ticks,
 	.project-timeline__card:focus-within + .project-timeline__node .project-timeline__ticks {
 		animation: timeline-ticks-react 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.project-timeline__scan {
+		inset: 0.375rem;
+		background: conic-gradient(
+			from 0deg,
+			transparent 0 78%,
+			color-mix(in srgb, var(--color-accent-strong) 88%, transparent) 88%,
+			transparent 98%
+		);
+		opacity: 0;
+		-webkit-mask: radial-gradient(circle, transparent 0 42%, #000 44% 66%, transparent 68%);
+		mask: radial-gradient(circle, transparent 0 42%, #000 44% 66%, transparent 68%);
+	}
+
+	.project-timeline__sparks {
+		inset: 50%;
+		inline-size: 0.375rem;
+		aspect-ratio: 1;
+		background: var(--color-accent-strong);
+		box-shadow:
+			0 -1.9rem 0 -0.0625rem var(--color-accent),
+			1.35rem -1.35rem 0 -0.0625rem var(--color-accent-strong),
+			1.9rem 0 0 -0.0625rem var(--color-accent),
+			1.35rem 1.35rem 0 -0.0625rem var(--color-accent-strong),
+			0 1.9rem 0 -0.0625rem var(--color-accent),
+			-1.35rem 1.35rem 0 -0.0625rem var(--color-accent-strong),
+			-1.9rem 0 0 -0.0625rem var(--color-accent),
+			-1.35rem -1.35rem 0 -0.0625rem var(--color-accent-strong);
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.2) rotate(0);
+	}
+
+	.project-timeline__pulse {
+		inset: -0.1875rem;
+		border: 0.1875rem solid var(--color-accent);
+		opacity: 0;
+	}
+
+	.project-timeline__pulse--inner {
+		inset: 0.5rem;
+		border-color: var(--color-accent-strong);
+	}
+
+	.project-timeline__node--activated::before {
+		animation: timeline-node-activate 1500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.project-timeline__node--activated .project-timeline__ticks {
+		animation: timeline-ticks-activate 1300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.project-timeline__node--activated .project-timeline__orbit {
+		animation: timeline-orbit-activate 1300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.project-timeline__node--activated .project-timeline__scan {
+		animation: timeline-scan-activate 1200ms 80ms ease-out both;
+	}
+
+	.project-timeline__node--activated .project-timeline__sparks {
+		animation: timeline-sparks-activate 1100ms 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+
+	.project-timeline__node--activated .project-timeline__pulse--outer {
+		animation: timeline-pulse-activate 1000ms 80ms ease-out both;
+	}
+
+	.project-timeline__node--activated .project-timeline__pulse--inner {
+		animation: timeline-pulse-activate 900ms 260ms ease-out both;
+	}
+
+	.project-timeline__node--activated .project-timeline__core {
+		animation: timeline-core-activate 1200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 
 	.project-grid__empty {
@@ -233,16 +372,6 @@ const {
 		}
 	}
 
-	@keyframes timeline-orbit-calibrate {
-		from {
-			transform: rotate(-180deg) scale(0.6);
-		}
-
-		to {
-			transform: rotate(0) scale(1);
-		}
-	}
-
 	@keyframes timeline-orbit-spin {
 		to {
 			transform: rotate(1turn);
@@ -255,19 +384,115 @@ const {
 		}
 	}
 
-	@keyframes timeline-core-boot {
-		0% {
+	@keyframes timeline-node-activate {
+		0%,
+		100% {
 			opacity: 0;
-			transform: scale(0);
+			transform: scale(1) rotate(0);
 		}
 
-		55% {
+		18% {
+			opacity: 0.75;
+			transform: scale(0.86) rotate(-8deg);
+		}
+
+		42% {
 			opacity: 1;
-			transform: scale(1.6);
+			box-shadow:
+				0 0 0 0.625rem var(--color-accent-strong),
+				0 0 3rem var(--color-accent);
+			transform: scale(1.14) rotate(5deg);
+		}
+	}
+
+	@keyframes timeline-ticks-activate {
+		0%,
+		100% {
+			opacity: 0.78;
+			transform: rotate(0) scale(1);
+		}
+
+		45% {
+			opacity: 1;
+			transform: rotate(-0.75turn) scale(1.18);
+		}
+	}
+
+	@keyframes timeline-orbit-activate {
+		0%,
+		100% {
+			transform: rotate(0) scale(1);
+		}
+
+		35% {
+			transform: rotate(1.25turn) scale(0.72);
+		}
+
+		68% {
+			transform: rotate(1.75turn) scale(1.12);
+		}
+	}
+
+	@keyframes timeline-scan-activate {
+		0% {
+			opacity: 0;
+			transform: rotate(0) scale(0.5);
+		}
+
+		25%,
+		70% {
+			opacity: 1;
 		}
 
 		100% {
+			opacity: 0;
+			transform: rotate(2turn) scale(1.3);
+		}
+	}
+
+	@keyframes timeline-sparks-activate {
+		0% {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.2) rotate(0);
+		}
+
+		35% {
+			opacity: 1;
+		}
+
+		100% {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(1.65) rotate(0.375turn);
+		}
+	}
+
+	@keyframes timeline-pulse-activate {
+		0% {
+			opacity: 0.9;
+			transform: scale(0.7);
+		}
+
+		100% {
+			opacity: 0;
+			transform: scale(2.25);
+		}
+	}
+
+	@keyframes timeline-core-activate {
+		0%,
+		100% {
+			filter: brightness(1);
 			transform: scale(1);
+		}
+
+		24% {
+			filter: brightness(1.8);
+			transform: scale(0.35);
+		}
+
+		52% {
+			filter: brightness(1.35);
+			transform: scale(2.15);
 		}
 	}
 
@@ -322,13 +547,25 @@ const {
 		.project-timeline__node,
 		.project-timeline__orbit,
 		.project-timeline__ticks,
+		.project-timeline__scan,
+		.project-timeline__sparks,
+		.project-timeline__pulse,
 		.project-timeline__core,
 		.project-timeline__node:hover .project-timeline__orbit,
+		.project-timeline__node:focus-visible .project-timeline__orbit,
 		.project-timeline__node:hover .project-timeline__ticks,
+		.project-timeline__node:focus-visible .project-timeline__ticks,
 		.project-timeline__card:hover + .project-timeline__node .project-timeline__orbit,
 		.project-timeline__card:hover + .project-timeline__node .project-timeline__ticks,
 		.project-timeline__card:focus-within + .project-timeline__node .project-timeline__orbit,
-		.project-timeline__card:focus-within + .project-timeline__node .project-timeline__ticks {
+		.project-timeline__card:focus-within + .project-timeline__node .project-timeline__ticks,
+		.project-timeline__node--activated::before,
+		.project-timeline__node--activated .project-timeline__ticks,
+		.project-timeline__node--activated .project-timeline__orbit,
+		.project-timeline__node--activated .project-timeline__scan,
+		.project-timeline__node--activated .project-timeline__sparks,
+		.project-timeline__node--activated .project-timeline__pulse,
+		.project-timeline__node--activated .project-timeline__core {
 			animation: none;
 			transform: none;
 		}
