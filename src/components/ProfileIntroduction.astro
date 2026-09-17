@@ -1,0 +1,140 @@
+---
+import { profile } from '../data/profile';
+import SocialLinks from './SocialLinks.astro';
+
+interface Props {
+	headingId?: string;
+}
+
+const { headingId = 'introduction-title' } = Astro.props;
+---
+
+<section class="introduction" aria-labelledby={headingId}>
+	<h1 id={headingId} class="introduction__name">
+		<span>{profile.handle}</span>
+		<span class="introduction__separator" aria-hidden="true">/</span>
+		<span lang="ja">{profile.penName}</span>
+	</h1>
+	<p class="introduction__affiliation">
+		<span>{profile.affiliation.university}</span>
+		<span>{profile.affiliation.faculty}</span>
+	</p>
+	<SocialLinks />
+</section>
+
+<style>
+	.introduction {
+		position: relative;
+		display: grid;
+		align-content: center;
+		overflow: hidden;
+		min-block-size: min(42rem, 72svh);
+		padding: clamp(var(--space-3), 7vw, 6rem);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background:
+			linear-gradient(135deg, var(--color-surface-raised) 0 1px, transparent 1px) 100% 0 / 8rem 8rem no-repeat,
+			color-mix(in srgb, var(--color-surface) 92%, transparent);
+		box-shadow: 0 1.5rem 4rem var(--color-shadow);
+	}
+
+	.introduction::before {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline: 0;
+		block-size: 0.1875rem;
+		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
+		content: '';
+		transform: scaleX(0);
+		transform-origin: left;
+		animation: accent-line-enter 600ms 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	}
+
+	.introduction::after {
+		position: absolute;
+		inset-block-end: clamp(var(--space-2), 3vw, var(--space-4));
+		inset-inline-end: clamp(var(--space-2), 3vw, var(--space-4));
+		inline-size: clamp(2rem, 6vw, 4rem);
+		aspect-ratio: 1;
+		border-inline-end: 1px solid var(--color-accent);
+		border-block-end: 1px solid var(--color-accent);
+		content: '';
+		opacity: 0.65;
+	}
+
+	.introduction__name {
+		display: flex;
+		flex-wrap: nowrap;
+		align-items: baseline;
+		gap: 0 clamp(var(--space-1), 2vw, var(--space-3));
+		inline-size: max-content;
+		max-inline-size: 100%;
+		white-space: nowrap;
+		word-break: keep-all;
+		animation: content-enter 420ms 100ms ease-out both;
+	}
+
+	.introduction__separator {
+		color: var(--color-accent-strong);
+		font-weight: 300;
+		transform: translateY(-0.06em);
+	}
+
+	.introduction__affiliation {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		margin-block-start: var(--space-3);
+		padding-inline-start: var(--space-2);
+		border-inline-start: 1px solid var(--color-accent);
+		font-weight: 600;
+		animation: content-enter 420ms 180ms ease-out both;
+	}
+
+	@keyframes accent-line-enter {
+		to {
+			transform: scaleX(1);
+		}
+	}
+
+	@keyframes content-enter {
+		from {
+			opacity: 0;
+			transform: translateY(0.5rem);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.introduction::before,
+		.introduction__name,
+		.introduction__affiliation {
+			animation: none;
+		}
+
+		.introduction::before {
+			transform: scaleX(1);
+		}
+	}
+
+	@media (min-width: 48rem) {
+		.introduction__affiliation {
+			inline-size: max-content;
+			margin-inline-start: min(44%, 22rem);
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.introduction {
+			min-block-size: 70svh;
+		}
+
+		.introduction__name {
+			font-size: clamp(1.65rem, 8vw, 2rem);
+		}
+	}
+</style>
