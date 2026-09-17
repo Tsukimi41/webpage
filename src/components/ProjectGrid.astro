@@ -20,13 +20,13 @@ const {
 		<ul class="project-timeline" role="list">
 			{projects.map((project, index) => (
 				<li class="project-timeline__item" style={`--timeline-delay: ${240 + index * 140}ms`}>
+					<div class="project-timeline__card">
+						<ProjectCard project={project} headingLevel={cardHeadingLevel} />
+					</div>
 					<div class="project-timeline__node" aria-hidden="true">
 						<span class="project-timeline__ticks" />
 						<span class="project-timeline__orbit" />
 						<span class="project-timeline__core" />
-					</div>
-					<div class="project-timeline__card">
-						<ProjectCard project={project} headingLevel={cardHeadingLevel} />
 					</div>
 				</li>
 			))}
@@ -105,6 +105,7 @@ const {
 		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
 		box-shadow: 0 0 0.625rem var(--color-backdrop-glow);
 		content: '';
+		pointer-events: none;
 	}
 
 	.project-timeline__item:nth-child(even) .project-timeline__card::before {
@@ -200,13 +201,15 @@ const {
 		animation-delay: calc(var(--timeline-delay) + 420ms);
 	}
 
-	.project-timeline__item:hover .project-timeline__orbit,
-	.project-timeline__item:focus-within .project-timeline__orbit {
+	.project-timeline__node:hover .project-timeline__orbit,
+	.project-timeline__card:hover + .project-timeline__node .project-timeline__orbit,
+	.project-timeline__card:focus-within + .project-timeline__node .project-timeline__orbit {
 		animation: timeline-orbit-spin 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
 
-	.project-timeline__item:hover .project-timeline__ticks,
-	.project-timeline__item:focus-within .project-timeline__ticks {
+	.project-timeline__node:hover .project-timeline__ticks,
+	.project-timeline__card:hover + .project-timeline__node .project-timeline__ticks,
+	.project-timeline__card:focus-within + .project-timeline__node .project-timeline__ticks {
 		animation: timeline-ticks-react 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
 
@@ -320,10 +323,12 @@ const {
 		.project-timeline__orbit,
 		.project-timeline__ticks,
 		.project-timeline__core,
-		.project-timeline__item:hover .project-timeline__orbit,
-		.project-timeline__item:hover .project-timeline__ticks,
-		.project-timeline__item:focus-within .project-timeline__orbit,
-		.project-timeline__item:focus-within .project-timeline__ticks {
+		.project-timeline__node:hover .project-timeline__orbit,
+		.project-timeline__node:hover .project-timeline__ticks,
+		.project-timeline__card:hover + .project-timeline__node .project-timeline__orbit,
+		.project-timeline__card:hover + .project-timeline__node .project-timeline__ticks,
+		.project-timeline__card:focus-within + .project-timeline__node .project-timeline__orbit,
+		.project-timeline__card:focus-within + .project-timeline__node .project-timeline__ticks {
 			animation: none;
 			transform: none;
 		}
