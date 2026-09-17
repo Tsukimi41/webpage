@@ -10,7 +10,7 @@ const { project, headingLevel = 'h2' } = Astro.props;
 const Heading = headingLevel;
 ---
 
-<article class="project-card">
+<article class="project-card" tabindex="0">
 	<header class="project-card__header">
 		<p class="project-card__period">{project.period}</p>
 		<Heading class="project-card__title">{project.title}</Heading>
@@ -42,6 +42,11 @@ const Heading = headingLevel;
 		border-radius: var(--radius-small);
 		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
 		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+	}
+
+	.project-card:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
 	}
 
 	.project-card::before {
