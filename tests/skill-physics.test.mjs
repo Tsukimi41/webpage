@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resolveCircleCollision } from '../src/scripts/skill-physics.ts';
+import {
+	applyFloorFriction,
+	resolveCircleCollision,
+} from '../src/scripts/skill-physics.ts';
 
 function circle(overrides = {}) {
 	return {
@@ -9,6 +12,8 @@ function circle(overrides = {}) {
 		y: 0,
 		vx: 0,
 		vy: 0,
+		angle: 0,
+		angularVelocity: 0,
 		radius: 10,
 		inverseMass: 1,
 		material: 'marble',
@@ -59,4 +64,35 @@ test('coincident stationary circles are separated without non-finite values', ()
 	assert.ok(Number.isFinite(left.x));
 	assert.ok(Number.isFinite(right.x));
 	assert.ok(left.x < right.x);
+});
+
+test('marble contact friction transfers tangential motion into rotation', () => {
+	const left = circle({ vx: 100, vy: 60 });
+	const right = circle({ x: 18, vx: -100, vy: -60 });
+
+	const collision = resolveCircleCollision(left, right);
+
+	assert.ok(collision);
+	assert.notEqual(collision.frictionImpulse, 0);
+	assert.notEqual(left.angularVelocity, 0);
+	assert.notEqual(right.angularVelocity, 0);
+});
+
+test('strong floor friction slows a sliding marble and starts rolling it', () => {
+	const marble = circle({ vx: 240 });
+
+	applyFloorFriction(marble, 1 / 120);
+
+	assert.ok(marble.vx < 240);
+	assert.ok(marble.angularVelocity > 0);
+	assert.ok(Math.abs(marble.vx - marble.angularVelocity * marble.radius) < 240);
+});
+
+test('floor static friction brings a nearly resting marble to a full stop', () => {
+	const marble = circle({ vx: 0.2, angularVelocity: 0.019 });
+
+	applyFloorFriction(marble, 1 / 120);
+
+	assert.equal(marble.vx, 0);
+	assert.equal(marble.angularVelocity, 0);
 });

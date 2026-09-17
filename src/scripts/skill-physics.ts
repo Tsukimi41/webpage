@@ -5,6 +5,8 @@ export interface PhysicsCircle {
 	y: number;
 	vx: number;
 	vy: number;
+	angle: number;
+	angularVelocity: number;
 	radius: number;
 	inverseMass: number;
 	material: PhysicsMaterial;
@@ -15,6 +17,7 @@ export interface CollisionResult {
 	readonly normalY: number;
 	readonly overlap: number;
 	readonly impulse: number;
+	readonly frictionImpulse: number;
 }
 
 interface RenderedCircle extends PhysicsCircle {
@@ -32,10 +35,27 @@ interface RenderedCircle extends PhysicsCircle {
 
 const FIXED_TIME_STEP = 1 / 120;
 const MAX_FRAME_TIME = 1 / 20;
-const GRAVITY = 980;
-const MARBLE_RESTITUTION = 0.68;
+const SOLVER_ITERATIONS = 5;
+const GRAVITY = 1_650;
+const BUBBLE_NET_BUOYANCY = 34;
+const MARBLE_RESTITUTION = 0.58;
 const BUBBLE_RESTITUTION = 0.9;
 const MIXED_RESTITUTION = 0.78;
+const RESTING_COLLISION_SPEED = 34;
+const FLOOR_STATIC_FRICTION = 0.92;
+const FLOOR_DYNAMIC_FRICTION = 0.72;
+const FLOOR_ROLLING_RESISTANCE = 0.055;
+const MARBLE_STATIC_FRICTION = 0.38;
+const MARBLE_DYNAMIC_FRICTION = 0.26;
+const MIXED_STATIC_FRICTION = 0.1;
+const MIXED_DYNAMIC_FRICTION = 0.065;
+const BUBBLE_STATIC_FRICTION = 0.025;
+const BUBBLE_DYNAMIC_FRICTION = 0.012;
+
+interface FrictionCoefficients {
+	readonly static: number;
+	readonly dynamic: number;
+}
 
 function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {
 	if (left.material === 'bubble' && right.material === 'bubble') {
@@ -47,6 +67,22 @@ function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {
 	}
 
 	return MIXED_RESTITUTION;
+}
+
+function getFriction(left: PhysicsCircle, right: PhysicsCircle): FrictionCoefficients {
+	if (left.material === 'marble' && right.material === 'marble') {
+		return { static: MARBLE_STATIC_FRICTION, dynamic: MARBLE_DYNAMIC_FRICTION };
+	}
+
+	if (left.material === 'bubble' && right.material === 'bubble') {
+		return { static: BUBBLE_STATIC_FRICTION, dynamic: BUBBLE_DYNAMIC_FRICTION };
+	}
+
+	return { static: MIXED_STATIC_FRICTION, dynamic: MIXED_DYNAMIC_FRICTION };
+}
+
+function getInverseInertia(body: PhysicsCircle): number {
+	return body.inverseMass === 0 ? 0 : (2 * body.inverseMass) / (body.radius * body.radius);
 }
 
 function getClosingSpeed(left: PhysicsCircle, right: PhysicsCircle): number {
@@ -82,7 +118,7 @@ export function resolveCircleCollision(
 	const inverseMassSum = left.inverseMass + right.inverseMass;
 
 	if (inverseMassSum === 0) {
-		return { normalX, normalY, overlap, impulse: 0 };
+		return { normalX, normalY, overlap, impulse: 0, frictionImpulse: 0 };
 	}
 
 	const correction = Math.max(overlap - 0.01, 0) / inverseMassSum;
@@ -96,10 +132,13 @@ export function resolveCircleCollision(
 	const normalVelocity = relativeVelocityX * normalX + relativeVelocityY * normalY;
 
 	if (normalVelocity >= 0) {
-		return { normalX, normalY, overlap, impulse: 0 };
+		return { normalX, normalY, overlap, impulse: 0, frictionImpulse: 0 };
 	}
 
-	const impulse = (-(1 + getRestitution(left, right)) * normalVelocity) / inverseMassSum;
+	const restitution = Math.abs(normalVelocity) < RESTING_COLLISION_SPEED
+		? 0
+		: getRestitution(left, right);
+	const impulse = (-(1 + restitution) * normalVelocity) / inverseMassSum;
 	const impulseX = impulse * normalX;
 	const impulseY = impulse * normalY;
 
@@ -108,7 +147,69 @@ export function resolveCircleCollision(
 	right.vx += impulseX * right.inverseMass;
 	right.vy += impulseY * right.inverseMass;
 
-	return { normalX, normalY, overlap, impulse };
+	const tangentX = -normalY;
+	const tangentY = normalX;
+	const leftContactVelocityX = left.vx - left.angularVelocity * normalY * left.radius;
+	const leftContactVelocityY = left.vy + left.angularVelocity * normalX * left.radius;
+	const rightContactVelocityX = right.vx + right.angularVelocity * normalY * right.radius;
+	const rightContactVelocityY = right.vy - right.angularVelocity * normalX * right.radius;
+	const tangentialVelocity =
+		(rightContactVelocityX - leftContactVelocityX) * tangentX +
+		(rightContactVelocityY - leftContactVelocityY) * tangentY;
+	const leftInverseInertia = getInverseInertia(left);
+	const rightInverseInertia = getInverseInertia(right);
+	const tangentMass =
+		inverseMassSum +
+		left.radius * left.radius * leftInverseInertia +
+		right.radius * right.radius * rightInverseInertia;
+	const unconstrainedFrictionImpulse = -tangentialVelocity / tangentMass;
+	const friction = getFriction(left, right);
+	const maximumStaticImpulse = friction.static * impulse;
+	const frictionImpulse = Math.abs(unconstrainedFrictionImpulse) <= maximumStaticImpulse
+		? unconstrainedFrictionImpulse
+		: -Math.sign(tangentialVelocity) * friction.dynamic * impulse;
+	const frictionImpulseX = frictionImpulse * tangentX;
+	const frictionImpulseY = frictionImpulse * tangentY;
+
+	left.vx -= frictionImpulseX * left.inverseMass;
+	left.vy -= frictionImpulseY * left.inverseMass;
+	right.vx += frictionImpulseX * right.inverseMass;
+	right.vy += frictionImpulseY * right.inverseMass;
+	left.angularVelocity -= left.radius * frictionImpulse * leftInverseInertia;
+	right.angularVelocity -= right.radius * frictionImpulse * rightInverseInertia;
+
+	return { normalX, normalY, overlap, impulse, frictionImpulse };
+}
+
+export function applyFloorFriction(
+	body: PhysicsCircle,
+	elapsed: number,
+	gravity = GRAVITY,
+): void {
+	if (body.material !== 'marble' || body.inverseMass === 0 || elapsed <= 0) {
+		return;
+	}
+
+	const inverseInertia = getInverseInertia(body);
+	const contactVelocity = body.vx - body.angularVelocity * body.radius;
+	const tangentMass = body.inverseMass + body.radius * body.radius * inverseInertia;
+	const unconstrainedImpulse = -contactVelocity / tangentMass;
+	const normalImpulse = (gravity * elapsed) / body.inverseMass;
+	const maximumStaticImpulse = FLOOR_STATIC_FRICTION * normalImpulse;
+	const frictionImpulse = Math.abs(unconstrainedImpulse) <= maximumStaticImpulse
+		? unconstrainedImpulse
+		: -Math.sign(contactVelocity) * FLOOR_DYNAMIC_FRICTION * normalImpulse;
+
+	body.vx += frictionImpulse * body.inverseMass;
+	body.angularVelocity -= body.radius * frictionImpulse * inverseInertia;
+
+	const rollingDeceleration = FLOOR_ROLLING_RESISTANCE * gravity * elapsed;
+	if (Math.abs(body.vx) <= rollingDeceleration) {
+		body.vx = 0;
+		body.angularVelocity = 0;
+	} else {
+		body.vx -= Math.sign(body.vx) * rollingDeceleration;
+	}
 }
 
 function parseNumber(value: string | undefined, fallback: number): number {
@@ -141,6 +242,8 @@ function createCircle(
 				: Math.min(Math.max(fieldHeight * percentageY, radius), fieldHeight - radius),
 		vx: material === 'bubble' ? ((index % 3) - 1) * 13 : 0,
 		vy: material === 'bubble' ? -9 - (index % 4) * 2 : 0,
+		angle: 0,
+		angularVelocity: 0,
 		inverseMass: 1 / mass,
 		phase: index * 1.73,
 		deformation: 0,
@@ -153,7 +256,12 @@ function createCircle(
 	};
 }
 
-function constrainToField(body: RenderedCircle, width: number, height: number): void {
+function constrainToField(
+	body: RenderedCircle,
+	width: number,
+	height: number,
+	elapsed = 0,
+): void {
 	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
 
 	if (body.x < body.radius) {
@@ -172,8 +280,8 @@ function constrainToField(body: RenderedCircle, width: number, height: number): 
 		body.vy = -Math.abs(body.vy) * restitution;
 
 		if (body.material === 'marble') {
-			body.vx *= 0.86;
-			if (Math.abs(body.vy) < 16) {
+			applyFloorFriction(body, elapsed);
+			if (Math.abs(body.vy) < RESTING_COLLISION_SPEED) {
 				body.vy = 0;
 			}
 		}
@@ -202,6 +310,8 @@ function renderCircle(body: RenderedCircle): void {
 		body.element.style.setProperty('--deform-x', String(1 + body.deformation));
 		body.element.style.setProperty('--deform-y', String(1 - body.deformation * 0.72));
 		body.element.style.setProperty('--deform-angle', `${body.deformationAngle}rad`);
+	} else {
+		body.element.style.setProperty('--rotation', `${body.angle}rad`);
 	}
 }
 
@@ -405,11 +515,12 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 
 			if (body.material === 'marble') {
 				body.vy += GRAVITY * elapsed;
-				body.vx *= Math.pow(0.998, elapsed * 60);
+				body.vx *= Math.exp(-0.035 * elapsed);
+				body.angularVelocity *= Math.exp(-0.025 * elapsed);
 			} else {
 				const wind = Math.sin(time * 0.0007 + body.phase) * 5.5;
 				body.vx += wind * elapsed;
-				body.vy -= (18 + Math.cos(body.phase) * 5) * elapsed;
+				body.vy -= (BUBBLE_NET_BUOYANCY + Math.cos(body.phase) * 5) * elapsed;
 				body.vx *= Math.pow(0.993, elapsed * 60);
 				body.vy *= Math.pow(0.995, elapsed * 60);
 
@@ -421,11 +532,12 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 
 			body.x += body.vx * elapsed;
 			body.y += body.vy * elapsed;
+			body.angle += body.angularVelocity * elapsed;
 			body.deformation *= Math.exp(-7 * elapsed);
-			constrainToField(body, fieldBounds.width, fieldBounds.height);
+			constrainToField(body, fieldBounds.width, fieldBounds.height, elapsed);
 		}
 
-		for (let pass = 0; pass < 2; pass += 1) {
+		for (let pass = 0; pass < SOLVER_ITERATIONS; pass += 1) {
 			for (let leftIndex = 0; leftIndex < bodies.length; leftIndex += 1) {
 				for (let rightIndex = leftIndex + 1; rightIndex < bodies.length; rightIndex += 1) {
 					const left = bodies[leftIndex];

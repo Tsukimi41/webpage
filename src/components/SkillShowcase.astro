@@ -213,6 +213,8 @@ const skillObjects = skills.map((skill) => {
 	}
 
 	.skill-object {
+		--rotation: 0rad;
+
 		position: absolute;
 		z-index: 3;
 		inset-block-start: var(--object-y);
@@ -321,6 +323,7 @@ const skillObjects = skills.map((skill) => {
 			0 0.75rem 0.35rem -0.35rem rgb(0 0 0 / 42%),
 			0 0 1.2rem var(--color-backdrop-glow);
 		transition: filter 160ms ease;
+		transform: rotate(var(--rotation));
 	}
 
 	.skill-object__symbol {
@@ -391,6 +394,8 @@ const skillObjects = skills.map((skill) => {
 	}
 
 	.marble-bed span {
+		--rotation: 0rad;
+
 		position: absolute;
 		inset-block-end: calc(var(--marble-stack) * 0.45rem);
 		inset-inline-start: var(--marble-x);
@@ -400,6 +405,7 @@ const skillObjects = skills.map((skill) => {
 		border-radius: 50%;
 		background: radial-gradient(circle at 32% 27%, rgb(255 255 255 / 55%) 0 7%, var(--color-accent) 25%, var(--color-surface-raised) 73%);
 		box-shadow: 0 0.35rem 0.3rem -0.2rem rgb(0 0 0 / 45%);
+		rotate: var(--rotation);
 		transform: translateX(-50%);
 	}
 
