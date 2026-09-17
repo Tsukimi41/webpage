@@ -1,4 +1,9 @@
-import { defineProjectCollection, type ProjectDefinition } from './project.ts';
+import {
+	assertProjectSkillReferences,
+	defineProjectCollection,
+	type ProjectDefinition,
+} from './project.ts';
+import { skills } from '../skills/skills.ts';
 
 const projectDefinitions = [
 	{
@@ -10,7 +15,7 @@ const projectDefinitions = [
 		summary: '日々の学習記録を分野ごとに整理し、振り返りやすくする架空のWebツールです。',
 		period: '20XX年',
 		role: '要件整理、設計、フロントエンド実装',
-		technologyLabels: ['Astro', 'TypeScript', 'CSS'],
+		skillIds: ['astro', 'typescript', 'css'],
 		featured: true,
 		links: [
 			{
@@ -53,7 +58,7 @@ const projectDefinitions = [
 		summary: '長い名称や複数の技術項目を含むカード表示を確認するための架空プロジェクトです。',
 		period: '20XX年4月〜20XX年9月',
 		role: '情報設計、アクセシビリティ設計、UI実装、品質確認',
-		technologyLabels: ['TypeScript', 'Astro', 'CSS', 'Markdown', 'GitHub Actions'],
+		skillIds: ['typescript', 'astro', 'css', 'markdown', 'github-actions'],
 		featured: true,
 		links: [
 			{
@@ -101,7 +106,7 @@ const projectDefinitions = [
 		summary: '任意の関連リンクがない場合を確認するための架空プロジェクトです。',
 		period: '20XX年',
 		role: '設計、実装',
-		technologyLabels: ['TypeScript'],
+		skillIds: ['typescript'],
 		featured: false,
 		links: [],
 		detailSections: [
@@ -123,4 +128,8 @@ const projectDefinitions = [
 	},
 ] as const satisfies readonly ProjectDefinition[];
 
-export const projects = defineProjectCollection(projectDefinitions);
+const definedProjects = defineProjectCollection(projectDefinitions);
+
+assertProjectSkillReferences(definedProjects, skills);
+
+export const projects = definedProjects;

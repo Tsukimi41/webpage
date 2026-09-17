@@ -1,0 +1,158 @@
+---
+import type { ProjectDefinition } from '../content/projects';
+import {
+	selectProjectsForSkill,
+	type SkillCategory,
+	type SkillDefinition,
+} from '../content/skills';
+import ContentStateNotice from './ContentStateNotice.astro';
+
+interface Props {
+	skills: readonly Readonly<SkillDefinition>[];
+	projects: readonly Readonly<ProjectDefinition>[];
+}
+
+const { skills, projects } = Astro.props;
+const includesMockData = skills.some((skill) => skill.state === 'mock');
+
+const categoryLabels: Readonly<Record<SkillCategory, string>> = {
+	language: '言語',
+	framework: 'フレームワーク',
+	styling: 'スタイリング',
+	tool: 'ツール',
+};
+---
+
+<section class="skill-showcase" aria-labelledby="skill-showcase-title">
+	<header class="skill-showcase__header">
+		<div>
+			<p class="skill-showcase__eyebrow" aria-hidden="true">FOCUS</p>
+			<h2 id="skill-showcase-title">得意・注力領域</h2>
+		</div>
+		<ContentStateNotice hasMockData={includesMockData} />
+	</header>
+
+	<ul class="skill-showcase__grid" role="list">
+		{skills.map((skill) => {
+			const relatedProjects = selectProjectsForSkill(projects, skill.id);
+
+			return (
+				<li>
+					<article class="skill-card">
+						<header>
+							<p>{categoryLabels[skill.category]}</p>
+							<h3>{skill.label}</h3>
+						</header>
+						<p class="skill-card__summary">{skill.summary}</p>
+						<ul class="skill-card__evidence" aria-label={`${skill.label}を使用したプロジェクト`} role="list">
+							{relatedProjects.map((project) => (
+								<li><a href={`/projects/${project.slug}/`}>{project.title}</a></li>
+							))}
+						</ul>
+					</article>
+				</li>
+			);
+		})}
+	</ul>
+</section>
+
+<style>
+	.skill-showcase {
+		padding-block: clamp(var(--space-5), 10vw, 7rem);
+	}
+
+	.skill-showcase__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block-end: var(--space-4);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.skill-showcase__eyebrow,
+	.skill-card header p {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+	}
+
+	.skill-showcase h2,
+	.skill-card h3 {
+		margin-block-start: var(--space-1);
+	}
+
+	.skill-showcase__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+		gap: var(--space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.skill-card {
+		display: flex;
+		min-block-size: 100%;
+		flex-direction: column;
+		padding: var(--space-3);
+		border: 1px solid var(--color-border);
+		border-block-start: 0.1875rem solid var(--color-accent);
+		border-radius: var(--radius-small);
+		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+	}
+
+	.skill-card h3 {
+		font-size: 1.25rem;
+	}
+
+	.skill-card__summary {
+		margin-block-start: var(--space-2);
+		overflow-wrap: anywhere;
+	}
+
+	.skill-card__evidence {
+		display: grid;
+		gap: var(--space-1);
+		margin: auto 0 0;
+		padding: var(--space-3) 0 0;
+		list-style: none;
+	}
+
+	.skill-card__evidence a {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		color: var(--color-text);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+		overflow-wrap: anywhere;
+	}
+
+	.skill-card__evidence a:hover {
+		color: var(--color-accent-strong);
+	}
+
+	.skill-card__evidence a:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.skill-card {
+			background: var(--color-surface);
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.skill-showcase__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

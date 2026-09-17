@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+	assertProjectSkillReferences,
 	defineProjectCollection,
 	findProjectBySlug,
 	getFeaturedProjects,
@@ -21,7 +22,7 @@ const validProject = Object.freeze({
 	summary: 'Test summary',
 	period: '20XX',
 	role: 'Test role',
-	technologyLabels: ['TypeScript'],
+	skillIds: ['typescript'],
 	featured: true,
 	links: [],
 	detailSections: [
@@ -38,7 +39,7 @@ test('project data is deeply frozen at its collection boundaries', () => {
 
 	for (const project of projects) {
 		assert.equal(Object.isFrozen(project), true);
-		assert.equal(Object.isFrozen(project.technologyLabels), true);
+		assert.equal(Object.isFrozen(project.skillIds), true);
 		assert.equal(Object.isFrozen(project.links), true);
 		assert.equal(project.links.every(Object.isFrozen), true);
 		assert.equal(Object.isFrozen(project.detailSections), true);
@@ -122,8 +123,9 @@ test('featured query rejects invalid limits', () => {
 test('project validation rejects malformed nested data', () => {
 	const invalidProjects = [
 		{ ...validProject, title: ' ' },
-		{ ...validProject, technologyLabels: [] },
-		{ ...validProject, technologyLabels: ['CSS', ' CSS '] },
+		{ ...validProject, skillIds: [] },
+		{ ...validProject, skillIds: ['css', 'css'] },
+		{ ...validProject, skillIds: ['Type Script'] },
 		{
 			...validProject,
 			links: [{ id: 'demo', label: 'Demo', href: 'http://example.com' }],
@@ -149,4 +151,31 @@ test('project validation rejects malformed nested data', () => {
 	for (const project of invalidProjects) {
 		assert.throws(() => defineProjectCollection([project]));
 	}
+});
+
+test('project skill references reject missing evidence and incompatible publication states', () => {
+	const mockSkill = { id: 'typescript', state: 'mock' };
+	const publishedSkill = { id: 'typescript', state: 'published' };
+
+	assert.doesNotThrow(() => assertProjectSkillReferences([validProject], [mockSkill]));
+	assert.throws(
+		() => assertProjectSkillReferences([validProject], [{ id: 'css', state: 'mock' }]),
+		/unknown skill/,
+	);
+	assert.throws(
+		() => assertProjectSkillReferences([validProject], [mockSkill, { id: 'css', state: 'mock' }]),
+		/no supporting project/,
+	);
+	assert.throws(
+		() =>
+			assertProjectSkillReferences(
+				[{ ...validProject, state: 'published' }],
+				[mockSkill],
+			),
+		/non-published skill/,
+	);
+	assert.throws(
+		() => assertProjectSkillReferences([validProject], [publishedSkill]),
+		/no published supporting project/,
+	);
 });

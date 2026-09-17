@@ -1,4 +1,4 @@
-export { defineProjectCollection } from './project.ts';
+export { assertProjectSkillReferences, defineProjectCollection } from './project.ts';
 export type {
 	ProjectDefinition,
 	ProjectDetailSectionDefinition,

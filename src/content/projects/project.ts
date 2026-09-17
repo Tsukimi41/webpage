@@ -25,10 +25,15 @@ export interface ProjectDefinition extends ContentRecord {
 	readonly summary: string;
 	readonly period: string;
 	readonly role: string;
-	readonly technologyLabels: readonly string[];
+	readonly skillIds: readonly string[];
 	readonly featured: boolean;
 	readonly links: readonly ProjectLinkDefinition[];
 	readonly detailSections: readonly ProjectDetailSectionDefinition[];
+}
+
+interface SkillReferenceRecord {
+	readonly id: string;
+	readonly state: ContentRecord['state'];
 }
 
 function normalizeText(value: string, fieldPath: string): string {
@@ -51,6 +56,27 @@ function normalizeTextList(values: readonly string[], fieldPath: string): readon
 	}
 
 	return Object.freeze(normalizedValues);
+}
+
+function normalizeContentIdList(values: readonly string[], fieldPath: string): readonly string[] {
+	if (values.length === 0) {
+		throw new Error(`${fieldPath} must contain at least one item.`);
+	}
+
+	const usedIds = new Set<string>();
+
+	return Object.freeze(
+		values.map((value, index) => {
+			assertContentId(value, `${fieldPath}[${index}]`);
+
+			if (usedIds.has(value)) {
+				throw new Error(`${fieldPath} must not contain duplicate ids: ${value}`);
+			}
+
+			usedIds.add(value);
+			return value;
+		}),
+	);
 }
 
 function normalizeProjectHref(href: string, fieldPath: string): ProjectHref {
@@ -160,10 +186,7 @@ export function defineProjectCollection(
 				summary: normalizeText(record.summary, `${recordPath}.summary`),
 				period: normalizeText(record.period, `${recordPath}.period`),
 				role: normalizeText(record.role, `${recordPath}.role`),
-				technologyLabels: normalizeTextList(
-					record.technologyLabels,
-					`${recordPath}.technologyLabels`,
-				),
+				skillIds: normalizeContentIdList(record.skillIds, `${recordPath}.skillIds`),
 				links: normalizeLinks(record.links, `${recordPath}.links`),
 				detailSections: normalizeDetailSections(
 					record.detailSections,
@@ -172,4 +195,47 @@ export function defineProjectCollection(
 			});
 		}),
 	);
+}
+
+export function assertProjectSkillReferences(
+	projectRecords: readonly Readonly<ProjectDefinition>[],
+	skillRecords: readonly SkillReferenceRecord[],
+): void {
+	const skillsById = new Map(skillRecords.map((skill) => [skill.id, skill]));
+	const previewReferencedIds = new Set<string>();
+	const publishedReferencedIds = new Set<string>();
+
+	for (const project of projectRecords) {
+		for (const skillId of project.skillIds) {
+			const skill = skillsById.get(skillId);
+
+			if (!skill) {
+				throw new Error(`Project ${project.id} references an unknown skill: ${skillId}`);
+			}
+
+			if (project.state !== 'archived' && skill.state !== 'archived') {
+				previewReferencedIds.add(skillId);
+			}
+
+			if (project.state === 'published') {
+				if (skill.state !== 'published') {
+					throw new Error(
+						`Published project ${project.id} references a non-published skill: ${skillId}`,
+					);
+				}
+
+				publishedReferencedIds.add(skillId);
+			}
+		}
+	}
+
+	for (const skill of skillRecords) {
+		if (skill.state !== 'archived' && !previewReferencedIds.has(skill.id)) {
+			throw new Error(`Visible skill has no supporting project: ${skill.id}`);
+		}
+
+		if (skill.state === 'published' && !publishedReferencedIds.has(skill.id)) {
+			throw new Error(`Published skill has no published supporting project: ${skill.id}`);
+		}
+	}
 }

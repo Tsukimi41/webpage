@@ -1,0 +1,38 @@
+---
+import { getSkillsByIds } from '../content/skills';
+
+interface Props {
+	skillIds: readonly string[];
+	ariaLabel?: string;
+}
+
+const { skillIds, ariaLabel = '使用技術' } = Astro.props;
+const skills = getSkillsByIds(skillIds);
+---
+
+<ul class="skill-labels" aria-label={ariaLabel} role="list">
+	{skills.map((skill) => <li>{skill.label}</li>)}
+</ul>
+
+<style>
+	.skill-labels {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.skill-labels li {
+		max-inline-size: 100%;
+		padding: 0.25rem var(--space-1);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface-raised);
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+</style>

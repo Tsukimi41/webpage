@@ -1,6 +1,7 @@
 ---
 import type { ProjectDefinition } from '../content/projects';
 import ContentStateNotice from './ContentStateNotice.astro';
+import SkillLabels from './SkillLabels.astro';
 
 interface Props {
 	project: Readonly<ProjectDefinition>;
@@ -39,9 +40,7 @@ const hasMockData = project.state === 'mock';
 				<div>
 					<dt>使用技術</dt>
 					<dd>
-						<ul class="project-detail__technologies" role="list">
-							{project.technologyLabels.map((technology) => <li>{technology}</li>)}
-						</ul>
+						<SkillLabels skillIds={project.skillIds} />
 					</dd>
 				</div>
 			</dl>
@@ -180,24 +179,6 @@ const hasMockData = project.state === 'mock';
 
 	.project-detail__metadata dd {
 		color: var(--color-text);
-		overflow-wrap: anywhere;
-	}
-
-	.project-detail__technologies {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1);
-		list-style: none;
-	}
-
-	.project-detail__technologies li {
-		max-inline-size: 100%;
-		padding: 0.25rem var(--space-1);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-small);
-		background: var(--color-surface-raised);
-		color: var(--color-text-muted);
-		font-size: 0.75rem;
 		overflow-wrap: anywhere;
 	}
 
