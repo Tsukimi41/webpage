@@ -23,6 +23,8 @@ export interface CollisionResult {
 interface RenderedCircle extends PhysicsCircle {
 	readonly element: HTMLElement;
 	readonly phase: number;
+	readonly initialX: number;
+	readonly initialY: number;
 	deformation: number;
 	deformationAngle: number;
 	dragPointerId?: number;
@@ -51,10 +53,63 @@ const MIXED_STATIC_FRICTION = 0.1;
 const MIXED_DYNAMIC_FRICTION = 0.065;
 const BUBBLE_STATIC_FRICTION = 0.025;
 const BUBBLE_DYNAMIC_FRICTION = 0.012;
+const MAX_LINEAR_SPEED = 1_600;
+const MAX_ANGULAR_SPEED = 32;
+const DRAG_VELOCITY_SMOOTHING = 0.38;
+const FULL_ROTATION = Math.PI * 2;
 
 interface FrictionCoefficients {
 	readonly static: number;
 	readonly dynamic: number;
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+	return Math.min(Math.max(value, minimum), maximum);
+}
+
+export function stabilizePhysicsCircle(
+	body: PhysicsCircle,
+	maximumLinearSpeed = MAX_LINEAR_SPEED,
+	maximumAngularSpeed = MAX_ANGULAR_SPEED,
+): boolean {
+	const values = [
+		body.x,
+		body.y,
+		body.vx,
+		body.vy,
+		body.angle,
+		body.angularVelocity,
+		body.radius,
+		body.inverseMass,
+	];
+
+	if (
+		values.some((value) => !Number.isFinite(value)) ||
+		body.radius <= 0 ||
+		body.inverseMass < 0 ||
+		!Number.isFinite(maximumLinearSpeed) ||
+		!Number.isFinite(maximumAngularSpeed) ||
+		maximumLinearSpeed <= 0 ||
+		maximumAngularSpeed <= 0
+	) {
+		return false;
+	}
+
+	const speed = Math.hypot(body.vx, body.vy);
+	if (speed > maximumLinearSpeed) {
+		const scale = maximumLinearSpeed / speed;
+		body.vx *= scale;
+		body.vy *= scale;
+	}
+
+	body.angularVelocity = clamp(
+		body.angularVelocity,
+		-maximumAngularSpeed,
+		maximumAngularSpeed,
+	);
+	body.angle = ((body.angle % FULL_ROTATION) + FULL_ROTATION) % FULL_ROTATION;
+
+	return true;
 }
 
 function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {
@@ -186,7 +241,14 @@ export function applyFloorFriction(
 	elapsed: number,
 	gravity = GRAVITY,
 ): void {
-	if (body.material !== 'marble' || body.inverseMass === 0 || elapsed <= 0) {
+	if (
+		body.material !== 'marble' ||
+		body.inverseMass === 0 ||
+		!Number.isFinite(elapsed) ||
+		!Number.isFinite(gravity) ||
+		elapsed <= 0 ||
+		gravity <= 0
+	) {
 		return;
 	}
 
@@ -217,6 +279,14 @@ function parseNumber(value: string | undefined, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function fitCoordinateToAxis(size: number, radius: number, requested: number): number {
+	if (!Number.isFinite(size) || size <= radius * 2) {
+		return Math.max(Number.isFinite(size) ? size : 0, 0) / 2;
+	}
+
+	return clamp(requested, radius, size - radius);
+}
+
 function createCircle(
 	element: HTMLElement,
 	fieldWidth: number,
@@ -230,22 +300,25 @@ function createCircle(
 	const percentageY = parseNumber(element.dataset.physicsY, 50) / 100;
 	const density = material === 'marble' ? 1 : 0.055;
 	const mass = Math.PI * radius * radius * density;
+	const initialX = fitCoordinateToAxis(fieldWidth, radius, fieldWidth * percentageX);
+	const initialY = material === 'marble'
+		? fitCoordinateToAxis(fieldHeight, radius, fieldHeight - fieldHeight * percentageY - radius)
+		: fitCoordinateToAxis(fieldHeight, radius, fieldHeight * percentageY);
 
 	return {
 		element,
 		material,
 		radius,
-		x: Math.min(Math.max(fieldWidth * percentageX, radius), fieldWidth - radius),
-		y:
-			material === 'marble'
-				? Math.min(Math.max(fieldHeight - fieldHeight * percentageY - radius, radius), fieldHeight - radius)
-				: Math.min(Math.max(fieldHeight * percentageY, radius), fieldHeight - radius),
+		x: initialX,
+		y: initialY,
 		vx: material === 'bubble' ? ((index % 3) - 1) * 13 : 0,
 		vy: material === 'bubble' ? -9 - (index % 4) * 2 : 0,
 		angle: 0,
 		angularVelocity: 0,
 		inverseMass: 1 / mass,
 		phase: index * 1.73,
+		initialX,
+		initialY,
 		deformation: 0,
 		deformationAngle: 0,
 		lastPointerX: 0,
@@ -256,6 +329,17 @@ function createCircle(
 	};
 }
 
+function resetCircle(body: RenderedCircle, width: number, height: number): void {
+	body.x = fitCoordinateToAxis(width, body.radius, body.initialX);
+	body.y = fitCoordinateToAxis(height, body.radius, body.initialY);
+	body.vx = 0;
+	body.vy = 0;
+	body.angle = 0;
+	body.angularVelocity = 0;
+	body.deformation = 0;
+	body.deformationAngle = 0;
+}
+
 function constrainToField(
 	body: RenderedCircle,
 	width: number,
@@ -264,7 +348,10 @@ function constrainToField(
 ): void {
 	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
 
-	if (body.x < body.radius) {
+	if (!Number.isFinite(width) || width <= body.radius * 2) {
+		body.x = Math.max(Number.isFinite(width) ? width : 0, 0) / 2;
+		body.vx = 0;
+	} else if (body.x < body.radius) {
 		body.x = body.radius;
 		body.vx = Math.abs(body.vx) * restitution;
 	} else if (body.x > width - body.radius) {
@@ -272,7 +359,10 @@ function constrainToField(
 		body.vx = -Math.abs(body.vx) * restitution;
 	}
 
-	if (body.y < body.radius) {
+	if (!Number.isFinite(height) || height <= body.radius * 2) {
+		body.y = Math.max(Number.isFinite(height) ? height : 0, 0) / 2;
+		body.vy = 0;
+	} else if (body.y < body.radius) {
 		body.y = body.radius;
 		body.vy = Math.abs(body.vy) * restitution;
 	} else if (body.y > height - body.radius) {
@@ -351,10 +441,6 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	}
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-	if (reducedMotion.matches) {
-		return () => undefined;
-	}
-
 	field.dataset.physicsReady = 'true';
 	const elements = Array.from(
 		field.querySelectorAll<HTMLElement>('[data-physics-object]'),
@@ -370,6 +456,8 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	let previousTime = performance.now();
 	let accumulator = 0;
 	let animationFrame = 0;
+	let isRunning = false;
+	let isDestroyed = false;
 
 	const getLocalPointer = (event: PointerEvent): { x: number; y: number } => ({
 		x: event.clientX - fieldBounds.left,
@@ -377,6 +465,10 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	});
 
 	const onPointerDown = (event: PointerEvent): void => {
+		if (!isRunning) {
+			return;
+		}
+
 		fieldBounds = field.getBoundingClientRect();
 		const pointer = getLocalPointer(event);
 		const marble = findNearestMarble(bodies, pointer.x, pointer.y);
@@ -417,6 +509,10 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	};
 
 	const onPointerMove = (event: PointerEvent): void => {
+		if (!isRunning) {
+			return;
+		}
+
 		fieldBounds = field.getBoundingClientRect();
 		const pointer = getLocalPointer(event);
 		pointerX = pointer.x;
@@ -425,8 +521,12 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		if (draggedBody?.dragPointerId === event.pointerId) {
 			event.preventDefault();
 			const elapsed = Math.max((event.timeStamp - draggedBody.lastPointerTime) / 1000, 1 / 240);
-			draggedBody.vx = (pointer.x - draggedBody.lastPointerX) / elapsed;
-			draggedBody.vy = (pointer.y - draggedBody.lastPointerY) / elapsed;
+			const measuredVelocityX = (pointer.x - draggedBody.lastPointerX) / elapsed;
+			const measuredVelocityY = (pointer.y - draggedBody.lastPointerY) / elapsed;
+			draggedBody.vx +=
+				(measuredVelocityX - draggedBody.vx) * DRAG_VELOCITY_SMOOTHING;
+			draggedBody.vy +=
+				(measuredVelocityY - draggedBody.vy) * DRAG_VELOCITY_SMOOTHING;
 			draggedBody.x = pointer.x + draggedBody.dragOffsetX;
 			draggedBody.y = pointer.y + draggedBody.dragOffsetY;
 			draggedBody.lastPointerX = pointer.x;
@@ -455,20 +555,32 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		}
 	};
 
-	const releaseDraggedBody = (event: PointerEvent): void => {
-		if (draggedBody?.dragPointerId !== event.pointerId) {
+	const clearDraggedBody = (pointerId?: number, releaseCapture = true): void => {
+		if (!draggedBody || (pointerId !== undefined && draggedBody.dragPointerId !== pointerId)) {
 			return;
 		}
 
-		draggedBody.vx = Math.max(-1250, Math.min(1250, draggedBody.vx));
-		draggedBody.vy = Math.max(-1250, Math.min(1250, draggedBody.vy));
+		const capturedPointerId = draggedBody.dragPointerId;
+		stabilizePhysicsCircle(draggedBody, 1_250, MAX_ANGULAR_SPEED);
 		draggedBody.element.classList.remove('is-dragged');
 		draggedBody.dragPointerId = undefined;
 		draggedBody = undefined;
 
-		if (field.hasPointerCapture(event.pointerId)) {
-			field.releasePointerCapture(event.pointerId);
+		if (
+			releaseCapture &&
+			capturedPointerId !== undefined &&
+			field.hasPointerCapture(capturedPointerId)
+		) {
+			field.releasePointerCapture(capturedPointerId);
 		}
+	};
+
+	const releaseDraggedBody = (event: PointerEvent): void => {
+		clearDraggedBody(event.pointerId);
+	};
+
+	const onLostPointerCapture = (event: PointerEvent): void => {
+		clearDraggedBody(event.pointerId, false);
 	};
 
 	const onPointerLeave = (): void => {
@@ -477,7 +589,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	};
 
 	const onKeyDown = (event: KeyboardEvent): void => {
-		if (!(event.target instanceof HTMLElement)) {
+		if (!isRunning || !(event.target instanceof HTMLElement)) {
 			return;
 		}
 
@@ -541,6 +653,10 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 			body.y += body.vy * elapsed;
 			body.angle += body.angularVelocity * elapsed;
 			body.deformation *= Math.exp(-7 * elapsed);
+			if (!stabilizePhysicsCircle(body)) {
+				resetCircle(body, fieldBounds.width, fieldBounds.height);
+				continue;
+			}
 			constrainToField(body, fieldBounds.width, fieldBounds.height, elapsed);
 		}
 
@@ -572,6 +688,12 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				}
 			}
 		}
+
+		for (const body of bodies) {
+			if (!stabilizePhysicsCircle(body)) {
+				resetCircle(body, fieldBounds.width, fieldBounds.height);
+			}
+		}
 	};
 
 	const frame = (time: number): void => {
@@ -588,27 +710,68 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 			renderCircle(body, fieldBounds.height);
 		}
 
+		if (isRunning) {
+			animationFrame = window.requestAnimationFrame(frame);
+		}
+	};
+
+	const stopLoop = (): void => {
+		if (!isRunning) {
+			return;
+		}
+
+		isRunning = false;
+		window.cancelAnimationFrame(animationFrame);
+		animationFrame = 0;
+		accumulator = 0;
+	};
+
+	const startLoop = (): void => {
+		if (isRunning || isDestroyed || document.hidden || reducedMotion.matches) {
+			return;
+		}
+
+		isRunning = true;
+		previousTime = performance.now();
+		accumulator = 0;
 		animationFrame = window.requestAnimationFrame(frame);
+	};
+
+	const synchronizeMotionPreference = (): void => {
+		if (document.hidden || reducedMotion.matches) {
+			clearDraggedBody();
+			stopLoop();
+		} else {
+			startLoop();
+		}
 	};
 
 	field.addEventListener('pointerdown', onPointerDown);
 	field.addEventListener('pointermove', onPointerMove);
 	field.addEventListener('pointerup', releaseDraggedBody);
 	field.addEventListener('pointercancel', releaseDraggedBody);
+	field.addEventListener('lostpointercapture', onLostPointerCapture);
 	field.addEventListener('pointerleave', onPointerLeave);
 	field.addEventListener('keydown', onKeyDown);
+	document.addEventListener('visibilitychange', synchronizeMotionPreference);
+	reducedMotion.addEventListener('change', synchronizeMotionPreference);
 	resizeObserver.observe(field);
-	animationFrame = window.requestAnimationFrame(frame);
+	startLoop();
 
 	return () => {
-		window.cancelAnimationFrame(animationFrame);
+		isDestroyed = true;
+		clearDraggedBody();
+		stopLoop();
 		resizeObserver.disconnect();
 		field.removeEventListener('pointerdown', onPointerDown);
 		field.removeEventListener('pointermove', onPointerMove);
 		field.removeEventListener('pointerup', releaseDraggedBody);
 		field.removeEventListener('pointercancel', releaseDraggedBody);
+		field.removeEventListener('lostpointercapture', onLostPointerCapture);
 		field.removeEventListener('pointerleave', onPointerLeave);
 		field.removeEventListener('keydown', onKeyDown);
+		document.removeEventListener('visibilitychange', synchronizeMotionPreference);
+		reducedMotion.removeEventListener('change', synchronizeMotionPreference);
 		delete field.dataset.physicsReady;
 	};
 }

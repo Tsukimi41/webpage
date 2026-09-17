@@ -112,7 +112,12 @@ const skillObjects = skills.map((skill) => {
 	import { startSkillPhysics } from '../scripts/skill-physics';
 
 	const fields = document.querySelectorAll<HTMLElement>('[data-skill-field]');
-	fields.forEach(startSkillPhysics);
+	const disposePhysics = Array.from(fields, startSkillPhysics);
+	const cleanupPhysics = (): void => {
+		disposePhysics.forEach((dispose) => dispose());
+	};
+
+	document.addEventListener('astro:before-swap', cleanupPhysics, { once: true });
 </script>
 
 <style>

@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
 	applyFloorFriction,
 	resolveCircleCollision,
+	stabilizePhysicsCircle,
 } from '../src/scripts/skill-physics.ts';
 
 function circle(overrides = {}) {
@@ -106,5 +107,36 @@ test('floor static friction brings a nearly resting marble to a full stop', () =
 	applyFloorFriction(marble, 1 / 120);
 
 	assert.equal(marble.vx, 0);
+	assert.equal(marble.angularVelocity, 0);
+});
+
+test('physics stabilization caps extreme linear and angular velocities', () => {
+	const marble = circle({
+		vx: 3_000,
+		vy: 4_000,
+		angle: -Math.PI,
+		angularVelocity: 80,
+	});
+
+	assert.equal(stabilizePhysicsCircle(marble, 1_000, 20), true);
+	assert.ok(Math.abs(Math.hypot(marble.vx, marble.vy) - 1_000) < 0.0001);
+	assert.equal(marble.angularVelocity, 20);
+	assert.ok(marble.angle >= 0 && marble.angle < Math.PI * 2);
+});
+
+test('physics stabilization rejects corrupt circle state', () => {
+	assert.equal(stabilizePhysicsCircle(circle({ x: Number.NaN })), false);
+	assert.equal(stabilizePhysicsCircle(circle({ radius: 0 })), false);
+	assert.equal(stabilizePhysicsCircle(circle({ inverseMass: -1 })), false);
+	assert.equal(stabilizePhysicsCircle(circle(), Number.NaN), false);
+});
+
+test('floor friction ignores invalid time and gravity inputs without corrupting state', () => {
+	const marble = circle({ vx: 120 });
+
+	applyFloorFriction(marble, Number.NaN);
+	applyFloorFriction(marble, 1 / 120, Number.NaN);
+
+	assert.equal(marble.vx, 120);
 	assert.equal(marble.angularVelocity, 0);
 });
