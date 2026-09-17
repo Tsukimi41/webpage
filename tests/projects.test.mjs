@@ -3,7 +3,9 @@ import test from 'node:test';
 
 import {
 	defineProjectCollection,
+	findProjectBySlug,
 	getFeaturedProjects,
+	getProjectBySlug,
 	getProjects,
 	projects,
 	selectFeaturedProjects,
@@ -22,6 +24,13 @@ const validProject = Object.freeze({
 	technologyLabels: ['TypeScript'],
 	featured: true,
 	links: [],
+	detailSections: [
+		{
+			id: 'overview',
+			title: 'Overview',
+			paragraphs: ['Test detail.'],
+		},
+	],
 });
 
 test('project data is deeply frozen at its collection boundaries', () => {
@@ -32,6 +41,9 @@ test('project data is deeply frozen at its collection boundaries', () => {
 		assert.equal(Object.isFrozen(project.technologyLabels), true);
 		assert.equal(Object.isFrozen(project.links), true);
 		assert.equal(project.links.every(Object.isFrozen), true);
+		assert.equal(Object.isFrozen(project.detailSections), true);
+		assert.equal(project.detailSections.every(Object.isFrozen), true);
+		assert.equal(project.detailSections.every((section) => Object.isFrozen(section.paragraphs)), true);
 	}
 });
 
@@ -78,6 +90,28 @@ test('featured query can select an explicit set of content states', () => {
 	);
 });
 
+test('project slug query respects content state visibility', () => {
+	const records = defineProjectCollection([
+		validProject,
+		{ ...validProject, id: 'archived-project', slug: 'archived-project', state: 'archived' },
+	]);
+
+	assert.equal(findProjectBySlug(records, 'test-project')?.id, 'test-project');
+	assert.equal(findProjectBySlug(records, 'missing-project'), undefined);
+	assert.equal(findProjectBySlug(records, 'archived-project'), undefined);
+	assert.equal(
+		findProjectBySlug(records, 'archived-project', { states: ['archived'] })?.id,
+		'archived-project',
+	);
+	assert.equal(getProjectBySlug('learning-log')?.id, 'mock-learning-log');
+});
+
+test('project slug query rejects malformed slugs', () => {
+	for (const slug of ['', ' learning-log', 'Learning Log', '../learning-log']) {
+		assert.throws(() => findProjectBySlug([validProject], slug), /project query slug/);
+	}
+});
+
 test('featured query rejects invalid limits', () => {
 	for (const limit of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
 		assert.throws(() => getFeaturedProjects({ limit }), /non-negative safe integer/);
@@ -97,6 +131,18 @@ test('project validation rejects malformed nested data', () => {
 		{
 			...validProject,
 			links: [{ id: 'demo', label: 'Demo', href: 'https://user:pass@example.com' }],
+		},
+		{ ...validProject, detailSections: [] },
+		{
+			...validProject,
+			detailSections: [
+				{ id: 'overview', title: 'Overview', paragraphs: ['First'] },
+				{ id: 'overview', title: 'Duplicate', paragraphs: ['Second'] },
+			],
+		},
+		{
+			...validProject,
+			detailSections: [{ id: 'overview', title: 'Overview', paragraphs: [' '] }],
 		},
 	];
 

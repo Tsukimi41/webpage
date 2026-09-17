@@ -13,6 +13,12 @@ export interface ProjectLinkDefinition {
 	readonly href: ProjectHref;
 }
 
+export interface ProjectDetailSectionDefinition {
+	readonly id: string;
+	readonly title: string;
+	readonly paragraphs: readonly string[];
+}
+
 export interface ProjectDefinition extends ContentRecord {
 	readonly slug: string;
 	readonly title: string;
@@ -22,6 +28,7 @@ export interface ProjectDefinition extends ContentRecord {
 	readonly technologyLabels: readonly string[];
 	readonly featured: boolean;
 	readonly links: readonly ProjectLinkDefinition[];
+	readonly detailSections: readonly ProjectDetailSectionDefinition[];
 }
 
 function normalizeText(value: string, fieldPath: string): string {
@@ -96,6 +103,36 @@ function normalizeLinks(
 	);
 }
 
+function normalizeDetailSections(
+	sections: readonly ProjectDetailSectionDefinition[],
+	fieldPath: string,
+): readonly Readonly<ProjectDetailSectionDefinition>[] {
+	if (sections.length === 0) {
+		throw new Error(`${fieldPath} must contain at least one section.`);
+	}
+
+	const usedIds = new Set<string>();
+
+	return Object.freeze(
+		sections.map((section, index) => {
+			const sectionPath = `${fieldPath}[${index}]`;
+			assertContentId(section.id, `${sectionPath}.id`);
+
+			if (usedIds.has(section.id)) {
+				throw new Error(`${fieldPath} contains a duplicate id: ${section.id}`);
+			}
+
+			usedIds.add(section.id);
+
+			return Object.freeze({
+				id: section.id,
+				title: normalizeText(section.title, `${sectionPath}.title`),
+				paragraphs: normalizeTextList(section.paragraphs, `${sectionPath}.paragraphs`),
+			});
+		}),
+	);
+}
+
 export function defineProjectCollection(
 	records: readonly ProjectDefinition[],
 ): readonly Readonly<ProjectDefinition>[] {
@@ -128,6 +165,10 @@ export function defineProjectCollection(
 					`${recordPath}.technologyLabels`,
 				),
 				links: normalizeLinks(record.links, `${recordPath}.links`),
+				detailSections: normalizeDetailSections(
+					record.detailSections,
+					`${recordPath}.detailSections`,
+				),
 			});
 		}),
 	);

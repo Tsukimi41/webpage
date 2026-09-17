@@ -1,0 +1,47 @@
+---
+import ProjectDetail from '../../components/ProjectDetail.astro';
+import { getProjects, type ProjectDefinition } from '../../content/projects';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+	return getProjects().map((project) => ({
+		params: { slug: project.slug },
+		props: { project },
+	}));
+}
+
+interface Props {
+	project: Readonly<ProjectDefinition>;
+}
+
+const { project } = Astro.props;
+const pageTitle = `${project.title} | ${profileDisplayName}`;
+const pageDescription = project.summary;
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<a class="project-page__back" href="/projects/">プロジェクト一覧へ戻る</a>
+	<ProjectDetail project={project} />
+</BaseLayout>
+
+<style>
+	.project-page__back {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 2.75rem;
+		color: var(--color-text-muted);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.project-page__back:hover {
+		color: var(--color-accent);
+	}
+
+	.project-page__back:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+</style>

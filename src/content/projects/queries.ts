@@ -1,5 +1,6 @@
 import {
 	PREVIEW_CONTENT_STATES,
+	assertContentId,
 	selectContentByState,
 	type ContentState,
 } from '../core/content.ts';
@@ -51,4 +52,22 @@ export function getProjects(query: ProjectQuery = {}): readonly ProjectDefinitio
 
 export function getFeaturedProjects(query: ProjectQuery = {}): readonly ProjectDefinition[] {
 	return selectFeaturedProjects(projects, query);
+}
+
+export function findProjectBySlug<T extends ProjectDefinition>(
+	records: readonly T[],
+	slug: string,
+	query: Pick<ProjectQuery, 'states'> = {},
+): T | undefined {
+	assertContentId(slug, 'project query slug');
+
+	const { states = PREVIEW_CONTENT_STATES } = query;
+	return selectContentByState(records, states).find((project) => project.slug === slug);
+}
+
+export function getProjectBySlug(
+	slug: string,
+	query: Pick<ProjectQuery, 'states'> = {},
+): ProjectDefinition | undefined {
+	return findProjectBySlug(projects, slug, query);
 }
