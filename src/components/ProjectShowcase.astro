@@ -16,10 +16,13 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 	projects.length > 0 && (
 		<section class="project-showcase" aria-labelledby={headingId}>
 			<header class="project-showcase__header">
-				<h2 id={headingId}>代表プロジェクト</h2>
+				<div>
+					<p class="project-showcase__eyebrow" aria-hidden="true">TIMELINE</p>
+					<h2 id={headingId}>活動履歴</h2>
+				</div>
 				<div class="project-showcase__actions">
 					<ContentStateNotice hasMockData={includesMockData} />
-					<a href="/projects/">すべて見る</a>
+					<a href="/projects/">すべてのプロジェクトを見る</a>
 				</div>
 			</header>
 
@@ -44,10 +47,18 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 	}
 
 	.project-showcase h2 {
-		margin: 0;
+		margin-block-start: var(--space-1);
 		color: var(--color-text);
 		font-size: clamp(1.5rem, 5vw, 2rem);
 		line-height: 1.3;
+	}
+
+	.project-showcase__eyebrow {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
 	}
 
 	.project-showcase__actions {

@@ -2,10 +2,8 @@
 import ProfileIntroduction from '../components/ProfileIntroduction.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
 import SkillShowcase from '../components/SkillShowcase.astro';
-import TimelineShowcase from '../components/TimelineShowcase.astro';
 import { getFeaturedProjects, getProjects } from '../content/projects';
 import { getSkills } from '../content/skills';
-import { getTimelineEntries } from '../content/timeline';
 import { profile, profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
@@ -14,12 +12,10 @@ const pageDescription = `${profileDisplayName}のポートフォリオ。${profi
 const featuredProjects = getFeaturedProjects({ limit: 3 });
 const skills = getSkills();
 const projects = getProjects();
-const recentTimelineEntries = getTimelineEntries({ limit: 3 });
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<ProfileIntroduction />
 	<SkillShowcase skills={skills} projects={projects} />
 	<ProjectShowcase projects={featuredProjects} />
-	<TimelineShowcase entries={recentTimelineEntries} projects={projects} />
 </BaseLayout>
