@@ -18,11 +18,14 @@ const validSkill = Object.freeze({
 	label: 'Test Skill',
 	category: 'tool',
 	summary: 'Test summary.',
+	presentation: 'bubble',
+	visual: { kind: 'text', text: 'TS' },
 });
 
 test('skill data is frozen and returned in deterministic order', () => {
 	assert.equal(Object.isFrozen(skills), true);
 	assert.equal(skills.every(Object.isFrozen), true);
+	assert.equal(skills.every((skill) => Object.isFrozen(skill.visual)), true);
 	assert.deepEqual(
 		getSkills().map((skill) => skill.id),
 		['typescript', 'astro', 'css', 'markdown', 'github-actions'],
@@ -67,6 +70,34 @@ test('skill validation rejects empty, duplicate, and unsupported values', () => 
 		{ ...validSkill, label: ' ' },
 		{ ...validSkill, summary: '' },
 		{ ...validSkill, category: 'database' },
+		{ ...validSkill, presentation: 'cloud' },
+		{ ...validSkill, visual: { kind: 'icon', name: 'invalid icon' } },
+		{ ...validSkill, visual: { kind: 'text', text: ' ' } },
+		{
+			...validSkill,
+			visual: { kind: 'image', src: '/icons/test.svg', alt: 'Test', width: 0, height: 32 },
+		},
+		{
+			...validSkill,
+			visual: {
+				kind: 'image',
+				src: 'http://example.com/icon.svg',
+				alt: 'Test',
+				width: 32,
+				height: 32,
+			},
+		},
+		{
+			...validSkill,
+			visual: {
+				kind: 'image',
+				src: '/icons/test.svg',
+				alt: 'Test',
+				width: 32,
+				height: 32,
+				sourceName: 'Icon source',
+			},
+		},
 	];
 
 	for (const skill of invalidSkills) {
@@ -79,6 +110,31 @@ test('skill validation rejects empty, duplicate, and unsupported values', () => 
 			{ ...validSkill, id: 'other-skill', label: ' test skill ' },
 		]),
 	);
+});
+
+test('skill visuals accept icon, image, and text sources', () => {
+	const records = defineSkillCollection([
+		{ ...validSkill, id: 'icon-skill', label: 'Icon', visual: { kind: 'icon', name: 'simple-icons:typescript' } },
+		{
+			...validSkill,
+			id: 'image-skill',
+			label: 'Image',
+			visual: {
+				kind: 'image',
+				src: '/icons/custom.webp',
+				alt: 'Custom tool icon',
+				width: 96,
+				height: 96,
+				sourceName: 'Example Icons',
+				sourceUrl: 'https://example.com/icons',
+				license: 'Example free license',
+			},
+		},
+		{ ...validSkill, id: 'text-skill', label: 'Text', visual: { kind: 'text', text: 'TXT' } },
+	]);
+
+	assert.deepEqual(records.map((skill) => skill.visual.kind), ['icon', 'image', 'text']);
+	assert.equal(records[1].visual.sourceUrl, 'https://example.com/icons');
 });
 
 test('project evidence is resolved from skill ids without duplicating relationships', () => {

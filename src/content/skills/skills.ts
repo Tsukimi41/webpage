@@ -8,6 +8,8 @@ const skillDefinitions = [
 		label: 'TypeScript',
 		category: 'language',
 		summary: 'データ境界を型と実行時検証の両方で守り、変更時の不整合を早期に検出します。',
+		presentation: 'marble',
+		visual: { kind: 'icon', name: 'simple-icons:typescript' },
 	},
 	{
 		id: 'astro',
@@ -16,6 +18,8 @@ const skillDefinitions = [
 		label: 'Astro',
 		category: 'framework',
 		summary: '静的HTMLを中心に、必要な操作だけへ小さなJavaScriptを追加します。',
+		presentation: 'bubble',
+		visual: { kind: 'icon', name: 'simple-icons:astro' },
 	},
 	{
 		id: 'css',
@@ -24,6 +28,8 @@ const skillDefinitions = [
 		label: 'CSS',
 		category: 'styling',
 		summary: 'レスポンシブ、テーマ、動きの低減を含む堅牢な視覚表現を設計します。',
+		presentation: 'bubble',
+		visual: { kind: 'icon', name: 'simple-icons:css' },
 	},
 	{
 		id: 'markdown',
@@ -32,6 +38,8 @@ const skillDefinitions = [
 		label: 'Markdown',
 		category: 'tool',
 		summary: '文章と構造を表示実装から分離し、継続的に更新できる形で管理します。',
+		presentation: 'bubble',
+		visual: { kind: 'icon', name: 'simple-icons:markdown' },
 	},
 	{
 		id: 'github-actions',
@@ -40,6 +48,8 @@ const skillDefinitions = [
 		label: 'GitHub Actions',
 		category: 'tool',
 		summary: '検証を自動化し、公開前に品質上の問題を検出できる流れを組み立てます。',
+		presentation: 'marble',
+		visual: { kind: 'icon', name: 'simple-icons:githubactions' },
 	},
 ] as const satisfies readonly SkillDefinition[];
 

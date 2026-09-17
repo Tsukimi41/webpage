@@ -1,0 +1,50 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { SkillVisualDefinition } from '../content/skills';
+
+interface Props {
+	visual: Readonly<SkillVisualDefinition>;
+}
+
+const { visual } = Astro.props;
+---
+
+{
+	visual.kind === 'icon' ? (
+		<Icon class="skill-visual__icon" name={visual.name} size="100%" aria-hidden="true" />
+	) : visual.kind === 'image' ? (
+		<img
+			class="skill-visual__image"
+			src={visual.src}
+			alt={visual.alt}
+			width={visual.width}
+			height={visual.height}
+			loading="lazy"
+			decoding="async"
+		/>
+	) : (
+		<span class="skill-visual__text" aria-hidden="true">{visual.text}</span>
+	)
+}
+
+<style>
+	.skill-visual__icon,
+	.skill-visual__image {
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		object-fit: contain;
+	}
+
+	.skill-visual__text {
+		display: grid;
+		place-items: center;
+		min-inline-size: 100%;
+		min-block-size: 100%;
+		font-size: clamp(0.7rem, 2.5vw, 1rem);
+		font-weight: 900;
+		line-height: 1.1;
+		text-align: center;
+		overflow-wrap: anywhere;
+	}
+</style>
