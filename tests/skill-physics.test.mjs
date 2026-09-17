@@ -66,16 +66,28 @@ test('coincident stationary circles are separated without non-finite values', ()
 	assert.ok(left.x < right.x);
 });
 
-test('marble contact friction transfers tangential motion into rotation', () => {
-	const left = circle({ vx: 100, vy: 60 });
-	const right = circle({ x: 18, vx: -100, vy: -60 });
+test('strong marble contact friction transfers tangential motion into rotation', () => {
+	const left = circle({ vx: 100, vy: 200 });
+	const right = circle({ x: 18, vx: -100, vy: -200 });
 
 	const collision = resolveCircleCollision(left, right);
 
 	assert.ok(collision);
-	assert.notEqual(collision.frictionImpulse, 0);
+	assert.ok(Math.abs(collision.frictionImpulse) > 60);
 	assert.notEqual(left.angularVelocity, 0);
 	assert.notEqual(right.angularVelocity, 0);
+});
+
+test('bubble collisions lose most of their normal rebound speed', () => {
+	const left = circle({ vx: 100, material: 'bubble' });
+	const right = circle({ x: 18, vx: -100, material: 'bubble' });
+
+	resolveCircleCollision(left, right);
+
+	assert.ok(left.vx < 0);
+	assert.ok(right.vx > 0);
+	assert.ok(Math.abs(left.vx) < 30);
+	assert.ok(Math.abs(right.vx) < 30);
 });
 
 test('strong floor friction slows a sliding marble and starts rolling it', () => {
@@ -83,7 +95,7 @@ test('strong floor friction slows a sliding marble and starts rolling it', () =>
 
 	applyFloorFriction(marble, 1 / 120);
 
-	assert.ok(marble.vx < 240);
+	assert.ok(marble.vx < 228);
 	assert.ok(marble.angularVelocity > 0);
 	assert.ok(Math.abs(marble.vx - marble.angularVelocity * marble.radius) < 240);
 });
