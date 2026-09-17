@@ -1,0 +1,83 @@
+---
+import ContentStateNotice from '../../components/ContentStateNotice.astro';
+import TimelineList from '../../components/TimelineList.astro';
+import { getProjects } from '../../content/projects';
+import { getTimelineEntries } from '../../content/timeline';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = `タイムライン | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}の学習、制作、イベントなどの活動履歴です。`;
+const entries = getTimelineEntries();
+const projects = getProjects();
+const includesMockData = entries.some((entry) => entry.state === 'mock');
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="timeline-page">
+		<a class="timeline-page__back" href="/">ホームへ戻る</a>
+
+		<header class="timeline-page__header">
+			<div>
+				<p class="timeline-page__eyebrow" aria-hidden="true">TIMELINE</p>
+				<h1>タイムライン</h1>
+			</div>
+			<ContentStateNotice hasMockData={includesMockData} />
+		</header>
+
+		<TimelineList entries={entries} projects={projects} headingLevel="h2" />
+	</div>
+</BaseLayout>
+
+<style>
+	.timeline-page {
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.timeline-page__back {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		color: var(--color-text-muted);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.timeline-page__back:is(:hover, :focus-visible) {
+		color: var(--color-accent);
+	}
+
+	.timeline-page__back:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.timeline-page__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block: var(--space-4);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.timeline-page__eyebrow {
+		margin: 0;
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+	}
+
+	.timeline-page h1 {
+		margin-block-start: var(--space-1);
+	}
+
+	@media (max-width: 30rem) {
+		.timeline-page__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

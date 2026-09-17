@@ -1,0 +1,162 @@
+---
+import type { ProjectDefinition } from '../content/projects';
+import type { TimelineCategory, TimelineEntryDefinition } from '../content/timeline';
+
+interface Props {
+	entries: readonly Readonly<TimelineEntryDefinition>[];
+	projects: readonly Readonly<ProjectDefinition>[];
+	emptyMessage?: string;
+	headingLevel?: 'h2' | 'h3';
+}
+
+const {
+	entries,
+	projects,
+	emptyMessage = '表示できる活動履歴はありません。',
+	headingLevel = 'h3',
+} = Astro.props;
+const projectsById = new Map(projects.map((project) => [project.id, project]));
+const Heading = headingLevel;
+
+const categoryLabels: Readonly<Record<TimelineCategory, string>> = {
+	education: '学習',
+	project: '制作',
+	event: 'イベント',
+	award: '受賞',
+	community: 'コミュニティ',
+	work: '活動',
+};
+
+function formatDate(entry: Readonly<TimelineEntryDefinition>): string {
+	return entry.date.month === undefined
+		? `${entry.date.year}年`
+		: `${entry.date.year}年${entry.date.month}月`;
+}
+---
+
+{entries.length > 0 ? (
+	<ol class="timeline-list">
+		{entries.map((entry) => (
+			<li class="timeline-list__item">
+				<article>
+					<header>
+						<div class="timeline-list__meta">
+							<time datetime={`${entry.date.year}-${String(entry.date.month ?? 1).padStart(2, '0')}`}>{formatDate(entry)}</time>
+							<span>{categoryLabels[entry.category]}</span>
+						</div>
+						<Heading>{entry.title}</Heading>
+					</header>
+					<p>{entry.description}</p>
+					{entry.projectIds.length > 0 && (
+						<ul class="timeline-list__links" aria-label="関連プロジェクト" role="list">
+							{entry.projectIds.map((projectId) => {
+								const project = projectsById.get(projectId);
+
+								if (!project) {
+									throw new Error(`Timeline display could not resolve project: ${projectId}`);
+								}
+
+								return <li><a href={`/projects/${project.slug}/`}>{project.title}</a></li>;
+							})}
+						</ul>
+					)}
+				</article>
+			</li>
+		))}
+	</ol>
+) : (
+	<p>{emptyMessage}</p>
+)}
+
+<style>
+	.timeline-list {
+		position: relative;
+		display: grid;
+		gap: var(--space-4);
+		margin: 0;
+		padding: 0 0 0 clamp(2rem, 6vw, 4rem);
+		list-style: none;
+	}
+
+	.timeline-list::before {
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 0.55rem;
+		inline-size: 0.25rem;
+		background: linear-gradient(var(--color-accent), var(--color-border));
+		content: '';
+	}
+
+	.timeline-list__item {
+		position: relative;
+		min-inline-size: 0;
+	}
+
+	.timeline-list__item::before {
+		position: absolute;
+		inset-block-start: 1.25rem;
+		inset-inline-start: calc(-1 * clamp(2rem, 6vw, 4rem));
+		inline-size: 1.35rem;
+		aspect-ratio: 1;
+		border: 0.1875rem solid var(--color-accent);
+		border-radius: 50%;
+		background: var(--color-canvas);
+		box-shadow: 0 0 1rem var(--color-backdrop-glow);
+		content: '';
+		transform: translateX(0.01rem);
+	}
+
+	.timeline-list article {
+		padding: var(--space-3);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface);
+	}
+
+	.timeline-list__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-2);
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+	}
+
+	.timeline-list :is(h2, h3) {
+		margin-block-start: var(--space-1);
+		font-size: clamp(1.2rem, 4vw, 1.6rem);
+		overflow-wrap: anywhere;
+	}
+
+	.timeline-list p {
+		overflow-wrap: anywhere;
+	}
+
+	.timeline-list__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		margin: var(--space-2) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.timeline-list__links a {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		color: var(--color-text);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.timeline-list__links a:is(:hover, :focus-visible) {
+		color: var(--color-accent-strong);
+	}
+
+	.timeline-list__links a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+</style>
