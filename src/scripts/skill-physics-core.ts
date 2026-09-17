@@ -88,6 +88,19 @@ function getInverseInertia(body: PhysicsCircle): number {
 	return body.inverseMass === 0 ? 0 : (2 * body.inverseMass) / (body.radius * body.radius);
 }
 
+export function calculateCircleInverseMass(radius: number, density: number): number {
+	if (
+		!Number.isFinite(radius) ||
+		!Number.isFinite(density) ||
+		radius <= 0 ||
+		density <= 0
+	) {
+		return 0;
+	}
+
+	return 1 / (Math.PI * radius * radius * density);
+}
+
 export function stabilizePhysicsCircle(
 	body: PhysicsCircle,
 	maximumLinearSpeed = SKILL_PHYSICS_TUNING.maximumLinearSpeed,

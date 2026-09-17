@@ -1,5 +1,6 @@
 import {
 	applyFloorFriction,
+	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -9,6 +10,7 @@ import {
 
 export {
 	applyFloorFriction,
+	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -22,8 +24,9 @@ export type {
 interface RenderedCircle extends PhysicsCircle {
 	readonly element: HTMLElement;
 	readonly phase: number;
-	readonly initialX: number;
-	readonly initialY: number;
+	readonly density: number;
+	readonly initialXRatio: number;
+	readonly initialYRatio: number;
 	deformation: number;
 	deformationAngle: number;
 	dragPointerId?: number;
@@ -78,6 +81,22 @@ function fitCoordinateToAxis(size: number, radius: number, requested: number): n
 	return clamp(requested, radius, size - radius);
 }
 
+function getInitialCoordinates(
+	material: PhysicsMaterial,
+	fieldWidth: number,
+	fieldHeight: number,
+	radius: number,
+	xRatio: number,
+	yRatio: number,
+): { x: number; y: number } {
+	return {
+		x: fitCoordinateToAxis(fieldWidth, radius, fieldWidth * xRatio),
+		y: material === 'marble'
+			? fitCoordinateToAxis(fieldHeight, radius, fieldHeight - fieldHeight * yRatio - radius)
+			: fitCoordinateToAxis(fieldHeight, radius, fieldHeight * yRatio),
+	};
+}
+
 function createCircle(
 	element: HTMLElement,
 	fieldWidth: number,
@@ -90,26 +109,30 @@ function createCircle(
 	const percentageX = parseNumber(element.dataset.physicsX, 50) / 100;
 	const percentageY = parseNumber(element.dataset.physicsY, 50) / 100;
 	const density = material === 'marble' ? 1 : 0.055;
-	const mass = Math.PI * radius * radius * density;
-	const initialX = fitCoordinateToAxis(fieldWidth, radius, fieldWidth * percentageX);
-	const initialY = material === 'marble'
-		? fitCoordinateToAxis(fieldHeight, radius, fieldHeight - fieldHeight * percentageY - radius)
-		: fitCoordinateToAxis(fieldHeight, radius, fieldHeight * percentageY);
+	const initial = getInitialCoordinates(
+		material,
+		fieldWidth,
+		fieldHeight,
+		radius,
+		percentageX,
+		percentageY,
+	);
 
 	return {
 		element,
 		material,
 		radius,
-		x: initialX,
-		y: initialY,
+		x: initial.x,
+		y: initial.y,
 		vx: material === 'bubble' ? ((index % 3) - 1) * 13 : 0,
 		vy: material === 'bubble' ? -9 - (index % 4) * 2 : 0,
 		angle: 0,
 		angularVelocity: 0,
-		inverseMass: 1 / mass,
+		inverseMass: calculateCircleInverseMass(radius, density),
 		phase: index * 1.73,
-		initialX,
-		initialY,
+		density,
+		initialXRatio: percentageX,
+		initialYRatio: percentageY,
 		deformation: 0,
 		deformationAngle: 0,
 		lastPointerX: 0,
@@ -121,14 +144,47 @@ function createCircle(
 }
 
 function resetCircle(body: RenderedCircle, width: number, height: number): void {
-	body.x = fitCoordinateToAxis(width, body.radius, body.initialX);
-	body.y = fitCoordinateToAxis(height, body.radius, body.initialY);
+	const initial = getInitialCoordinates(
+		body.material,
+		width,
+		height,
+		body.radius,
+		body.initialXRatio,
+		body.initialYRatio,
+	);
+	body.x = initial.x;
+	body.y = initial.y;
 	body.vx = 0;
 	body.vy = 0;
 	body.angle = 0;
 	body.angularVelocity = 0;
 	body.deformation = 0;
 	body.deformationAngle = 0;
+}
+
+function resizeCircle(
+	body: RenderedCircle,
+	previousWidth: number,
+	previousHeight: number,
+	nextWidth: number,
+	nextHeight: number,
+): void {
+	const measuredRadius = Math.max(body.element.getBoundingClientRect().width / 2, 8);
+	body.radius = measuredRadius;
+	body.inverseMass = calculateCircleInverseMass(measuredRadius, body.density);
+
+	if (previousWidth > 0 && previousHeight > 0 && nextWidth > 0 && nextHeight > 0) {
+		const horizontalScale = nextWidth / previousWidth;
+		const verticalScale = nextHeight / previousHeight;
+		body.x *= horizontalScale;
+		body.y *= verticalScale;
+		body.vx *= horizontalScale;
+		body.vy *= verticalScale;
+	} else {
+		resetCircle(body, nextWidth, nextHeight);
+	}
+
+	constrainToField(body, nextWidth, nextHeight);
 }
 
 function constrainToField(
@@ -249,6 +305,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	let animationFrame = 0;
 	let isRunning = false;
 	let isDestroyed = false;
+	let isIntersecting = true;
 
 	const getLocalPointer = (event: PointerEvent): { x: number; y: number } => ({
 		x: event.clientX - fieldBounds.left,
@@ -411,9 +468,17 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	};
 
 	const resizeObserver = new ResizeObserver(() => {
+		const previousWidth = fieldBounds.width;
+		const previousHeight = fieldBounds.height;
 		fieldBounds = field.getBoundingClientRect();
 		for (const body of bodies) {
-			constrainToField(body, fieldBounds.width, fieldBounds.height);
+			resizeCircle(
+				body,
+				previousWidth,
+				previousHeight,
+				fieldBounds.width,
+				fieldBounds.height,
+			);
 		}
 	});
 
@@ -518,24 +583,47 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	};
 
 	const startLoop = (): void => {
-		if (isRunning || isDestroyed || document.hidden || reducedMotion.matches) {
+		if (
+			isRunning ||
+			isDestroyed ||
+			document.hidden ||
+			reducedMotion.matches ||
+			!isIntersecting
+		) {
 			return;
 		}
 
 		isRunning = true;
+		field.dataset.physicsState = 'running';
 		previousTime = performance.now();
 		accumulator = 0;
 		animationFrame = window.requestAnimationFrame(frame);
 	};
 
-	const synchronizeMotionPreference = (): void => {
-		if (document.hidden || reducedMotion.matches) {
+	const synchronizeActivity = (): void => {
+		if (document.hidden || reducedMotion.matches || !isIntersecting) {
 			clearDraggedBody();
 			stopLoop();
+			field.dataset.physicsState = reducedMotion.matches
+				? 'reduced-motion'
+				: document.hidden
+					? 'hidden'
+					: 'offscreen';
 		} else {
 			startLoop();
 		}
 	};
+
+	const intersectionObserver = typeof IntersectionObserver === 'undefined'
+		? undefined
+		: new IntersectionObserver(
+			(entries) => {
+				const entry = entries[0];
+				isIntersecting = entry?.isIntersecting ?? true;
+				synchronizeActivity();
+			},
+			{ rootMargin: '160px 0px' },
+		);
 
 	field.addEventListener('pointerdown', onPointerDown);
 	field.addEventListener('pointermove', onPointerMove);
@@ -544,16 +632,18 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	field.addEventListener('lostpointercapture', onLostPointerCapture);
 	field.addEventListener('pointerleave', onPointerLeave);
 	field.addEventListener('keydown', onKeyDown);
-	document.addEventListener('visibilitychange', synchronizeMotionPreference);
-	reducedMotion.addEventListener('change', synchronizeMotionPreference);
+	document.addEventListener('visibilitychange', synchronizeActivity);
+	reducedMotion.addEventListener('change', synchronizeActivity);
 	resizeObserver.observe(field);
-	startLoop();
+	intersectionObserver?.observe(field);
+	synchronizeActivity();
 
 	return () => {
 		isDestroyed = true;
 		clearDraggedBody();
 		stopLoop();
 		resizeObserver.disconnect();
+		intersectionObserver?.disconnect();
 		field.removeEventListener('pointerdown', onPointerDown);
 		field.removeEventListener('pointermove', onPointerMove);
 		field.removeEventListener('pointerup', releaseDraggedBody);
@@ -561,8 +651,9 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		field.removeEventListener('lostpointercapture', onLostPointerCapture);
 		field.removeEventListener('pointerleave', onPointerLeave);
 		field.removeEventListener('keydown', onKeyDown);
-		document.removeEventListener('visibilitychange', synchronizeMotionPreference);
-		reducedMotion.removeEventListener('change', synchronizeMotionPreference);
+		document.removeEventListener('visibilitychange', synchronizeActivity);
+		reducedMotion.removeEventListener('change', synchronizeActivity);
 		delete field.dataset.physicsReady;
+		delete field.dataset.physicsState;
 	};
 }

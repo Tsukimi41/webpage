@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
 	applyFloorFriction,
+	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -29,6 +30,15 @@ test('physics tuning is immutable and keeps material relationships explicit', ()
 	assert.ok(SKILL_PHYSICS_TUNING.marbleStaticFriction > SKILL_PHYSICS_TUNING.marbleDynamicFriction);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleRestitution < SKILL_PHYSICS_TUNING.marbleRestitution);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleNetBuoyancy > 0);
+});
+
+test('circle mass follows area and rejects invalid geometry', () => {
+	const smallInverseMass = calculateCircleInverseMass(10, 1);
+	const largeInverseMass = calculateCircleInverseMass(20, 1);
+
+	assert.ok(Math.abs(smallInverseMass / largeInverseMass - 4) < 0.0001);
+	assert.equal(calculateCircleInverseMass(0, 1), 0);
+	assert.equal(calculateCircleInverseMass(10, Number.NaN), 0);
 });
 
 test('separated circles do not produce a collision', () => {
