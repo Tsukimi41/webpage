@@ -1,12 +1,16 @@
 ---
 import ProfileIntroduction from '../components/ProfileIntroduction.astro';
+import ProjectShowcase from '../components/ProjectShowcase.astro';
+import { getFeaturedProjects } from '../content/projects';
 import { profile, profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const pageTitle = `${profileDisplayName} | ポートフォリオ`;
 const pageDescription = `${profileDisplayName}のポートフォリオ。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
+const featuredProjects = getFeaturedProjects({ limit: 3 });
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<ProfileIntroduction />
+	<ProjectShowcase projects={featuredProjects} />
 </BaseLayout>

@@ -5,3 +5,5 @@ export type {
 	ProjectLinkDefinition,
 } from './project.ts';
 export { projects } from './projects.ts';
+export { getFeaturedProjects, selectFeaturedProjects } from './queries.ts';
+export type { FeaturedProjectQuery } from './queries.ts';

@@ -1,0 +1,123 @@
+---
+import type { ProjectDefinition } from '../content/projects';
+
+interface Props {
+	project: Readonly<ProjectDefinition>;
+}
+
+const { project } = Astro.props;
+---
+
+<article class="project-card">
+	<header class="project-card__header">
+		<p class="project-card__period">{project.period}</p>
+		<h3 class="project-card__title">{project.title}</h3>
+	</header>
+
+	<p class="project-card__summary">{project.summary}</p>
+
+	<div class="project-card__details">
+		<div>
+			<p class="project-card__label">担当</p>
+			<p class="project-card__role">{project.role}</p>
+		</div>
+
+		<ul class="project-card__technologies" aria-label="使用技術" role="list">
+			{project.technologyLabels.map((technology) => <li>{technology}</li>)}
+		</ul>
+	</div>
+</article>
+
+<style>
+	.project-card {
+		position: relative;
+		display: flex;
+		min-inline-size: 0;
+		min-block-size: 100%;
+		flex-direction: column;
+		padding: clamp(var(--space-3), 4vw, var(--space-4));
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+	}
+
+	.project-card::before {
+		position: absolute;
+		inset-block: var(--space-3);
+		inset-inline-start: 0;
+		inline-size: 0.1875rem;
+		background: var(--color-accent);
+		content: '';
+	}
+
+	.project-card__header,
+	.project-card__details {
+		min-inline-size: 0;
+	}
+
+	.project-card__period,
+	.project-card__label {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+	}
+
+	.project-card__title {
+		margin-block: var(--space-1) 0;
+		color: var(--color-text);
+		font-size: clamp(1.25rem, 4vw, 1.65rem);
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	.project-card__summary,
+	.project-card__role {
+		overflow-wrap: anywhere;
+	}
+
+	.project-card__summary {
+		margin-block-start: var(--space-2);
+	}
+
+	.project-card__details {
+		display: grid;
+		gap: var(--space-3);
+		margin-block-start: auto;
+		padding-block-start: var(--space-4);
+	}
+
+	.project-card__role {
+		margin-block-start: var(--space-1);
+		color: var(--color-text);
+	}
+
+	.project-card__technologies {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.project-card__technologies li {
+		max-inline-size: 100%;
+		padding: 0.25rem var(--space-1);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface-raised);
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.project-card {
+			background: var(--color-surface);
+		}
+	}
+</style>
