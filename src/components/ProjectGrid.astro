@@ -17,10 +17,17 @@ const {
 
 {
 	projects.length > 0 ? (
-		<ul class="project-grid" role="list">
-			{projects.map((project) => (
-				<li>
-					<ProjectCard project={project} headingLevel={cardHeadingLevel} />
+		<ul class="project-timeline" role="list">
+			{projects.map((project, index) => (
+				<li class="project-timeline__item" style={`--timeline-delay: ${240 + index * 140}ms`}>
+					<div class="project-timeline__node" aria-hidden="true">
+						<span class="project-timeline__ticks" />
+						<span class="project-timeline__orbit" />
+						<span class="project-timeline__core" />
+					</div>
+					<div class="project-timeline__card">
+						<ProjectCard project={project} headingLevel={cardHeadingLevel} />
+					</div>
 				</li>
 			))}
 		</ul>
@@ -30,17 +37,177 @@ const {
 }
 
 <style>
-	.project-grid {
+	.project-timeline {
+		--timeline-node-size: 5rem;
+		--timeline-axis-size: 0.625rem;
+		--timeline-gap: clamp(var(--space-2), 3vw, var(--space-4));
+
+		position: relative;
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-		gap: var(--space-3);
+		gap: clamp(var(--space-4), 7vw, var(--space-5));
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.project-grid > li {
+	.project-timeline::before {
+		position: absolute;
+		z-index: 0;
+		inset-block: calc(var(--timeline-node-size) / 2);
+		inset-inline-start: calc(50% - var(--timeline-axis-size) / 2);
+		inline-size: var(--timeline-axis-size);
+		border: 1px solid color-mix(in srgb, var(--color-accent-strong) 52%, var(--color-border));
+		background:
+			linear-gradient(90deg, transparent, rgb(255 255 255 / 24%), transparent),
+			linear-gradient(
+				to bottom,
+				var(--color-accent-strong),
+				var(--color-accent) 52%,
+				var(--color-border)
+			);
+		box-shadow:
+			0 0 0.75rem var(--color-backdrop-glow),
+			inset 0 0 0.25rem rgb(255 255 255 / 18%);
+		content: '';
+		transform: scaleY(0);
+		transform-origin: top;
+		animation: timeline-axis-enter 900ms 100ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	}
+
+	.project-timeline__item {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) var(--timeline-node-size) minmax(0, 1fr);
+		align-items: center;
+		column-gap: var(--timeline-gap);
 		min-inline-size: 0;
+	}
+
+	.project-timeline__card {
+		position: relative;
+		z-index: 1;
+		grid-column: 3;
+		min-inline-size: 0;
+	}
+
+	.project-timeline__item:nth-child(even) .project-timeline__card {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.project-timeline__card::before {
+		position: absolute;
+		z-index: -1;
+		inset-block-start: calc(50% - 0.125rem);
+		inset-inline-start: calc(-1 * (var(--timeline-gap) + var(--timeline-node-size) / 2));
+		inline-size: calc(var(--timeline-gap) + var(--timeline-node-size) / 2);
+		block-size: 0.25rem;
+		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
+		box-shadow: 0 0 0.625rem var(--color-backdrop-glow);
+		content: '';
+	}
+
+	.project-timeline__item:nth-child(even) .project-timeline__card::before {
+		inset-inline: auto calc(-1 * (var(--timeline-gap) + var(--timeline-node-size) / 2));
+		background: linear-gradient(90deg, var(--color-accent-strong), var(--color-accent));
+	}
+
+	.project-timeline__node {
+		position: relative;
+		z-index: 2;
+		grid-column: 2;
+		grid-row: 1;
+		display: grid;
+		place-items: center;
+		inline-size: var(--timeline-node-size);
+		aspect-ratio: 1;
+		border: 0.1875rem solid var(--color-accent);
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 36% 30%, var(--color-surface-raised) 0 8%, transparent 9%),
+			radial-gradient(circle, var(--color-surface) 0 55%, var(--color-surface-raised) 56% 100%);
+		box-shadow:
+			0 0 0 0.375rem var(--color-canvas),
+			0 0 0 0.5rem var(--color-border),
+			0 0 1.75rem var(--color-backdrop-glow),
+			inset 0 0 1.25rem var(--color-shadow);
+		transform: scale(0) rotate(-135deg);
+		animation: timeline-node-enter 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+		animation-delay: var(--timeline-delay);
+	}
+
+	.project-timeline__ticks,
+	.project-timeline__orbit,
+	.project-timeline__core {
+		position: absolute;
+		border-radius: 50%;
+	}
+
+	.project-timeline__ticks {
+		inset: -0.1875rem;
+		background: repeating-conic-gradient(
+			from 3deg,
+			var(--color-accent-strong) 0 2deg,
+			transparent 2deg 15deg
+		);
+		opacity: 0.78;
+		-webkit-mask: radial-gradient(circle, transparent 0 72%, #000 73% 78%, transparent 79%);
+		mask: radial-gradient(circle, transparent 0 72%, #000 73% 78%, transparent 79%);
+	}
+
+	.project-timeline__orbit {
+		inset: 0.6875rem;
+		border: 1px dashed var(--color-accent-strong);
+		box-shadow:
+			0 0 0 0.1875rem color-mix(in srgb, var(--color-accent) 12%, transparent),
+			inset 0 0 0.75rem var(--color-backdrop-glow);
+		animation: timeline-orbit-calibrate 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation-delay: calc(var(--timeline-delay) + 280ms);
+	}
+
+	.project-timeline__orbit::before,
+	.project-timeline__orbit::after {
+		position: absolute;
+		inset-inline-start: 50%;
+		inline-size: 0.5rem;
+		aspect-ratio: 1;
+		border: 1px solid var(--color-canvas);
+		border-radius: 50%;
+		background: var(--color-accent);
+		box-shadow: 0 0 0.625rem var(--color-accent);
+		content: '';
+		transform: translateX(-50%);
+	}
+
+	.project-timeline__orbit::before {
+		inset-block-start: -0.25rem;
+	}
+
+	.project-timeline__orbit::after {
+		inset-block-end: -0.25rem;
+		background: var(--color-accent-strong);
+	}
+
+	.project-timeline__core {
+		inline-size: 1.125rem;
+		aspect-ratio: 1;
+		border: 0.1875rem solid var(--color-canvas);
+		background: var(--color-accent);
+		box-shadow:
+			0 0 0 0.1875rem var(--color-accent-strong),
+			0 0 1rem var(--color-accent);
+		animation: timeline-core-boot 800ms ease-out both;
+		animation-delay: calc(var(--timeline-delay) + 420ms);
+	}
+
+	.project-timeline__item:hover .project-timeline__orbit,
+	.project-timeline__item:focus-within .project-timeline__orbit {
+		animation: timeline-orbit-spin 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.project-timeline__item:hover .project-timeline__ticks,
+	.project-timeline__item:focus-within .project-timeline__ticks {
+		animation: timeline-ticks-react 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
 
 	.project-grid__empty {
@@ -49,5 +216,116 @@ const {
 		border: 1px solid var(--color-border);
 		background: var(--color-surface);
 		text-align: center;
+	}
+
+	@keyframes timeline-axis-enter {
+		to {
+			transform: scaleY(1);
+		}
+	}
+
+	@keyframes timeline-node-enter {
+		to {
+			transform: scale(1) rotate(0);
+		}
+	}
+
+	@keyframes timeline-orbit-calibrate {
+		from {
+			transform: rotate(-180deg) scale(0.6);
+		}
+
+		to {
+			transform: rotate(0) scale(1);
+		}
+	}
+
+	@keyframes timeline-orbit-spin {
+		to {
+			transform: rotate(1turn);
+		}
+	}
+
+	@keyframes timeline-ticks-react {
+		to {
+			transform: rotate(-0.25turn);
+		}
+	}
+
+	@keyframes timeline-core-boot {
+		0% {
+			opacity: 0;
+			transform: scale(0);
+		}
+
+		55% {
+			opacity: 1;
+			transform: scale(1.6);
+		}
+
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.project-timeline::before {
+			border-color: var(--color-border);
+		}
+
+		.project-timeline__orbit {
+			box-shadow: inset 0 0 0.75rem var(--color-backdrop-glow);
+		}
+	}
+
+	@media (max-width: 48rem) {
+		.project-timeline {
+			--timeline-node-size: 4rem;
+			--timeline-axis-size: 0.5rem;
+			--timeline-gap: var(--space-2);
+		}
+
+		.project-timeline::before {
+			inset-inline-start: calc(var(--timeline-node-size) / 2 - var(--timeline-axis-size) / 2);
+		}
+
+		.project-timeline__item {
+			grid-template-columns: var(--timeline-node-size) minmax(0, 1fr);
+		}
+
+		.project-timeline__card,
+		.project-timeline__item:nth-child(even) .project-timeline__card {
+			grid-column: 2;
+			grid-row: 1;
+		}
+
+		.project-timeline__card::before,
+		.project-timeline__item:nth-child(even) .project-timeline__card::before {
+			inset-inline: calc(-1 * (var(--timeline-gap) + var(--timeline-node-size) / 2)) auto;
+			background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
+		}
+
+		.project-timeline__node {
+			grid-column: 1;
+		}
+
+		.project-timeline__orbit {
+			inset: 0.5625rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.project-timeline::before,
+		.project-timeline__node,
+		.project-timeline__orbit,
+		.project-timeline__ticks,
+		.project-timeline__core,
+		.project-timeline__item:hover .project-timeline__orbit,
+		.project-timeline__item:hover .project-timeline__ticks,
+		.project-timeline__item:focus-within .project-timeline__orbit,
+		.project-timeline__item:focus-within .project-timeline__ticks {
+			animation: none;
+			transform: none;
+		}
 	}
 </style>
