@@ -6,7 +6,7 @@ import {
 import type { ProjectDefinition } from './project.ts';
 import { projects } from './projects.ts';
 
-export interface FeaturedProjectQuery {
+export interface ProjectQuery {
 	readonly states?: readonly ContentState[];
 	readonly limit?: number;
 }
@@ -17,22 +17,38 @@ function assertOptionalLimit(limit: number | undefined): void {
 	}
 }
 
+function applyLimit<T>(records: readonly T[], limit: number | undefined): readonly T[] {
+	assertOptionalLimit(limit);
+	return Object.freeze(limit === undefined ? [...records] : records.slice(0, limit));
+}
+
 export function selectFeaturedProjects<T extends ProjectDefinition>(
 	records: readonly T[],
-	query: FeaturedProjectQuery = {},
+	query: ProjectQuery = {},
 ): readonly T[] {
 	const { states = PREVIEW_CONTENT_STATES, limit } = query;
-	assertOptionalLimit(limit);
 
 	const featuredProjects = selectContentByState(records, states).filter(
 		(project) => project.featured,
 	);
-	const selectedProjects =
-		limit === undefined ? featuredProjects : featuredProjects.slice(0, limit);
 
-	return Object.freeze(selectedProjects);
+	return applyLimit(featuredProjects, limit);
 }
 
-export function getFeaturedProjects(query: FeaturedProjectQuery = {}): readonly ProjectDefinition[] {
+export function selectProjects<T extends ProjectDefinition>(
+	records: readonly T[],
+	query: ProjectQuery = {},
+): readonly T[] {
+	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const selectedProjects = selectContentByState(records, states);
+
+	return applyLimit(selectedProjects, limit);
+}
+
+export function getProjects(query: ProjectQuery = {}): readonly ProjectDefinition[] {
+	return selectProjects(projects, query);
+}
+
+export function getFeaturedProjects(query: ProjectQuery = {}): readonly ProjectDefinition[] {
 	return selectFeaturedProjects(projects, query);
 }

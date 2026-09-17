@@ -1,0 +1,20 @@
+---
+interface Props {
+	hasMockData: boolean;
+}
+
+const { hasMockData } = Astro.props;
+---
+
+{hasMockData && <p class="content-state-notice">モックデータ</p>}
+
+<style>
+	.content-state-notice {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		white-space: nowrap;
+	}
+</style>

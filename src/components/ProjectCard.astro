@@ -3,15 +3,17 @@ import type { ProjectDefinition } from '../content/projects';
 
 interface Props {
 	project: Readonly<ProjectDefinition>;
+	headingLevel?: 'h2' | 'h3';
 }
 
-const { project } = Astro.props;
+const { project, headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
 ---
 
 <article class="project-card">
 	<header class="project-card__header">
 		<p class="project-card__period">{project.period}</p>
-		<h3 class="project-card__title">{project.title}</h3>
+		<Heading class="project-card__title">{project.title}</Heading>
 	</header>
 
 	<p class="project-card__summary">{project.summary}</p>

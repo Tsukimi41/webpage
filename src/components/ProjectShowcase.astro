@@ -1,6 +1,7 @@
 ---
 import type { ProjectDefinition } from '../content/projects';
-import ProjectCard from './ProjectCard.astro';
+import ContentStateNotice from './ContentStateNotice.astro';
+import ProjectGrid from './ProjectGrid.astro';
 
 interface Props {
 	projects: readonly Readonly<ProjectDefinition>[];
@@ -16,12 +17,13 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 		<section class="project-showcase" aria-labelledby={headingId}>
 			<header class="project-showcase__header">
 				<h2 id={headingId}>代表プロジェクト</h2>
-				{includesMockData && <p class="project-showcase__state">モックデータ</p>}
+				<div class="project-showcase__actions">
+					<ContentStateNotice hasMockData={includesMockData} />
+					<a href="/projects/">すべて見る</a>
+				</div>
 			</header>
 
-			<ul class="project-showcase__grid" role="list">
-				{projects.map((project) => <li><ProjectCard project={project} /></li>)}
-			</ul>
+			<ProjectGrid projects={projects} cardHeadingLevel="h3" />
 		</section>
 	)
 }
@@ -48,32 +50,54 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 		line-height: 1.3;
 	}
 
-	.project-showcase__state {
-		margin: 0;
-		color: var(--color-accent);
-		font-size: 0.75rem;
+	.project-showcase__actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.project-showcase__actions a {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 2.75rem;
+		padding-inline: var(--space-2);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
 		font-weight: 700;
-		letter-spacing: 0.1em;
-		white-space: nowrap;
+		text-decoration: none;
+		transition:
+			background-color 160ms ease,
+			border-color 160ms ease,
+			color 160ms ease;
 	}
 
-	.project-showcase__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-		gap: var(--space-3);
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	.project-showcase__actions a:hover {
+		border-color: var(--color-accent);
+		background: var(--color-surface-raised);
+		color: var(--color-accent);
 	}
 
-	.project-showcase__grid > li {
-		min-inline-size: 0;
+	.project-showcase__actions a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
 	}
 
 	@media (max-width: 30rem) {
 		.project-showcase__header {
 			align-items: flex-start;
 			flex-direction: column;
+		}
+
+		.project-showcase__actions {
+			inline-size: 100%;
+			justify-content: space-between;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.project-showcase__actions a {
+			transition: none;
 		}
 	}
 </style>

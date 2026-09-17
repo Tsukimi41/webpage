@@ -4,8 +4,10 @@ import test from 'node:test';
 import {
 	defineProjectCollection,
 	getFeaturedProjects,
+	getProjects,
 	projects,
 	selectFeaturedProjects,
+	selectProjects,
 } from '../src/content/projects/index.ts';
 
 const validProject = Object.freeze({
@@ -45,6 +47,21 @@ test('featured query filters and orders projects before applying its limit', () 
 	assert.deepEqual(getFeaturedProjects({ limit: 0 }), []);
 });
 
+test('project query returns featured and non-featured records in deterministic order', () => {
+	const selectedProjects = getProjects();
+
+	assert.deepEqual(
+		selectedProjects.map((project) => project.id),
+		['mock-learning-log', 'mock-campus-guide', 'mock-command-notes'],
+	);
+	assert.equal(Object.isFrozen(selectedProjects), true);
+	assert.deepEqual(
+		getProjects({ limit: 2 }).map((project) => project.id),
+		['mock-learning-log', 'mock-campus-guide'],
+	);
+	assert.deepEqual(getProjects({ limit: 0 }), []);
+});
+
 test('featured query can select an explicit set of content states', () => {
 	const records = defineProjectCollection([
 		validProject,
@@ -55,11 +72,16 @@ test('featured query can select an explicit set of content states', () => {
 		selectFeaturedProjects(records, { states: ['published'] }).map((project) => project.id),
 		['published-project'],
 	);
+	assert.deepEqual(
+		selectProjects(records, { states: ['mock'] }).map((project) => project.id),
+		['test-project'],
+	);
 });
 
 test('featured query rejects invalid limits', () => {
 	for (const limit of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
 		assert.throws(() => getFeaturedProjects({ limit }), /non-negative safe integer/);
+		assert.throws(() => getProjects({ limit }), /non-negative safe integer/);
 	}
 });
 
