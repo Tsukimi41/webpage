@@ -302,7 +302,7 @@ function deformBubble(
 	body.deformationAngle = Math.atan2(normalY, normalX);
 }
 
-function renderCircle(body: RenderedCircle): void {
+function renderCircle(body: RenderedCircle, fieldHeight: number): void {
 	body.element.style.inset = '0 auto auto 0';
 	body.element.style.transform = `translate3d(${body.x - body.radius}px, ${body.y - body.radius}px, 0)`;
 
@@ -311,7 +311,14 @@ function renderCircle(body: RenderedCircle): void {
 		body.element.style.setProperty('--deform-y', String(1 - body.deformation * 0.72));
 		body.element.style.setProperty('--deform-angle', `${body.deformationAngle}rad`);
 	} else {
+		const floorDistance = Math.max(fieldHeight - body.y - body.radius, 0);
+		const heightRatio = Math.min(floorDistance / Math.max(fieldHeight * 0.65, 1), 1);
+
 		body.element.style.setProperty('--rotation', `${body.angle}rad`);
+		body.element.style.setProperty('--shadow-offset-y', `${floorDistance}px`);
+		body.element.style.setProperty('--shadow-scale', String(0.92 + heightRatio * 0.68));
+		body.element.style.setProperty('--shadow-opacity', String(0.52 - heightRatio * 0.38));
+		body.element.style.setProperty('--shadow-blur', `${0.28 + heightRatio * 0.55}rem`);
 	}
 }
 
@@ -578,7 +585,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		}
 
 		for (const body of bodies) {
-			renderCircle(body);
+			renderCircle(body, fieldBounds.height);
 		}
 
 		animationFrame = window.requestAnimationFrame(frame);

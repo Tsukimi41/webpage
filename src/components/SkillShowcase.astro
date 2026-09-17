@@ -39,12 +39,6 @@ const decorativeBubbles = Array.from({ length: 11 }, (_, index) => ({
 	delay: -(index % 6) * 0.7,
 }));
 
-const decorativeMarbles = Array.from({ length: 15 }, (_, index) => ({
-	x: 5 + ((index * 17) % 90),
-	size: 0.65 + (index % 5) * 0.24,
-	stack: index % 2,
-}));
-
 let bubbleIndex = 0;
 let marbleIndex = 0;
 
@@ -84,18 +78,6 @@ const skillObjects = skills.map((skill) => {
 					aria-hidden="true"
 				></span>
 			))}
-
-			<div class="marble-bed" aria-hidden="true">
-				{decorativeMarbles.map((marble) => (
-					<span
-						data-physics-object
-						data-physics-material="marble"
-						data-physics-x={marble.x}
-						data-physics-y={2 + marble.stack * 3}
-						style={`--marble-x:${marble.x}%;--marble-size:${marble.size}rem;--marble-stack:${marble.stack}`}
-					></span>
-				))}
-			</div>
 
 			<ul class="skill-objects" role="list">
 				{skillObjects.map(({ skill, placement }) => (
@@ -214,12 +196,18 @@ const skillObjects = skills.map((skill) => {
 
 	.skill-object {
 		--rotation: 0rad;
+		--shadow-blur: 0.28rem;
+		--shadow-offset-y: 0px;
+		--shadow-opacity: 0.52;
+		--shadow-scale: 0.92;
 
 		position: absolute;
 		z-index: 3;
 		inset-block-start: var(--object-y);
 		inset-inline-start: var(--object-x);
 		inline-size: var(--object-size);
+		block-size: var(--object-size);
+		border-radius: 50%;
 		transform: translate(-50%, -50%);
 		will-change: transform;
 	}
@@ -233,9 +221,10 @@ const skillObjects = skills.map((skill) => {
 		position: relative;
 		display: block;
 		inline-size: 100%;
-		aspect-ratio: 1;
+		block-size: 100%;
 		padding: 0;
 		border: 0;
+		border-radius: 50%;
 		background: transparent;
 		color: var(--color-text);
 		font: inherit;
@@ -260,12 +249,15 @@ const skillObjects = skills.map((skill) => {
 
 	.skill-object__surface {
 		position: absolute;
+		z-index: 1;
 		inset: 0;
 		display: grid;
 		place-items: center;
 		inline-size: 100%;
-		aspect-ratio: 1;
+		block-size: 100%;
+		box-sizing: border-box;
 		border-radius: 50%;
+		overflow: hidden;
 	}
 
 	.skill-object--bubble .skill-object__surface {
@@ -320,10 +312,24 @@ const skillObjects = skills.map((skill) => {
 		box-shadow:
 			inset -0.8rem -1rem 1.4rem rgb(0 0 0 / 30%),
 			inset 0.3rem 0.35rem 0.7rem rgb(255 255 255 / 20%),
-			0 0.75rem 0.35rem -0.35rem rgb(0 0 0 / 42%),
 			0 0 1.2rem var(--color-backdrop-glow);
 		transition: filter 160ms ease;
 		transform: rotate(var(--rotation));
+	}
+
+	.skill-object--marble button::after {
+		position: absolute;
+		z-index: 0;
+		inset-block-start: calc(100% - 0.35rem);
+		inset-inline: 12%;
+		block-size: 0.45rem;
+		border-radius: 50%;
+		background: rgb(0 0 0 / 68%);
+		content: '';
+		filter: blur(var(--shadow-blur));
+		opacity: var(--shadow-opacity);
+		pointer-events: none;
+		transform: translateY(var(--shadow-offset-y)) scaleX(var(--shadow-scale));
 	}
 
 	.skill-object__symbol {
@@ -351,8 +357,21 @@ const skillObjects = skills.map((skill) => {
 		font-weight: 800;
 		line-height: 1.25;
 		box-shadow: 0 0.25rem 0.7rem var(--color-shadow);
+		opacity: 0;
 		overflow-wrap: anywhere;
-		transform: translateX(-50%);
+		transform: translate(-50%, 0.35rem);
+		transition:
+			opacity 140ms ease,
+			transform 140ms ease,
+			visibility 0s linear 140ms;
+		visibility: hidden;
+	}
+
+	.skill-object button:is(:hover, :focus-visible) .skill-object__label {
+		opacity: 1;
+		transform: translate(-50%, 0);
+		transition-delay: 0s;
+		visibility: visible;
 	}
 
 	.skill-object button:is(:hover, :focus-visible) .skill-object__symbol {
@@ -386,29 +405,6 @@ const skillObjects = skills.map((skill) => {
 		scale: var(--deform-x) var(--deform-y);
 	}
 
-	.marble-bed {
-		position: absolute;
-		z-index: 0;
-		inset: 0;
-		pointer-events: none;
-	}
-
-	.marble-bed span {
-		--rotation: 0rad;
-
-		position: absolute;
-		inset-block-end: calc(var(--marble-stack) * 0.45rem);
-		inset-inline-start: var(--marble-x);
-		inline-size: var(--marble-size);
-		aspect-ratio: 1;
-		border: 1px solid rgb(255 255 255 / 22%);
-		border-radius: 50%;
-		background: radial-gradient(circle at 32% 27%, rgb(255 255 255 / 55%) 0 7%, var(--color-accent) 25%, var(--color-surface-raised) 73%);
-		box-shadow: 0 0.35rem 0.3rem -0.2rem rgb(0 0 0 / 45%);
-		rotate: var(--rotation);
-		transform: translateX(-50%);
-	}
-
 	@supports not (background: color-mix(in srgb, black, white)) {
 		.skill-box { background: var(--color-surface); }
 		.skill-object__label { background: var(--color-canvas); }
@@ -425,5 +421,6 @@ const skillObjects = skills.map((skill) => {
 		.skill-object__surface,
 		.skill-object__symbol { animation: none; transition: none; }
 		.skill-object button:is(:hover, :focus-visible) .skill-object__symbol { transform: none; }
+		.skill-object__label { transition: none; }
 	}
 </style>
