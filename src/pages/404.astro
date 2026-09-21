@@ -9,7 +9,6 @@ const destinations = [
 	{ href: '/', label: 'Home', description: 'トップページへ戻る' },
 	{ href: '/projects/', label: 'Projects', description: '制作実績を見る' },
 	{ href: '/articles/', label: 'Articles', description: 'すべての記事を探す' },
-	{ href: '/blog/', label: 'Blog', description: 'ブログを読む' },
 	{ href: '/profile/', label: 'Profile', description: 'プロフィールを見る' },
 ] as const;
 ---
@@ -32,7 +31,7 @@ const destinations = [
 					name="q"
 					type="search"
 					maxlength="80"
-					placeholder="タイトル、概要、技術、タグ"
+					placeholder=""
 					autocomplete="off"
 				/>
 				<button type="submit">検索する</button>

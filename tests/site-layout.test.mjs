@@ -25,7 +25,7 @@ test('base layout includes shared header, main content, and footer', async () =>
 	assert.match(source, /href=\{profile\.icon\.src\}/);
 });
 
-test('shared navigation exposes home, profile, articles, blog, theme, and back-to-top links', async () => {
+test('shared navigation exposes home, profile, articles, theme, and back-to-top links', async () => {
 	const [header, footer, backToTop] = await Promise.all([
 		readFile(headerUrl, 'utf8'),
 		readFile(footerUrl, 'utf8'),
@@ -35,7 +35,7 @@ test('shared navigation exposes home, profile, articles, blog, theme, and back-t
 	assert.match(header, /href="\/"[^>]*>Home</);
 	assert.match(header, /href="\/profile\/"[^>]*>Profile</);
 	assert.match(header, /href="\/articles\/"[^>]*>Articles</);
-	assert.match(header, /href="\/blog\/"[^>]*>Blog</);
+	assert.doesNotMatch(header, /href="\/blog\/"|>Blog</);
 	assert.match(header, /<ThemeSwitcher \/>/);
 	assert.match(header, /\.site-header__nav \{[\s\S]*margin-inline-start: auto/);
 	assert.match(header, /\.site-header__nav li::before/);
@@ -46,6 +46,7 @@ test('shared navigation exposes home, profile, articles, blog, theme, and back-t
 	assert.match(footer, /<BackToTopLink \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
 	assert.match(footer, /href="\/articles\/">Articles</);
+	assert.doesNotMatch(footer, /href="\/blog\/"|>Blog</);
 	assert.doesNotMatch(footer, /site-footer__top|site-footer__top-icon/);
 	assert.match(footer, /class="site-footer__site-nav"/);
 	assert.ok(

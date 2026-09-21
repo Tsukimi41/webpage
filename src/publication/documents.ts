@@ -59,7 +59,7 @@ export function createRssDocument(definition: RssDocumentDefinition): string {
 	const title = requireText(definition.title, 'rss.title');
 	const description = requireText(definition.description, 'rss.description');
 	const language = requireText(definition.language, 'rss.language');
-	const channelUrl = createCanonicalUrl(definition.siteHref, '/blog/');
+	const channelUrl = createCanonicalUrl(definition.siteHref, '/articles/');
 	const feedUrl = createCanonicalUrl(definition.siteHref, '/rss.xml');
 	const usedPaths = new Set<string>();
 

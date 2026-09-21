@@ -31,9 +31,10 @@ test('404 page offers bounded article search and all primary recovery links', as
 	assert.match(source, /name="q"[\s\S]*type="search"[\s\S]*maxlength="80"/);
 	assert.match(source, /aria-label="主要ページへ移動"/);
 
-	for (const path of ['/', '/projects/', '/articles/', '/blog/', '/profile/']) {
+	for (const path of ['/', '/projects/', '/articles/', '/profile/']) {
 		assert.match(source, new RegExp(`href: '${path.replaceAll('/', '\\/')}'`));
 	}
+	assert.doesNotMatch(source, /href: '\/blog\/'/);
 });
 
 test('404 controls remain keyboard-visible and collapse to one column', async () => {

@@ -83,7 +83,7 @@ test('release readiness accepts the minimum publishable data while retaining man
 		secretFindings: 0,
 	});
 	assert.equal(report.issues.filter(({ severity }) => severity === 'blocker').length, 0);
-	assert.ok(report.issues.some(({ code }) => code === 'no-blog-posts'));
+	assert.ok(report.issues.some(({ code }) => code === 'no-article-posts'));
 	assert.ok(report.issues.some(({ severity }) => severity === 'manual'));
 	assert.ok(Object.isFrozen(report));
 	assert.ok(Object.isFrozen(report.metrics));

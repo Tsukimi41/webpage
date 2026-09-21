@@ -19,7 +19,7 @@ const { items, topics } = Astro.props;
 				name="q"
 				type="search"
 				maxlength="80"
-				placeholder="タイトル、概要、技術、タグ"
+				placeholder=""
 				autocomplete="off"
 				aria-controls="article-results"
 				data-search-input
@@ -31,7 +31,7 @@ const { items, topics } = Astro.props;
 			<div>
 				<button type="button" data-kind="all" aria-pressed="true">すべて</button>
 				<button type="button" data-kind="project" aria-pressed="false">プロジェクト</button>
-				<button type="button" data-kind="blog" aria-pressed="false">ブログ</button>
+				<button type="button" data-kind="blog" aria-pressed="false">記事</button>
 			</div>
 		</fieldset>
 

@@ -86,13 +86,13 @@ test('RSS supports zero, one, and multiple items with deterministic newest-first
 			{
 				title: 'Older',
 				description: 'Old description',
-				pathname: '/blog/older/',
+				pathname: '/articles/older/',
 				publishedAt: '2026-01-01',
 			},
 			{
 				title: 'Newer <Post>',
 				description: 'New description',
-				pathname: '/blog/newer/',
+				pathname: '/articles/newer/',
 				publishedAt: '2026-02-01',
 			},
 		],
@@ -100,7 +100,8 @@ test('RSS supports zero, one, and multiple items with deterministic newest-first
 
 	assert.match(feed, /<title>A &amp; B<\/title>/);
 	assert.match(feed, /Newer &lt;Post&gt;/);
-	assert.ok(feed.indexOf('/blog/newer/') < feed.indexOf('/blog/older/'));
+	assert.ok(feed.indexOf('/articles/newer/') < feed.indexOf('/articles/older/'));
+	assert.match(feed, /<link>https:\/\/portfolio\.example\/articles\/<\/link>/);
 	assert.equal((feed.match(/<item>/g) ?? []).length, 2);
 });
 
@@ -114,7 +115,7 @@ test('RSS rejects invalid items, duplicate URLs, and malformed dates', () => {
 	const item = {
 		title: 'Post',
 		description: 'Description',
-		pathname: '/blog/post/',
+		pathname: '/articles/post/',
 		publishedAt: '2026-01-01',
 	};
 
@@ -162,7 +163,7 @@ test('base layout exposes canonical, robots, sharing, RSS, and JSON-LD metadata'
 	const [layout, footer, blogPage, packageSource] = await Promise.all([
 		readFile(new URL('../src/layouts/BaseLayout.astro', import.meta.url), 'utf8'),
 		readFile(new URL('../src/components/SiteFooter.astro', import.meta.url), 'utf8'),
-		readFile(new URL('../src/pages/blog/[slug].astro', import.meta.url), 'utf8'),
+		readFile(new URL('../src/pages/articles/[slug].astro', import.meta.url), 'utf8'),
 		readFile(new URL('../package.json', import.meta.url), 'utf8'),
 	]);
 

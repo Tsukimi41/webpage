@@ -21,7 +21,7 @@ test('article feed combines project details and blog posts without duplicating t
 	);
 	assert.equal(items.every((item) => item.href), true);
 	assert.equal(
-		items.filter((item) => item.sourceKind === 'blog').every((item) => item.href?.startsWith('/blog/')),
+		items.filter((item) => item.sourceKind === 'blog').every((item) => item.href?.startsWith('/articles/')),
 		true,
 	);
 	assert.equal(items.some((item) => item.summary.length > 0), true);

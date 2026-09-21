@@ -9,7 +9,7 @@ const items = getArticleIndex();
 const topics = getArticleTopics(items);
 const includesMockData = items.some((item) => item.state === 'mock');
 const pageTitle = `記事 | ${profileDisplayName}`;
-const pageDescription = `${profileDisplayName}のプロジェクト詳細とブログ記事を横断して検索できます。`;
+const pageDescription = `${profileDisplayName}のプロジェクト詳細と長文記事を横断して検索できます。`;
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>

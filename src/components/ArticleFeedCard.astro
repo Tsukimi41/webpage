@@ -16,7 +16,7 @@ const { item, duplicate = false } = Astro.props;
 >
 	<div class="article-feed-card__cover" aria-hidden="true">
 		<span class="article-feed-card__cover-label">{item.sourceLabel}</span>
-		<span class="article-feed-card__cover-mark">{item.sourceKind === 'project' ? '↗' : '✦'}</span>
+		<span class="article-feed-card__cover-mark">{item.sourceKind === 'project' ? '↗' : '¶'}</span>
 	</div>
 	<div class="article-feed-card__body">
 		<p class="article-feed-card__source">{item.sourceLabel}</p>

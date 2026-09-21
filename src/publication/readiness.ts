@@ -189,7 +189,7 @@ export function createReleaseReadinessReport(
 	}
 
 	if (publicBlogPosts.length === 0) {
-		issues.push(createIssue('warning', 'no-blog-posts', 'blogPosts', '公開ブログ記事は0件です。初期記事数を確認してください。'));
+		issues.push(createIssue('warning', 'no-article-posts', 'blogPosts', '公開記事は0件です。初期記事数を確認してください。'));
 	}
 
 	issues.push(createIssue('manual', 'privacy-review', 'site', '本名、学籍番号、私用連絡先、位置情報が含まれないことを人が確認してください。'));

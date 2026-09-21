@@ -9,14 +9,14 @@ export const GET = (({ site }) => {
 	const items = getBlogPosts().map((post) => ({
 		title: post.title,
 		description: post.description,
-		pathname: `/blog/${post.slug}/`,
+		pathname: `/articles/${post.slug}/`,
 		publishedAt: post.publishedAt,
 	}));
 
 	return new Response(
 		createRssDocument({
 			siteHref: site.href,
-			title: `${siteMetadata.name} Blog`,
+			title: `${siteMetadata.name} Articles`,
 			description: siteMetadata.description,
 			language: siteMetadata.language,
 			items,

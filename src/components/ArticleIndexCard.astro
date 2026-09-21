@@ -14,7 +14,7 @@ const { item } = Astro.props;
 	data-content-state={item.state}
 >
 	<div class="article-index-card__accent" aria-hidden="true">
-		<span>{item.sourceKind === 'project' ? 'PROJECT' : 'BLOG'}</span>
+		<span>{item.sourceKind === 'project' ? 'PROJECT' : 'ARTICLE'}</span>
 		<span>{item.sourceKind === 'project' ? '↗' : '✦'}</span>
 	</div>
 

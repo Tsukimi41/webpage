@@ -11,20 +11,19 @@ const { items } = Astro.props;
 const includesMockData = items.some((item) => item.state === 'mock');
 ---
 
-<section class="blog-showcase" aria-labelledby="blog-showcase-title">
-	<header class="blog-showcase__header">
+<section class="article-showcase" aria-labelledby="article-showcase-title">
+	<header class="article-showcase__header">
 		<div>
-			<p class="blog-showcase__eyebrow" aria-hidden="true">ARTICLES</p>
-			<h2 id="blog-showcase-title">記事</h2>
+			<h2 id="article-showcase-title">ARTICLES</h2>
 		</div>
-		<div class="blog-showcase__actions">
+		<div class="article-showcase__actions">
 			<ContentStateNotice hasMockData={includesMockData} />
 			<a href="/articles/">すべての記事を見る</a>
 		</div>
 	</header>
 
 	{items.length > 0 ? (
-		<div class="article-marquee" aria-label="プロジェクト詳細とブログ記事">
+		<div class="article-marquee" aria-label="プロジェクト詳細と長文記事">
 			<div class="article-marquee__track">
 				<ul class="article-marquee__group" role="list">
 					{items.map((item) => <li><ArticleFeedCard item={item} /></li>)}
@@ -35,16 +34,16 @@ const includesMockData = items.some((item) => item.state === 'mock');
 			</div>
 		</div>
 	) : (
-		<p class="blog-showcase__empty">表示できる記事はありません。</p>
+		<p class="article-showcase__empty">表示できる記事はありません。</p>
 	)}
 </section>
 
 <style>
-	.blog-showcase {
+	.article-showcase {
 		padding-block: clamp(var(--space-5), 10vw, 7rem);
 	}
 
-	.blog-showcase__header {
+	.article-showcase__header {
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
@@ -54,7 +53,7 @@ const includesMockData = items.some((item) => item.state === 'mock');
 		border-block-end: 1px solid var(--color-border);
 	}
 
-	.blog-showcase__eyebrow {
+	.article-showcase__eyebrow {
 		margin: 0;
 		color: var(--color-accent);
 		font-size: 0.75rem;
@@ -62,24 +61,24 @@ const includesMockData = items.some((item) => item.state === 'mock');
 		letter-spacing: 0.1em;
 	}
 
-	.blog-showcase h2 {
+	.article-showcase h2 {
 		margin-block-start: var(--space-1);
 		color: var(--color-text);
 		font-size: clamp(1.5rem, 5vw, 2rem);
 		line-height: 1.3;
 	}
 
-	.blog-showcase__lead {
+	.article-showcase__lead {
 		margin-block-start: var(--space-1);
 	}
 
-	.blog-showcase__actions {
+	.article-showcase__actions {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
 	}
 
-	.blog-showcase__actions a {
+	.article-showcase__actions a {
 		display: inline-flex;
 		align-items: center;
 		min-block-size: 2.75rem;
@@ -95,13 +94,13 @@ const includesMockData = items.some((item) => item.state === 'mock');
 			color 160ms ease;
 	}
 
-	.blog-showcase__actions a:hover {
+	.article-showcase__actions a:hover {
 		border-color: var(--color-accent);
 		background: var(--color-surface-raised);
 		color: var(--color-accent);
 	}
 
-	.blog-showcase__actions a:focus-visible {
+	.article-showcase__actions a:focus-visible {
 		outline: 0.1875rem solid var(--color-accent);
 		outline-offset: 0.1875rem;
 	}
@@ -136,7 +135,7 @@ const includesMockData = items.some((item) => item.state === 'mock');
 		inline-size: clamp(17rem, 28vw, 23rem);
 	}
 
-	.blog-showcase__empty {
+	.article-showcase__empty {
 		margin: 0;
 		padding: var(--space-4);
 		border: 1px dashed var(--color-border);
@@ -150,12 +149,12 @@ const includesMockData = items.some((item) => item.state === 'mock');
 	}
 
 	@media (max-width: 30rem) {
-		.blog-showcase__header {
+		.article-showcase__header {
 			align-items: flex-start;
 			flex-direction: column;
 		}
 
-		.blog-showcase__actions {
+		.article-showcase__actions {
 			inline-size: 100%;
 			justify-content: space-between;
 		}
@@ -166,7 +165,7 @@ const includesMockData = items.some((item) => item.state === 'mock');
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.blog-showcase__actions a {
+		.article-showcase__actions a {
 			transition: none;
 		}
 

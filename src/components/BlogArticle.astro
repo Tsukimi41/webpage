@@ -21,11 +21,11 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 ---
 
 <article class="blog-article" data-content-state={post.state}>
-	<a class="blog-article__back" href="/blog/">ブログ一覧へ戻る</a>
+	<a class="blog-article__back" href="/articles/">記事一覧へ戻る</a>
 
 	<header class="blog-article__header">
 		<div class="blog-article__heading">
-			<p class="blog-article__eyebrow">BLOG</p>
+			<p class="blog-article__eyebrow">ARTICLE</p>
 			<h1>{post.title}</h1>
 			<p class="blog-article__description">{post.description}</p>
 		</div>
@@ -41,7 +41,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		{tags.length > 0 && (
 			<ul class="blog-article__tags" aria-label="タグ" role="list">
 				{tags.map((tag) => (
-					<li><a href={`/blog/tags/${tag.id}/`}>{tag.label}</a></li>
+					<li><a href={`/articles/?topic=${encodeURIComponent(tag.id)}`}>{tag.label}</a></li>
 				))}
 			</ul>
 		)}
@@ -74,7 +74,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 			<ul role="list">
 				{relatedPosts.map(({ post: relatedPost }) => (
 					<li>
-						<a href={`/blog/${relatedPost.slug}/`}>
+						<a href={`/articles/${relatedPost.slug}/`}>
 							<span>{relatedPost.title}</span>
 							<time datetime={relatedPost.publishedAt}>{formatDate(relatedPost.publishedAt)}</time>
 						</a>

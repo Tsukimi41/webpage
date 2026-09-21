@@ -1,6 +1,6 @@
 ---
 import ProfileIntroduction from '../components/ProfileIntroduction.astro';
-import BlogShowcase from '../components/BlogShowcase.astro';
+import ArticleShowcase from '../components/ArticleShowcase.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
 import SkillShowcase from '../components/SkillShowcase.astro';
 import { getArticleFeed } from '../content/articles';
@@ -19,6 +19,6 @@ const articleFeed = getArticleFeed();
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<ProfileIntroduction />
 	<SkillShowcase skills={skills} />
-	<BlogShowcase items={articleFeed} />
+	<ArticleShowcase items={articleFeed} />
 	<ProjectShowcase projects={projects} />
 </BaseLayout>
