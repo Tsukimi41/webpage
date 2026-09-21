@@ -1,18 +1,21 @@
 ---
-import type { BlogPostDefinition } from '../content/blog';
+import type { BlogPostView } from '../content/blog';
 
 interface Props {
-	post: Readonly<BlogPostDefinition>;
+	view: Readonly<BlogPostView>;
 }
 
-const { post } = Astro.props;
+const { view } = Astro.props;
+const { post, tags } = view;
 const formatDate = (date: string): string => date.replaceAll('-', '.');
 ---
 
 <article class="blog-card">
 	<header class="blog-card__header">
 		<p class="blog-card__eyebrow">BLOG</p>
-		<h2 class="blog-card__title">{post.title}</h2>
+		<h2 class="blog-card__title">
+			<a href={`/blog/${post.slug}/`}>{post.title}</a>
+		</h2>
 	</header>
 
 	<p class="blog-card__description">{post.description}</p>
@@ -25,9 +28,11 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		<span>読了 約{post.readingTimeMinutes}分</span>
 	</div>
 
-	{post.tags.length > 0 && (
+	{tags.length > 0 && (
 		<ul class="blog-card__tags" aria-label="タグ" role="list">
-			{post.tags.map((tag) => <li>{tag}</li>)}
+			{tags.map((tag) => (
+				<li><a href={`/blog/tags/${tag.id}/`}>{tag.label}</a></li>
+			))}
 		</ul>
 	)}
 </article>
@@ -55,6 +60,11 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		content: '';
 	}
 
+	.blog-card:focus-within,
+	.blog-card:hover {
+		border-color: var(--color-accent);
+	}
+
 	.blog-card__eyebrow,
 	.blog-card__meta {
 		color: var(--color-accent);
@@ -72,6 +82,24 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		font-size: clamp(1.2rem, 3.5vw, 1.55rem);
 		line-height: 1.45;
 		overflow-wrap: anywhere;
+	}
+
+	.blog-card__title a {
+		color: inherit;
+		text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+		text-decoration-thickness: 0.1em;
+		text-underline-offset: 0.22em;
+	}
+
+	.blog-card__title a:hover {
+		color: var(--color-accent);
+	}
+
+	.blog-card__title a:focus-visible,
+	.blog-card__tags a:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
 	}
 
 	.blog-card__description {
@@ -97,7 +125,8 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		list-style: none;
 	}
 
-	.blog-card__tags li {
+	.blog-card__tags a {
+		display: block;
 		padding: 0.25rem 0.5rem;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-small);
@@ -105,6 +134,12 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		font-size: 0.75rem;
 		font-weight: 700;
 		line-height: 1.4;
+		text-decoration: none;
+	}
+
+	.blog-card__tags a:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
 	}
 
 	@supports not (background: color-mix(in srgb, black, white)) {

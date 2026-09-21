@@ -3,12 +3,21 @@ import test from 'node:test';
 
 import {
 	defineBlogPostCollection,
+	defineBlogTagCollection,
 	findBlogPostBySlug,
+	findBlogTagById,
 	getBlogPostBySlug,
 	getBlogPosts,
+	getBlogPostsForTag,
+	getBlogTags,
+	getBlogTagsByIds,
+	getRelatedBlogPosts,
 	selectBlogPosts,
+	selectBlogTags,
 	blogPosts,
+	blogTags,
 } from '../src/content/blog/index.ts';
+import { assertBlogTagRelations } from '../src/content/blog/relations.ts';
 
 const validPost = Object.freeze({
 	id: 'test-post',
@@ -19,8 +28,16 @@ const validPost = Object.freeze({
 	description: 'Test description',
 	publishedAt: '2026-01-10',
 	updatedAt: '2026-01-12',
-	tags: ['Astro'],
+	tagIds: ['astro'],
 	readingTimeMinutes: 3,
+});
+
+const validTag = Object.freeze({
+	id: 'astro',
+	state: 'mock',
+	order: 0,
+	label: 'Astro',
+	description: 'Astro notes.',
 });
 
 test('blog post data is deeply frozen at its collection boundaries', () => {
@@ -28,8 +45,36 @@ test('blog post data is deeply frozen at its collection boundaries', () => {
 
 	for (const post of blogPosts) {
 		assert.equal(Object.isFrozen(post), true);
-		assert.equal(Object.isFrozen(post.tags), true);
+		assert.equal(Object.isFrozen(post.tagIds), true);
 	}
+});
+
+test('blog tags are validated, frozen, and resolved from stable ids', () => {
+	assert.equal(Object.isFrozen(blogTags), true);
+	assert.equal(blogTags.every(Object.isFrozen), true);
+	assert.deepEqual(
+		getBlogTags().map((tag) => tag.id),
+		['astro', 'typescript', 'css', 'accessibility', 'design-system', 'web-development'],
+	);
+	assert.deepEqual(getBlogTagsByIds(['typescript', 'astro']).map((tag) => tag.label), [
+		'TypeScript',
+		'Astro',
+	]);
+	assert.equal(findBlogTagById(blogTags, 'css')?.label, 'CSS');
+	assert.equal(Object.isFrozen(selectBlogTags(blogTags, { limit: 1 })), true);
+	assert.deepEqual(selectBlogTags(blogTags, { limit: 0 }), []);
+	assert.throws(() => getBlogTags({ limit: -1 }), /non-negative safe integer/);
+	assert.throws(() => getBlogTagsByIds(['missing-tag']), /No visible blog tag/);
+});
+
+test('blog tag validation rejects empty and duplicate labels', () => {
+	assert.throws(() => defineBlogTagCollection([{ ...validTag, label: ' ' }]));
+	assert.throws(() =>
+		defineBlogTagCollection([
+			validTag,
+			{ ...validTag, id: 'other-tag', label: ' astro ' },
+		]),
+	);
 });
 
 test('blog query sorts by publication date, update date, order, then id', () => {
@@ -113,8 +158,8 @@ test('blog validation rejects malformed dates, tags, reading time, and slugs', (
 		{ ...validPost, publishedAt: '2026-02-30' },
 		{ ...validPost, publishedAt: '2026/01/10' },
 		{ ...validPost, updatedAt: '2025-12-31' },
-		{ ...validPost, tags: ['Astro', ' astro '] },
-		{ ...validPost, tags: [' '] },
+		{ ...validPost, tagIds: ['astro', 'astro'] },
+		{ ...validPost, tagIds: ['Invalid tag'] },
 		{ ...validPost, readingTimeMinutes: 0 },
 		{ ...validPost, readingTimeMinutes: 1.5 },
 		{ ...validPost, slug: 'Test Post' },
@@ -130,4 +175,42 @@ test('blog validation rejects malformed dates, tags, reading time, and slugs', (
 			{ ...validPost, id: 'other-post', slug: 'test-post' },
 		]),
 	);
+});
+
+test('blog tag relations reject broken references, state mismatches, and unused visible tags', () => {
+	assert.doesNotThrow(() => assertBlogTagRelations([validPost], [validTag]));
+	assert.throws(
+		() => assertBlogTagRelations([{ ...validPost, tagIds: ['missing-tag'] }], [validTag]),
+		/unknown tag/,
+	);
+	assert.throws(
+		() =>
+			assertBlogTagRelations(
+				[{ ...validPost, state: 'published' }],
+				[validTag],
+			),
+		/non-published tag/,
+	);
+	assert.throws(
+		() =>
+			assertBlogTagRelations(
+				[validPost],
+				[validTag, { ...validTag, id: 'unused-tag', label: 'Unused' }],
+			),
+		/no supporting post/,
+	);
+});
+
+test('tag and related-post queries remain deterministic', () => {
+	assert.deepEqual(
+		getBlogPostsForTag('astro').map((post) => post.id),
+		['mock-astro-foundation-notes'],
+	);
+	assert.deepEqual(
+		getRelatedBlogPosts('mock-accessible-motion-notes').map((post) => post.id),
+		['mock-astro-foundation-notes'],
+	);
+	assert.equal(Object.isFrozen(getRelatedBlogPosts('mock-accessible-motion-notes')), true);
+	assert.throws(() => getRelatedBlogPosts('missing-post'), /No blog post found/);
+	assert.throws(() => getRelatedBlogPosts('mock-accessible-motion-notes', -1), /non-negative/);
 });

@@ -66,3 +66,37 @@ export function getBlogPostBySlug(
 ): BlogPostDefinition | undefined {
 	return findBlogPostBySlug(blogPosts, slug, query);
 }
+
+export function getRelatedBlogPosts(
+	postId: string,
+	limit = 3,
+): readonly BlogPostDefinition[] {
+	assertContentId(postId, 'related blog post id');
+	assertOptionalLimit(limit);
+
+	const sourcePost = blogPosts.find((post) => post.id === postId);
+
+	if (!sourcePost) {
+		throw new Error(`No blog post found for related-post query: ${postId}`);
+	}
+
+	const sourceTagIds = new Set(sourcePost.tagIds);
+
+	return Object.freeze(
+		selectBlogPosts(blogPosts, { states: [sourcePost.state] })
+			.filter((post) => post.id !== sourcePost.id)
+			.map((post) => ({
+				post,
+				sharedTagCount: post.tagIds.filter((tagId) => sourceTagIds.has(tagId)).length,
+			}))
+			.filter(({ sharedTagCount }) => sharedTagCount > 0)
+			.sort(
+				(left, right) =>
+					right.sharedTagCount - left.sharedTagCount ||
+					right.post.publishedAt.localeCompare(left.post.publishedAt) ||
+					left.post.id.localeCompare(right.post.id),
+			)
+			.slice(0, limit)
+			.map(({ post }) => post),
+	);
+}

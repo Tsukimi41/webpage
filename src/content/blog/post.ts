@@ -11,7 +11,7 @@ export interface BlogPostDefinition extends ContentRecord {
 	readonly description: string;
 	readonly publishedAt: string;
 	readonly updatedAt: string;
-	readonly tags: readonly string[];
+	readonly tagIds: readonly string[];
 	readonly readingTimeMinutes: number;
 }
 
@@ -43,21 +43,23 @@ function normalizeDate(value: string, fieldPath: string): string {
 	return normalizedValue;
 }
 
-function normalizeTags(tags: readonly string[], fieldPath: string): readonly string[] {
-	const normalizedTags = tags.map((tag, index) => normalizeText(tag, `${fieldPath}[${index}]`));
-	const usedTags = new Set<string>();
+function normalizeTagIds(tagIds: readonly string[], fieldPath: string): readonly string[] {
+	const normalizedTagIds = tagIds.map((tagId, index) => {
+		const normalizedTagId = normalizeText(tagId, `${fieldPath}[${index}]`);
+		assertContentId(normalizedTagId, `${fieldPath}[${index}]`);
+		return normalizedTagId;
+	});
+	const usedTagIds = new Set<string>();
 
-	for (const tag of normalizedTags) {
-		const comparisonKey = tag.toLocaleLowerCase();
-
-		if (usedTags.has(comparisonKey)) {
-			throw new Error(`${fieldPath} must not contain duplicate values: ${tag}`);
+	for (const tagId of normalizedTagIds) {
+		if (usedTagIds.has(tagId)) {
+			throw new Error(`${fieldPath} must not contain duplicate values: ${tagId}`);
 		}
 
-		usedTags.add(comparisonKey);
+		usedTagIds.add(tagId);
 	}
 
-	return Object.freeze(normalizedTags);
+	return Object.freeze(normalizedTagIds);
 }
 
 function normalizeReadingTime(value: number, fieldPath: string): number {
@@ -98,7 +100,7 @@ export function defineBlogPostCollection(
 				description: normalizeText(record.description, `${recordPath}.description`),
 				publishedAt,
 				updatedAt,
-				tags: normalizeTags(record.tags, `${recordPath}.tags`),
+				tagIds: normalizeTagIds(record.tagIds, `${recordPath}.tagIds`),
 				readingTimeMinutes: normalizeReadingTime(
 					record.readingTimeMinutes,
 					`${recordPath}.readingTimeMinutes`,

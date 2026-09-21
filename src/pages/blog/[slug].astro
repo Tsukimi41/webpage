@@ -1,0 +1,39 @@
+---
+import BlogArticle from '../../components/BlogArticle.astro';
+import {
+	createBlogPostView,
+	createBlogPostViews,
+	getBlogPosts,
+	getRelatedBlogPosts,
+	type BlogPostDefinition,
+} from '../../content/blog';
+import { getBlogEntry } from '../../content/blog/entries';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+	return getBlogPosts().map((post) => ({
+		params: { slug: post.slug },
+		props: { post },
+	}));
+}
+
+interface Props {
+	post: BlogPostDefinition;
+}
+
+const { post } = Astro.props;
+const posts = getBlogPosts();
+const entry = getBlogEntry(post, posts);
+const headings = await entry.getHeadings();
+const relatedPosts = createBlogPostViews(getRelatedBlogPosts(post.id));
+const view = createBlogPostView(post);
+const Content = entry.Content;
+const pageTitle = `${post.title} | ${profileDisplayName}`;
+---
+
+<BaseLayout title={pageTitle} description={post.description}>
+	<BlogArticle view={view} headings={headings} relatedPosts={relatedPosts}>
+		<Content />
+	</BlogArticle>
+</BaseLayout>

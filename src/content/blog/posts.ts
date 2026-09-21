@@ -1,4 +1,6 @@
 import { defineBlogPostCollection, type BlogPostDefinition } from './post.ts';
+import { assertBlogTagRelations } from './relations.ts';
+import { blogTags } from './tags.ts';
 
 const blogPostDefinitions = [
 	{
@@ -11,7 +13,7 @@ const blogPostDefinitions = [
 			'静的HTMLを中心にしながら、必要な場所だけへインタラクションを足す構成を整理した架空の技術メモです。',
 		publishedAt: '2026-04-18',
 		updatedAt: '2026-04-20',
-		tags: ['Astro', 'TypeScript'],
+		tagIds: ['astro', 'typescript', 'web-development'],
 		readingTimeMinutes: 4,
 	},
 	{
@@ -24,7 +26,7 @@ const blogPostDefinitions = [
 			'CSSアニメーションの役割を情報理解と操作への反応に分け、動きを減らす設定でも内容を保つ考え方をまとめた架空記事です。',
 		publishedAt: '2026-05-12',
 		updatedAt: '2026-05-12',
-		tags: ['CSS', 'アクセシビリティ', 'Design System'],
+		tagIds: ['css', 'accessibility', 'design-system', 'web-development'],
 		readingTimeMinutes: 7,
 	},
 	{
@@ -37,9 +39,11 @@ const blogPostDefinitions = [
 			'日々の開発で使う小さな知識を、あとから探しやすい形で残すための架空の備忘録です。',
 		publishedAt: '2026-05-12',
 		updatedAt: '2026-05-18',
-		tags: [],
+		tagIds: [],
 		readingTimeMinutes: 2,
 	},
 ] as const satisfies readonly BlogPostDefinition[];
 
 export const blogPosts = defineBlogPostCollection(blogPostDefinitions);
+
+assertBlogTagRelations(blogPosts, blogTags);

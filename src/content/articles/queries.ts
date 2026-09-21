@@ -58,6 +58,7 @@ export function getArticleFeed(query: ArticleFeedQuery = {}): readonly ArticleFe
 			title: post.title,
 			summary: post.description,
 			dateLabel: post.publishedAt.replaceAll('-', '.'),
+			href: `/blog/${post.slug}/` as `/${string}`,
 		})),
 	];
 

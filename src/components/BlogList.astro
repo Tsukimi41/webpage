@@ -1,9 +1,9 @@
 ---
-import type { BlogPostDefinition } from '../content/blog';
+import type { BlogPostView } from '../content/blog';
 import BlogCard from './BlogCard.astro';
 
 interface Props {
-	posts: readonly Readonly<BlogPostDefinition>[];
+	posts: readonly Readonly<BlogPostView>[];
 	emptyMessage?: string;
 }
 
@@ -12,9 +12,9 @@ const { posts, emptyMessage = '表示できるブログ記事はありません�
 
 {posts.length > 0 ? (
 	<ul class="blog-list" role="list">
-		{posts.map((post) => (
+		{posts.map((view) => (
 			<li>
-				<BlogCard post={post} />
+				<BlogCard view={view} />
 			</li>
 		))}
 	</ul>

@@ -1,0 +1,107 @@
+---
+import BlogList from '../../../components/BlogList.astro';
+import ContentStateNotice from '../../../components/ContentStateNotice.astro';
+import {
+	createBlogPostViews,
+	getBlogPostsForTag,
+	getBlogTags,
+	type BlogTagDefinition,
+} from '../../../content/blog';
+import { profileDisplayName } from '../../../data/profile';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+	return getBlogTags().map((tag) => ({
+		params: { tag: tag.id },
+		props: { tag },
+	}));
+}
+
+interface Props {
+	tag: BlogTagDefinition;
+}
+
+const { tag } = Astro.props;
+const posts = getBlogPostsForTag(tag.id, { states: [tag.state] });
+const postViews = createBlogPostViews(posts);
+const pageTitle = `${tag.label}の記事 | ${profileDisplayName}`;
+---
+
+<BaseLayout title={pageTitle} description={tag.description}>
+	<div class="tag-page">
+		<a class="tag-page__back" href="/blog/tags/">タグ一覧へ戻る</a>
+		<header class="tag-page__header">
+			<div>
+				<p class="tag-page__eyebrow" aria-hidden="true">BLOG TAG</p>
+				<h1>{tag.label}</h1>
+				<p>{tag.description}</p>
+			</div>
+			<ContentStateNotice hasMockData={tag.state === 'mock'} />
+		</header>
+
+		<p class="tag-page__count">{posts.length}件の記事</p>
+		<BlogList posts={postViews} emptyMessage="このタグの記事はまだありません。" />
+	</div>
+</BaseLayout>
+
+<style>
+	.tag-page {
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.tag-page__back {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		color: var(--color-text-muted);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.tag-page__back:hover {
+		color: var(--color-accent);
+	}
+
+	.tag-page__back:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.tag-page__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block: var(--space-4) var(--space-3);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.tag-page__eyebrow,
+	.tag-page__count {
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+
+	.tag-page__eyebrow {
+		margin: 0;
+	}
+
+	.tag-page__header p:not(.tag-page__eyebrow) {
+		max-inline-size: 42rem;
+	}
+
+	.tag-page__count {
+		margin-block: 0 var(--space-3);
+		text-align: end;
+	}
+
+	@media (max-width: 30rem) {
+		.tag-page__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

@@ -1,13 +1,15 @@
 ---
 import BlogList from '../../components/BlogList.astro';
 import ContentStateNotice from '../../components/ContentStateNotice.astro';
-import { getBlogPosts } from '../../content/blog';
+import { createBlogPostViews, getBlogPosts, getBlogTags } from '../../content/blog';
 import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const pageTitle = `ブログ | ${profileDisplayName}`;
 const pageDescription = `${profileDisplayName}の技術メモと学習記録。開発で考えたことをブログ記事として整理しています。`;
 const posts = getBlogPosts();
+const postViews = createBlogPostViews(posts);
+const tags = getBlogTags();
 const includesMockData = posts.some((post) => post.state === 'mock');
 ---
 
@@ -23,7 +25,12 @@ const includesMockData = posts.some((post) => post.state === 'mock');
 			<ContentStateNotice hasMockData={includesMockData} />
 		</header>
 
-		<BlogList posts={posts} />
+		<nav class="blog-page__topics" aria-label="ブログのタグ">
+			<a href="/blog/tags/">すべてのタグ</a>
+			{tags.map((tag) => <a href={`/blog/tags/${tag.id}/`}>{tag.label}</a>)}
+		</nav>
+
+		<BlogList posts={postViews} />
 	</div>
 </BaseLayout>
 
@@ -58,6 +65,35 @@ const includesMockData = posts.some((post) => post.state === 'mock');
 		margin-block: var(--space-4);
 		padding-block-end: var(--space-3);
 		border-block-end: 1px solid var(--color-border);
+	}
+
+	.blog-page__topics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin-block-end: var(--space-4);
+	}
+
+	.blog-page__topics a {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		padding-inline: 0.75rem;
+		border: 1px solid var(--color-border);
+		color: var(--color-text-muted);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.blog-page__topics a:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.blog-page__topics a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
 	}
 
 	.blog-page__eyebrow {
