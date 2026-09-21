@@ -9,8 +9,10 @@ const articleExplorerUrl = new URL('../src/components/ArticleExplorer.astro', im
 const articleShowcaseUrl = new URL('../src/components/ArticleShowcase.astro', import.meta.url);
 const articleFeedCardUrl = new URL('../src/components/ArticleFeedCard.astro', import.meta.url);
 const articleIndexCardUrl = new URL('../src/components/ArticleIndexCard.astro', import.meta.url);
+const homeSectionHeadingUrl = new URL('../src/components/HomeSectionHeading.astro', import.meta.url);
 const skillShowcaseUrl = new URL('../src/components/SkillShowcase.astro', import.meta.url);
 const projectGridUrl = new URL('../src/components/ProjectGrid.astro', import.meta.url);
+const projectShowcaseUrl = new URL('../src/components/ProjectShowcase.astro', import.meta.url);
 
 test('shared layout provides an editorial main column and reusable sidebar', async () => {
 	const [layout, sidebar] = await Promise.all([
@@ -68,9 +70,42 @@ test('editorial theme stays local, responsive, and motion-aware', async () => {
 
 	assert.match(source, /--content-width: 68rem/);
 	assert.match(source, /--font-mono:/);
+	assert.match(source, /--font-display: "Arial Black", "Aptos Display", "Helvetica Neue", var\(--font-sans\)/);
 	assert.match(source, /--color-accent-alt:/);
 	assert.match(source, /@media \(prefers-reduced-motion: reduce\)/);
 	assert.doesNotMatch(source, /url\(|@import/);
+});
+
+test('home showcases share one responsive display heading', async () => {
+	const [heading, articles, projects, skills] = await Promise.all([
+		readFile(homeSectionHeadingUrl, 'utf8'),
+		readFile(articleShowcaseUrl, 'utf8'),
+		readFile(projectShowcaseUrl, 'utf8'),
+		readFile(skillShowcaseUrl, 'utf8'),
+	]);
+
+	assert.match(heading, /<h2 id=\{id\} class="home-section-heading">\{label\}<\/h2>/);
+	assert.match(heading, /font-family: var\(--font-display\)/);
+	assert.match(heading, /font-size: clamp\(2\.25rem, 10cqi, 4\.75rem\)/);
+	assert.match(heading, /font-style: italic/);
+	assert.match(heading, /font-weight: 900/);
+	assert.match(heading, /letter-spacing: -0\.075em/);
+	assert.match(heading, /\.home-section-heading::after/);
+	assert.match(heading, /@container \(max-width: 24rem\)/);
+
+	for (const [source, label] of [
+		[articles, 'ARTICLES'],
+		[projects, 'TIMELINE'],
+		[skills, 'SKILLS'],
+	]) {
+		assert.match(source, /import HomeSectionHeading from/);
+		assert.match(source, new RegExp(`<HomeSectionHeading[^>]*label="${label}"`));
+		assert.doesNotMatch(source, /\.\w+-showcase h2 \{/);
+	}
+
+	assert.match(articles, /container: article-showcase \/ inline-size/);
+	assert.match(projects, /container: project-showcase \/ inline-size/);
+	assert.match(skills, /container: skill-showcase \/ inline-size/);
 });
 
 test('redesign preserves article search, project interaction, and skill physics', async () => {

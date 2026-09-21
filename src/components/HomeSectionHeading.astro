@@ -1,0 +1,55 @@
+---
+interface Props {
+	id: string;
+	label: string;
+}
+
+const { id, label } = Astro.props;
+---
+
+<h2 id={id} class="home-section-heading">{label}</h2>
+
+<style>
+	.home-section-heading {
+		position: relative;
+		display: inline-flex;
+		box-sizing: border-box;
+		max-inline-size: 100%;
+		margin: 0;
+		padding-block-end: 0.16em;
+		padding-inline-end: 0.12em;
+		color: var(--color-text);
+		font-family: var(--font-display);
+		font-size: clamp(2.25rem, 10cqi, 4.75rem);
+		font-style: italic;
+		font-weight: 900;
+		font-kerning: normal;
+		line-height: 0.86;
+		letter-spacing: -0.075em;
+		text-rendering: geometricPrecision;
+		text-shadow: 0.045em 0.045em 0 var(--color-shadow);
+		white-space: nowrap;
+	}
+
+	.home-section-heading::after {
+		position: absolute;
+		inset-block-end: 0;
+		inset-inline: 0 0.12em;
+		block-size: 0.09em;
+		background: linear-gradient(
+			90deg,
+			var(--color-accent) 0 72%,
+			var(--color-accent-alt) 72% 88%,
+			transparent 88%
+		);
+		content: '';
+		transform: skewX(-18deg);
+		transform-origin: left;
+	}
+
+	@container (max-width: 24rem) {
+		.home-section-heading {
+			font-size: clamp(2rem, 11cqi, 3rem);
+		}
+	}
+</style>

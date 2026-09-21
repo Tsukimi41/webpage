@@ -25,6 +25,7 @@
 
 	--font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", sans-serif;
 	--font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--font-display: "Arial Black", "Aptos Display", "Helvetica Neue", var(--font-sans);
 
 	--space-1: 0.5rem;
 	--space-2: 1rem;
