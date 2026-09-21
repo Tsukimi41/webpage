@@ -26,10 +26,10 @@ const { headingId = 'introduction-title' } = Astro.props;
 	<div class="introduction__visual">
 		<img
 			class="introduction__icon"
-			src="/favicon.ico"
+			src={profile.icon.src}
 			alt={`${profile.handle} / ${profile.penName} のアイコン`}
-			width="192"
-			height="192"
+			width={profile.icon.width}
+			height={profile.icon.height}
 			decoding="async"
 		/>
 	</div>
@@ -39,8 +39,8 @@ const { headingId = 'introduction-title' } = Astro.props;
 	.introduction {
 		position: relative;
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem);
-		gap: clamp(var(--space-3), 8vw, var(--space-5));
+		grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
+		gap: clamp(var(--space-3), 5vw, var(--space-5));
 		align-content: center;
 		align-items: center;
 		overflow: hidden;
@@ -61,26 +61,14 @@ const { headingId = 'introduction-title' } = Astro.props;
 	}
 
 	.introduction__visual {
-		position: relative;
 		display: grid;
 		place-items: center;
 		justify-self: end;
-		inline-size: min(100%, 12rem);
+		inline-size: min(100%, 16rem);
 		aspect-ratio: 1;
-		padding: clamp(var(--space-1), 2vw, var(--space-2));
-		border: 1px solid color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
-		border-radius: var(--radius-small);
-		background:
-			radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 68%),
-			var(--color-surface-raised);
-		box-shadow:
-			0 0 0 0.5rem color-mix(in srgb, var(--color-accent) 7%, transparent),
-			0 1rem 2rem var(--color-shadow);
 	}
 
 	.introduction__icon {
-		position: relative;
-		z-index: 1;
 		display: block;
 		inline-size: 100%;
 		block-size: 100%;
@@ -172,7 +160,7 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 	@media (max-width: 42rem) {
 		.introduction {
-			grid-template-columns: minmax(0, 1fr) minmax(6rem, 8rem);
+			grid-template-columns: minmax(0, 1fr) minmax(8rem, 10rem);
 			gap: var(--space-3);
 			padding: clamp(var(--space-3), 6vw, var(--space-5));
 		}
@@ -180,13 +168,13 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 	@media (max-width: 30rem) {
 		.introduction {
-			grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 6rem);
+			grid-template-columns: minmax(0, 1fr) minmax(7rem, 8rem);
 			gap: var(--space-2);
 			min-block-size: 70svh;
 		}
 
 		.introduction__visual {
-			inline-size: min(6rem, 100%);
+			inline-size: min(8rem, 100%);
 			justify-self: end;
 		}
 

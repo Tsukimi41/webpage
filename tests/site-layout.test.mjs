@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { defineProfile, profile } from '../src/data/profile.ts';
+
 const baseLayoutUrl = new URL('../src/layouts/BaseLayout.astro', import.meta.url);
 const headerUrl = new URL('../src/components/SiteHeader.astro', import.meta.url);
 const footerUrl = new URL('../src/components/SiteFooter.astro', import.meta.url);
+const backToTopUrl = new URL('../src/components/BackToTopLink.astro', import.meta.url);
 const profileIntroductionUrl = new URL('../src/components/ProfileIntroduction.astro', import.meta.url);
 const homeUrl = new URL('../src/pages/index.astro', import.meta.url);
 const projectCardUrl = new URL('../src/components/ProjectCard.astro', import.meta.url);
@@ -18,12 +21,14 @@ test('base layout includes shared header, main content, and footer', async () =>
 	assert.match(source, /<main>/);
 	assert.match(source, /<SiteFooter \/>/);
 	assert.match(source, /<body id="site-top">/);
+	assert.match(source, /href=\{profile\.icon\.src\}/);
 });
 
 test('shared navigation exposes home, profile, articles, blog, theme, and back-to-top links', async () => {
-	const [header, footer] = await Promise.all([
+	const [header, footer, backToTop] = await Promise.all([
 		readFile(headerUrl, 'utf8'),
 		readFile(footerUrl, 'utf8'),
+		readFile(backToTopUrl, 'utf8'),
 	]);
 
 	assert.match(header, /href="\/"[^>]*>Home</);
@@ -37,20 +42,23 @@ test('shared navigation exposes home, profile, articles, blog, theme, and back-t
 	assert.match(header, /\.site-header__nav a:hover \{[\s\S]*color-mix\(in srgb, var\(--color-accent\) 52%, transparent\)/);
 	assert.match(header, /\.site-header__nav a\[aria-current='page'\],[\s\S]*border-block-end-color: var\(--color-accent\)/);
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" \/>/);
+	assert.match(footer, /<BackToTopLink \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
 	assert.match(footer, /href="\/articles\/">Articles</);
-	assert.match(footer, /<svg[\s\S]*class="site-footer__top-icon"[\s\S]*aria-hidden="true"[\s\S]*focusable="false"/);
-	assert.match(footer, /<path d="m5 15 7-7 7 7"><\/path>/);
-	assert.doesNotMatch(footer, /class="site-footer__top-icon"[^>]*>↑<\/span>/);
-	assert.match(footer, /\.site-footer__nav a,[\s\S]*\.site-footer__top \{[\s\S]*block-size: 2\.75rem/);
-	assert.match(footer, /\.site-footer__top \{[\s\S]*border: 0[;\s]/);
+	assert.doesNotMatch(footer, /site-footer__top|site-footer__top-icon/);
 	assert.match(footer, /class="site-footer__site-nav"/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
 			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href="/">Home'),
 	);
-	assert.match(footer, /href="#site-top"/);
-	assert.match(footer, /<span>一番上へ<\/span>/);
+	assert.match(backToTop, /href = '#site-top'/);
+	assert.match(backToTop, /label = '一番上へ戻る'/);
+	assert.match(backToTop, /aria-label=\{label\}/);
+	assert.match(backToTop, /<circle cx="32" cy="32" r="30"><\/circle>/);
+	assert.match(backToTop, /<path d="M18 35\.5 32 21l14 14\.5M32 22v22"><\/path>/);
+	assert.match(backToTop, /border-radius: 50%/);
+	assert.match(backToTop, /inline-size: 3rem/);
+	assert.doesNotMatch(backToTop, /SocialLinks|social-links__/);
 });
 
 test('profile introduction places the favicon icon beside readable profile content', async () => {
@@ -58,13 +66,26 @@ test('profile introduction places the favicon icon beside readable profile conte
 
 	assert.match(source, /class="introduction__content"/);
 	assert.match(source, /class="introduction__visual"/);
-	assert.match(source, /class="introduction__icon"[\s\S]*src="\/favicon\.ico"/);
+	assert.match(source, /class="introduction__icon"[\s\S]*src=\{profile\.icon\.src\}/);
+	assert.match(source, /width=\{profile\.icon\.width\}/);
+	assert.match(source, /height=\{profile\.icon\.height\}/);
 	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);
-	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(8rem, 12rem\)/);
-	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(4\.5rem, 6rem\)/);
+	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(12rem, 16rem\)/);
+	assert.match(source, /\.introduction__visual \{[\s\S]*?inline-size: min\(100%, 16rem\)/);
+	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(7rem, 8rem\)/);
 	assert.doesNotMatch(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr;/);
-	assert.doesNotMatch(source, /\.introduction__visual::before/);
-	assert.doesNotMatch(source, /\.introduction__visual::after/);
+	const visualStyles = source.match(/\.introduction__visual \{([\s\S]*?)\n\t\}/)?.[1] ?? '';
+	assert.doesNotMatch(visualStyles, /padding|border|background|box-shadow/);
+	assert.deepEqual(profile.icon, { src: '/favicon.ico', width: 256, height: 256 });
+	assert.equal(Object.isFrozen(profile.icon), true);
+	assert.throws(
+		() => defineProfile({ ...profile, icon: { ...profile.icon, src: 'https://example.com/icon.png' } }),
+		/site-relative path/,
+	);
+	assert.throws(
+		() => defineProfile({ ...profile, icon: { ...profile.icon, width: 0 } }),
+		/positive safe integer/,
+	);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {

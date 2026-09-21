@@ -1,0 +1,75 @@
+---
+interface Props {
+	href?: `#${string}`;
+	label?: string;
+}
+
+const { href = '#site-top', label = '一番上へ戻る' } = Astro.props;
+---
+
+<a class="back-to-top" href={href} aria-label={label} title={label}>
+	<svg
+		class="back-to-top__icon"
+		viewBox="0 0 64 64"
+		aria-hidden="true"
+		focusable="false"
+	>
+		<circle cx="32" cy="32" r="30"></circle>
+		<path d="M18 35.5 32 21l14 14.5M32 22v22"></path>
+	</svg>
+</a>
+
+<style>
+	.back-to-top {
+		display: inline-grid;
+		inline-size: 3rem;
+		block-size: 3rem;
+		place-items: center;
+		justify-self: end;
+		border-radius: 50%;
+		color: var(--color-text-muted);
+		text-decoration: none;
+		transition:
+			color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.back-to-top__icon {
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: visible;
+	}
+
+	.back-to-top__icon circle {
+		fill: currentColor;
+	}
+
+	.back-to-top__icon path {
+		fill: none;
+		stroke: var(--color-canvas);
+		stroke-width: 5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.back-to-top:hover {
+		color: var(--color-accent);
+		transform: translateY(-0.125rem);
+	}
+
+	.back-to-top:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.back-to-top {
+			transition: none;
+		}
+
+		.back-to-top:hover {
+			transform: none;
+		}
+	}
+</style>

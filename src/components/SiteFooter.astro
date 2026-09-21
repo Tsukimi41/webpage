@@ -1,5 +1,6 @@
 ---
 import { profileDisplayName } from '../data/profile';
+import BackToTopLink from './BackToTopLink.astro';
 import SocialLinks from './SocialLinks.astro';
 ---
 
@@ -16,24 +17,7 @@ import SocialLinks from './SocialLinks.astro';
 					<a href="/blog/">Blog</a>
 				</nav>
 			</div>
-			<a class="site-footer__top" href="#site-top">
-				<svg
-					class="site-footer__top-icon"
-					width="18"
-					height="18"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="m5 15 7-7 7 7"></path>
-				</svg>
-				<span>一番上へ</span>
-			</a>
+			<BackToTopLink />
 		</div>
 
 		<div class="site-footer__meta">
@@ -85,8 +69,7 @@ import SocialLinks from './SocialLinks.astro';
 		gap: var(--space-1) var(--space-3);
 	}
 
-	.site-footer__nav a,
-	.site-footer__top {
+	.site-footer__nav a {
 		display: inline-flex;
 		block-size: 2.75rem;
 		align-items: center;
@@ -96,27 +79,11 @@ import SocialLinks from './SocialLinks.astro';
 		white-space: nowrap;
 	}
 
-	.site-footer__top {
-		justify-self: end;
-		gap: 0.4rem;
-		padding-inline: 0;
-		border: 0;
-		background: transparent;
-	}
-
-	.site-footer__top-icon {
-		flex: none;
-		inline-size: 1rem;
-		block-size: 1rem;
-	}
-
-	.site-footer__nav a:hover,
-	.site-footer__top:hover {
+	.site-footer__nav a:hover {
 		color: var(--color-accent);
 	}
 
-	.site-footer__nav a:focus-visible,
-	.site-footer__top:focus-visible {
+	.site-footer__nav a:focus-visible {
 		border-radius: var(--radius-small);
 		outline: 0.1875rem solid var(--color-accent);
 		outline-offset: 0.1875rem;
@@ -147,8 +114,5 @@ import SocialLinks from './SocialLinks.astro';
 			align-items: center;
 		}
 
-		.site-footer__top {
-			justify-self: end;
-		}
 	}
 </style>

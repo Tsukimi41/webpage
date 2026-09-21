@@ -3,6 +3,7 @@ import ThemeInitializer from '../components/ThemeInitializer.astro';
 import SkipLink from '../components/SkipLink.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import { profile } from '../data/profile';
 import '../styles/global.css';
 
 interface Props {
@@ -17,7 +18,7 @@ const { title, description, lang = 'ja' } = Astro.props;
 <!doctype html>
 <html lang={lang}>
 	<head>
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" href={profile.icon.src} />
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
