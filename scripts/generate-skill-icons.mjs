@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,44 +9,46 @@ const workspaceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 const outputDirectory = path.join(workspaceRoot, 'public', 'icons', 'skills');
 
 const deviconSpecs = [
-	['ros-2', 'ROS 2', 'ros'],
-	['arch-linux', 'Arch Linux', 'archlinux'],
-	['github', 'GitHub', 'github'],
 	['python', 'Python', 'python'],
 	['node-js', 'Node.js', 'nodejs'],
 	['c', 'C', 'c'],
 	['cpp', 'C++', 'cplusplus'],
-	['docker', 'Docker', 'docker'],
-	['latex', 'LaTeX', 'latex'],
 	['vite', 'Vite', 'vitejs'],
 	['typescript', 'TypeScript', 'typescript'],
 	['html', 'HTML', 'html5'],
 	['css', 'CSS', 'css3'],
 	['opencv', 'OpenCV', 'opencv'],
-	['ubuntu', 'Ubuntu', 'ubuntu'],
 	['matlab', 'MATLAB', 'matlab'],
 	['raspberry-pi-pico-2-w', 'Raspberry Pi Pico 2 W', 'raspberrypi'],
 	['godot', 'Godot', 'godot'],
 	['astro', 'Astro', 'astro'],
 	['markdown', 'Markdown', 'markdown'],
-	['github-actions', 'GitHub Actions', 'githubactions'],
 ];
 
 const simpleIconSpecs = [
-	['wsl-2', 'WSL 2', 'windowsterminal', '#4d4d4d'],
-	['xampp-control-panel', 'XAMPP Control Panel', 'xampp', '#fb7a24'],
-	['font-awesome', 'Font Awesome', 'fontawesome', '#538dd7'],
+	['ros-2', 'ROS 2', 'ros', '#22314e'],
+	['arch-linux', 'Arch Linux', 'archlinux', '#1793d1'],
+	['github', 'GitHub', 'github', '#181717'],
+	['docker', 'Docker', 'docker', '#2496ed'],
+	['latex', 'LaTeX', 'latex', '#008080'],
+	['ubuntu', 'Ubuntu', 'ubuntu', '#e95420'],
+	['github-actions', 'GitHub Actions', 'githubactions', '#2088ff'],
 ];
 
 const customIconSpecs = [
 	['aruco-marker', 'ArUco Marker', '#111827', 'aruco'],
-	['mixamo', 'Mixamo', '#ea5b24', 'mixamo'],
 	['amt-viewpoint', 'AMT Viewpoint', '#006f84', 'encoder'],
-	['voicevox', 'VOICEVOX', '#f4c542', 'voice'],
 	['solidworks', 'SOLIDWORKS', '#f8fafc', 'solidworks'],
 	['lapis-lexide', 'Lapis LEXIDE', '#005bac', 'lexide'],
 	['vroid-studio-2-8-0', 'VRoid Studio 2.8.0', '#00a6d6', 'vroid'],
 	['n1mm-logger-plus', 'N1MM Logger+', '#174a8b', 'radio'],
+];
+
+const suppliedAssetNames = [
+	'mixamo.svg',
+	'voicevox.png',
+	'wsl-2.png',
+	'xampp-control-panel.svg',
 ];
 
 function escapeXml(value) {
@@ -85,17 +87,11 @@ function createCustomMark(kind, color) {
 		case 'aruco':
 			return `<rect x="24" y="24" width="80" height="80" rx="4" fill="#fff" stroke="#111827" stroke-width="8"/>
 	<path fill="#111827" d="M32 32h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 48h16v16H48zM32 64h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 80h16v16H48z"/>`;
-		case 'mixamo':
-			return `<path d="M31 94V34h13l20 25 20-25h13v60H81V58L64 79 47 58v36z" fill="#fff"/>
-	<circle cx="64" cy="64" r="47" fill="none" stroke="#fff" stroke-width="5" opacity=".36"/>`;
 		case 'encoder':
 			return `<circle cx="64" cy="64" r="43" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="9 6"/>
 	<circle cx="64" cy="64" r="25" fill="none" stroke="#fff" stroke-width="6"/>
 	<path d="M64 64 88 43" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
 	<circle cx="64" cy="64" r="7" fill="#fff"/>`;
-		case 'voice':
-			return `<path d="M27 30h74v52H68L48 99V82H27z" fill="#222"/>
-	<path d="m46 47 18 25 18-25" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`;
 		case 'solidworks':
 			return `<path d="M24 42c11-12 30-9 36 4l-11 6c-3-6-11-7-16-2-4 4-2 10 5 12l12 5c15 5 17 22 6 30-12 9-31 5-38-8l11-7c4 8 14 9 20 4 4-4 2-9-5-12l-12-4c-15-5-18-19-8-28Z" fill="#d71920"/>
 	<path d="m64 87 11-42h12l5 23 6-23h12L98 87H87l-6-25-6 25Z" fill="#005386"/>`;
@@ -125,6 +121,10 @@ function createCustomIcon(title, color, kind) {
 
 await mkdir(outputDirectory, { recursive: true });
 
+for (const assetName of suppliedAssetNames) {
+	await access(path.join(outputDirectory, assetName));
+}
+
 for (const [id, title, iconName] of deviconSpecs) {
 	await writeFile(
 		path.join(outputDirectory, `${id}.svg`),
@@ -149,4 +149,7 @@ for (const [id, title, color, kind] of customIconSpecs) {
 	);
 }
 
-console.log(`Generated ${deviconSpecs.length + simpleIconSpecs.length + customIconSpecs.length} skill icon images.`);
+console.log(
+	`Generated ${deviconSpecs.length + simpleIconSpecs.length + customIconSpecs.length} skill icon images; ` +
+	`verified ${suppliedAssetNames.length} user-supplied images.`,
+);

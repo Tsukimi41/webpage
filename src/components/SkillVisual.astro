@@ -4,20 +4,15 @@ import type { SkillVisualDefinition } from '../content/skills';
 
 interface Props {
 	visual: Readonly<SkillVisualDefinition>;
-	label: string;
 }
 
-const { visual, label } = Astro.props;
-const fallbackText = visual.fallbackText ?? (visual.kind === 'text' ? visual.text : label);
+const { visual } = Astro.props;
 ---
 
 <span
 	class="skill-visual"
-	data-skill-visual
 	data-visual-kind={visual.kind}
-	data-visual-state={visual.kind === 'image' ? 'loading' : 'ready'}
 >
-	<span class="skill-visual__fallback" aria-hidden="true">{fallbackText}</span>
 	{
 		visual.kind === 'icon' ? (
 			<Icon class="skill-visual__icon" name={visual.name} size="100%" aria-hidden="true" />
@@ -39,29 +34,6 @@ const fallbackText = visual.fallbackText ?? (visual.kind === 'text' ? visual.tex
 	}
 </span>
 
-<script>
-	const synchronizeSkillImage = (image: HTMLImageElement): void => {
-		const visual = image.closest<HTMLElement>('[data-skill-visual]');
-		if (!visual) return;
-
-		const synchronize = (): void => {
-			visual.dataset.visualState = image.complete && image.naturalWidth > 0
-				? 'ready'
-				: image.complete
-					? 'fallback'
-					: 'loading';
-		};
-
-		image.addEventListener('load', synchronize, { once: true });
-		image.addEventListener('error', synchronize, { once: true });
-		synchronize();
-	};
-
-	document.querySelectorAll<HTMLImageElement>('[data-skill-visual-image]').forEach(
-		synchronizeSkillImage,
-	);
-</script>
-
 <style>
 	.skill-visual {
 		position: relative;
@@ -73,8 +45,7 @@ const fallbackText = visual.fallbackText ?? (visual.kind === 'text' ? visual.tex
 
 	.skill-visual__icon,
 	.skill-visual__image,
-	.skill-visual__text,
-	.skill-visual__fallback {
+	.skill-visual__text {
 		grid-area: 1 / 1;
 	}
 
@@ -86,8 +57,7 @@ const fallbackText = visual.fallbackText ?? (visual.kind === 'text' ? visual.tex
 		object-fit: contain;
 	}
 
-	.skill-visual__text,
-	.skill-visual__fallback {
+	.skill-visual__text {
 		display: grid;
 		place-items: center;
 		min-inline-size: 100%;
@@ -97,20 +67,5 @@ const fallbackText = visual.fallbackText ?? (visual.kind === 'text' ? visual.tex
 		line-height: 1.1;
 		text-align: center;
 		overflow-wrap: anywhere;
-	}
-
-	.skill-visual__fallback {
-		font-size: clamp(0.58rem, 2vw, 0.9rem);
-	}
-
-	.skill-visual[data-visual-kind='icon'] .skill-visual__fallback,
-	.skill-visual[data-visual-kind='text'] .skill-visual__fallback,
-	.skill-visual[data-visual-state='ready'] .skill-visual__fallback {
-		display: none;
-	}
-
-	.skill-visual[data-visual-state='loading'] .skill-visual__image,
-	.skill-visual[data-visual-state='fallback'] .skill-visual__image {
-		opacity: 0;
 	}
 </style>

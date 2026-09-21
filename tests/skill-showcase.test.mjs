@@ -79,7 +79,7 @@ test('skill showcase derives starting positions from the collection size', async
 
 test('skill placement stays deterministic, bounded, and distinct as counts grow', () => {
 	for (const presentation of ['bubble', 'marble']) {
-		for (const count of [1, 16, 32, 128]) {
+		for (const count of [1, 16, 31, 128]) {
 			const placements = Array.from({ length: count }, (_, index) =>
 				createSkillObjectPlacement(index, count, presentation),
 			);
@@ -106,8 +106,8 @@ test('skill placement stays deterministic, bounded, and distinct as counts grow'
 	}
 
 	assert.ok(
-		createSkillObjectPlacement(0, 32, 'marble').size >
-			createSkillObjectPlacement(0, 32, 'bubble').size * 1.4,
+		createSkillObjectPlacement(0, 31, 'marble').size >
+			createSkillObjectPlacement(0, 31, 'bubble').size * 1.4,
 	);
 });
 
@@ -123,16 +123,13 @@ test('skill placement rejects malformed collection coordinates', () => {
 	}
 });
 
-test('image visuals retain text while loading or when a remote asset fails', async () => {
+test('skill visuals render configured images directly without text fallback state', async () => {
 	const source = await readFile(visualUrl, 'utf8');
 
-	assert.match(source, /data-visual-state=\{visual\.kind === 'image' \? 'loading' : 'ready'\}/);
 	assert.match(source, /data-skill-visual-image/);
-	assert.match(source, /image\.naturalWidth > 0/);
-	assert.match(source, /\? 'fallback'/);
 	assert.match(source, /referrerpolicy=\{visual\.src\.startsWith\('https:\/\/'\) \? 'no-referrer'/);
-	assert.match(source, /\.skill-visual\[data-visual-state='fallback'\] \.skill-visual__image/);
-	assert.match(source, /class="skill-visual__fallback"/);
+	assert.doesNotMatch(source, /data-visual-state|skill-visual__fallback|fallbackText/);
+	assert.doesNotMatch(source, /addEventListener\(['"](?:load|error)['"]/);
 });
 
 test('marbles use a distinct, complete material palette for every theme', async () => {

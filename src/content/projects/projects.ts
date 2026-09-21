@@ -78,7 +78,6 @@ const projectDefinitions = [
 			'typescript',
 			'html',
 			'css',
-			'font-awesome',
 			'wsl-2',
 			'ubuntu',
 			'xampp-control-panel',

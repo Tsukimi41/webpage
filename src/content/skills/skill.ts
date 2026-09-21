@@ -133,9 +133,14 @@ function normalizeVisual(
 
 			return Object.freeze({
 				...visual,
-				fallbackText: visual.fallbackText
-					? normalizeShortText(visual.fallbackText, `${fieldPath}.fallbackText`)
-					: undefined,
+				...(visual.fallbackText
+					? {
+						fallbackText: normalizeShortText(
+							visual.fallbackText,
+							`${fieldPath}.fallbackText`,
+						),
+					}
+					: {}),
 			});
 
 		case 'image': {
@@ -167,9 +172,14 @@ function normalizeVisual(
 				license: visual.license
 					? normalizeText(visual.license, `${fieldPath}.license`)
 					: undefined,
-				fallbackText: visual.fallbackText
-					? normalizeShortText(visual.fallbackText, `${fieldPath}.fallbackText`)
-					: undefined,
+				...(visual.fallbackText
+					? {
+						fallbackText: normalizeShortText(
+							visual.fallbackText,
+							`${fieldPath}.fallbackText`,
+						),
+					}
+					: {}),
 			});
 		}
 

@@ -44,7 +44,6 @@ test('skill data is frozen and returned in deterministic order', () => {
 			'typescript',
 			'html',
 			'css',
-			'font-awesome',
 			'opencv',
 			'mixamo',
 			'wsl-2',
@@ -64,7 +63,7 @@ test('skill data is frozen and returned in deterministic order', () => {
 			'github-actions',
 		],
 	);
-	assert.equal(skills.length, 32);
+	assert.equal(skills.length, 31);
 	assert.equal(skills.every((skill) => skill.visual.kind === 'image'), true);
 	assert.equal(Object.isFrozen(getSkills()), true);
 });
@@ -191,18 +190,40 @@ test('skill visuals accept icon, image, and text sources', () => {
 	assert.equal(records[2].visual.fallbackText, 'TXT');
 });
 
-test('every skill image is local, titled, explicitly colored, and has text fallback', async () => {
+test('every configured skill uses a concrete local image without a fallback', async () => {
 	for (const skill of skills) {
 		assert.equal(skill.visual.kind, 'image');
-		assert.match(skill.visual.src, /^\/icons\/skills\/[a-z0-9-]+\.svg$/);
-		assert.ok(skill.visual.fallbackText);
+		assert.match(skill.visual.src, /^\/icons\/skills\/[a-z0-9-]+\.(?:svg|png)$/);
+		assert.equal('fallbackText' in skill.visual, false);
 
 		const assetUrl = new URL(`../public${skill.visual.src}`, import.meta.url);
-		const svg = await readFile(assetUrl, 'utf8');
-		assert.match(svg, new RegExp(`<title>${skill.label.replaceAll('+', '\\+')}</title>`));
-		assert.match(svg, /<metadata>[^<]+<\/metadata>/);
-		assert.doesNotMatch(svg, /currentColor/);
+		const asset = await readFile(assetUrl);
+		assert.ok(asset.byteLength > 0);
+
+		if (skill.visual.src.endsWith('.svg')) {
+			const svg = asset.toString('utf8');
+			assert.match(svg, /<svg\b/);
+			assert.doesNotMatch(svg, /<script\b|javascript:/i);
+			assert.doesNotMatch(svg, /currentColor/);
+		} else {
+			assert.deepEqual([...asset.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+		}
 	}
+
+	assert.deepEqual(
+		Object.fromEntries(
+			['mixamo', 'voicevox', 'wsl-2', 'xampp-control-panel'].map((id) => {
+				const skill = skills.find((candidate) => candidate.id === id);
+				return [id, skill?.visual.kind === 'image' ? skill.visual.src : undefined];
+			}),
+		),
+		{
+			mixamo: '/icons/skills/mixamo.svg',
+			voicevox: '/icons/skills/voicevox.png',
+			'wsl-2': '/icons/skills/wsl-2.png',
+			'xampp-control-panel': '/icons/skills/xampp-control-panel.svg',
+		},
+	);
 });
 
 test('project evidence is resolved from skill ids without duplicating relationships', () => {
