@@ -17,7 +17,6 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 >
 	<header class="profile-details__header">
 		<div>
-			<p class="profile-details__eyebrow" aria-hidden="true">PROFILE DETAILS</p>
 			<h2 id={headingId}>プロフィール</h2>
 		</div>
 		<ContentStateNotice hasMockData={detail?.state === 'mock'} />
@@ -90,14 +89,6 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 		border-block-end: 1px solid var(--color-border);
 	}
 
-	.profile-details__eyebrow {
-		margin: 0;
-		color: var(--color-accent);
-		font-size: 0.75rem;
-		font-weight: 800;
-		letter-spacing: 0.12em;
-	}
-
 	.profile-details h2,
 	.profile-details h3,
 	.profile-details h4 {
@@ -106,7 +97,7 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 	}
 
 	.profile-details h2 {
-		margin-block: var(--space-1) 0;
+		margin: 0;
 		font-size: clamp(1.75rem, 5vw, 2.5rem);
 	}
 

@@ -16,7 +16,6 @@ const destinations = [
 <BaseLayout title={pageTitle} description={pageDescription} indexing="disabled" showSidebar={false}>
 	<section class="not-found" aria-labelledby="not-found-title">
 		<header class="not-found__header">
-			<p class="not-found__eyebrow" aria-hidden="true">404 / NOT FOUND</p>
 			<h1 id="not-found-title">ページが見つかりません</h1>
 			<p class="not-found__lead">
 				URLが変更または削除されたか、入力したURLが正しくない可能性があります。検索または下のリンクをご利用ください。
@@ -65,14 +64,6 @@ const destinations = [
 
 	.not-found__header {
 		max-inline-size: 48rem;
-	}
-
-	.not-found__eyebrow {
-		margin: 0 0 var(--space-1);
-		color: var(--color-accent);
-		font-size: 0.75rem;
-		font-weight: 800;
-		letter-spacing: 0.14em;
 	}
 
 	.not-found__lead {

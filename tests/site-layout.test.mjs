@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 import { defineProfile, profile } from '../src/data/profile.ts';
@@ -15,6 +15,27 @@ const homeUrl = new URL('../src/pages/index.astro', import.meta.url);
 const projectCardUrl = new URL('../src/components/ProjectCard.astro', import.meta.url);
 const projectDetailUrl = new URL('../src/components/ProjectDetail.astro', import.meta.url);
 const projectShowcaseUrl = new URL('../src/components/ProjectShowcase.astro', import.meta.url);
+const sourceDirectoryUrl = new URL('../src/', import.meta.url);
+
+test('visible UI never uses decorative English eyebrow labels', async () => {
+	const sourcePaths = (await readdir(sourceDirectoryUrl, { recursive: true }))
+		.filter((path) => /\.(?:astro|css|js|ts)$/.test(path));
+	const sources = await Promise.all(
+		sourcePaths.map(async (path) => ({
+			path,
+			source: await readFile(new URL(path.replaceAll('\\', '/'), sourceDirectoryUrl), 'utf8'),
+		})),
+	);
+
+	for (const { path, source } of sources) {
+		assert.doesNotMatch(source, /\beyebrow\b/i, `${path} must not define an eyebrow label or style`);
+		assert.doesNotMatch(
+			source,
+			/<p\b[^>]*>\s*[A-Z][A-Z0-9 /&.-]{2,}\s*<\/p>/,
+			`${path} must not render a standalone uppercase English supplement`,
+		);
+	}
+});
 
 test('base layout includes shared header, main content, and footer', async () => {
 	const source = await readFile(baseLayoutUrl, 'utf8');
@@ -89,6 +110,7 @@ test('profile introduction places the favicon icon beside readable profile conte
 	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);
 	assert.match(source, /--introduction-icon-max-size: 16rem/);
 	assert.match(source, /--introduction-icon-track-ratio: 36%/);
+	assert.match(source, /--introduction-safe-inline-padding: clamp\(var\(--space-2\), 3vw, var\(--space-4\)\)/);
 	assert.match(
 		source,
 		/grid-template-columns:\s*minmax\(0, 1fr\)\s*minmax\(\s*0,\s*min\(var\(--introduction-icon-max-size\), var\(--introduction-icon-track-ratio\)\)\s*\)/,
@@ -99,13 +121,17 @@ test('profile introduction places the favicon icon beside readable profile conte
 	);
 	assert.match(
 		source,
-		/\.introduction__visual \{[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: var\(--introduction-icon-max-size\)/,
+		/\.introduction__visual \{[\s\S]*?overflow: clip;[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: min\(100%, var\(--introduction-icon-max-size\)\)/,
 	);
 	assert.match(
 		source,
 		/\.introduction__icon \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?block-size: auto;[\s\S]*?object-fit: contain/,
 	);
 	assert.match(source, /\.introduction__name \{[\s\S]*?flex-wrap: wrap;[\s\S]*?white-space: normal/);
+	assert.match(
+		source,
+		/padding: clamp\(var\(--space-3\), 6vw, var\(--space-5\)\)\s*var\(--introduction-safe-inline-padding\)/,
+	);
 	assert.doesNotMatch(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr;/);
 	const visualStyles = source.match(/\.introduction__visual \{([\s\S]*?)\n\t\}/)?.[1] ?? '';
 	assert.doesNotMatch(visualStyles, /(?:^|\s)(?:padding|border|background|box-shadow)\s*:/);

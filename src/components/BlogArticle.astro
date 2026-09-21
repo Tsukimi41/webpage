@@ -25,7 +25,6 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 
 	<header class="blog-article__header">
 		<div class="blog-article__heading">
-			<p class="blog-article__eyebrow">ARTICLE</p>
 			<h1>{post.title}</h1>
 			<p class="blog-article__description">{post.description}</p>
 		</div>
@@ -123,17 +122,9 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		border-block-end: 1px solid var(--color-border);
 	}
 
-	.blog-article__eyebrow {
-		margin: 0;
-		color: var(--color-accent);
-		font-size: 0.75rem;
-		font-weight: 800;
-		letter-spacing: 0.14em;
-	}
-
 	.blog-article h1 {
 		max-inline-size: 24ch;
-		margin-block-start: var(--space-1);
+		margin: 0;
 		font-size: clamp(2rem, 7vw, 4.25rem);
 		line-height: 1.25;
 		overflow-wrap: anywhere;

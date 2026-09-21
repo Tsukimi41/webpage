@@ -47,7 +47,18 @@ test('shared layout provides an editorial main column and reusable sidebar', asy
 		/\.site-sidebar \{[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: 100%/,
 	);
 	assert.match(sidebar, /@container site-sidebar \(max-width: 12rem\)/);
-	assert.match(sidebar, /grid-template-columns: 3\.5rem minmax\(0, 1fr\)/);
+	assert.match(sidebar, /--site-sidebar-profile-icon-size: 4\.25rem/);
+	assert.match(sidebar, /minmax\(0, var\(--site-sidebar-profile-icon-size\)\)\s*minmax\(0, 1fr\)/);
+	assert.match(sidebar, /@container site-sidebar \(max-width: 12rem\)[\s\S]*?--site-sidebar-profile-icon-size: 3\.5rem/);
+	assert.match(sidebar, /class="site-sidebar__profile-icon"/);
+	assert.match(
+		sidebar,
+		/\.site-sidebar__profile-icon \{[\s\S]*?overflow: clip;[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: 100%/,
+	);
+	assert.match(
+		sidebar,
+		/\.site-sidebar__profile-icon img \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?block-size: 100%;[\s\S]*?max-block-size: 100%/,
+	);
 	assert.match(sidebar, /\.site-sidebar__profile > div \{\s*min-inline-size: 0/);
 	assert.match(sidebar, /\.site-sidebar__recent time \{[\s\S]*?overflow-wrap: anywhere/);
 });
