@@ -1,5 +1,6 @@
 import {
 	applyFloorFriction,
+	calculateBubbleShape,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -17,6 +18,7 @@ import {
 
 export {
 	applyFloorFriction,
+	calculateBubbleShape,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -30,6 +32,7 @@ export {
 export type {
 	AmbientBurstTrigger,
 	CollisionResult,
+	BubbleShape,
 	OscillatorState,
 	PhysicsCircle,
 	PhysicsMaterial,
@@ -47,6 +50,10 @@ interface RenderedCircle extends PhysicsCircle {
 	deformationModeY: number;
 	deformationVelocityX: number;
 	deformationVelocityY: number;
+	deformationRippleX: number;
+	deformationRippleY: number;
+	deformationRippleVelocityX: number;
+	deformationRippleVelocityY: number;
 	burstCount: number;
 	ambientAge: number;
 	ambientLifetime: number;
@@ -172,6 +179,10 @@ function createCircle(
 		deformationModeY: 0,
 		deformationVelocityX: 0,
 		deformationVelocityY: 0,
+		deformationRippleX: 0,
+		deformationRippleY: 0,
+		deformationRippleVelocityX: 0,
+		deformationRippleVelocityY: 0,
 		burstCount: 0,
 		ambientAge: 0,
 		ambientLifetime: 0,
@@ -201,12 +212,17 @@ function resetCircle(body: RenderedCircle, width: number, height: number): void 
 	body.deformationModeY = 0;
 	body.deformationVelocityX = 0;
 	body.deformationVelocityY = 0;
+	body.deformationRippleX = 0;
+	body.deformationRippleY = 0;
+	body.deformationRippleVelocityX = 0;
+	body.deformationRippleVelocityY = 0;
 	body.ambientAge = 0;
 	body.ambientLifetime = 0;
 	body.respawnAt = 0;
 	body.isBursting = false;
 	body.element.classList.remove('is-bursting');
 	body.element.dataset.burstState = 'idle';
+	body.element.dataset.wobbleState = 'idle';
 }
 
 function resizeCircle(
@@ -285,15 +301,24 @@ function exciteBubbleDeformation(
 		return;
 	}
 
-	const direction = Math.atan2(normalY, normalX) * 2;
+	const suppliedNormalLength = Math.hypot(normalX, normalY);
+	const contactAngle = suppliedNormalLength > 0.0001
+		? Math.atan2(normalY, normalX)
+		: body.phase + body.burstCount * 0.83;
+	const quadrupoleDirection = contactAngle * 2;
+	const rippleDirection = contactAngle * 3;
 	const velocityImpulse =
 		clamp(impact, 0, BUBBLE_MAXIMUM_DEFORMATION) * BUBBLE_DEFORMATION_IMPULSE;
-	body.deformationVelocityX += Math.cos(direction) * velocityImpulse;
-	body.deformationVelocityY += Math.sin(direction) * velocityImpulse;
+	body.deformationVelocityX += Math.cos(quadrupoleDirection) * velocityImpulse;
+	body.deformationVelocityY += Math.sin(quadrupoleDirection) * velocityImpulse;
+	body.deformationRippleVelocityX += Math.cos(rippleDirection) * velocityImpulse * 0.52;
+	body.deformationRippleVelocityY += Math.sin(rippleDirection) * velocityImpulse * 0.52;
 
 	const deformationSpeed = Math.hypot(
 		body.deformationVelocityX,
 		body.deformationVelocityY,
+		body.deformationRippleVelocityX,
+		body.deformationRippleVelocityY,
 	);
 	const maximumDeformationSpeed =
 		BUBBLE_MAXIMUM_DEFORMATION * BUBBLE_DEFORMATION_IMPULSE * 1.35;
@@ -301,7 +326,10 @@ function exciteBubbleDeformation(
 		const scale = maximumDeformationSpeed / deformationSpeed;
 		body.deformationVelocityX *= scale;
 		body.deformationVelocityY *= scale;
+		body.deformationRippleVelocityX *= scale;
+		body.deformationRippleVelocityY *= scale;
 	}
+	body.element.dataset.wobbleState = 'active';
 }
 
 function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
@@ -323,15 +351,50 @@ function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
 		BUBBLE_WOBBLE_FREQUENCY,
 		BUBBLE_WOBBLE_DAMPING,
 	);
+	const rippleHorizontal = stepDampedOscillator(
+		body.deformationRippleX,
+		body.deformationRippleVelocityX,
+		elapsed,
+		BUBBLE_WOBBLE_FREQUENCY * 1.34,
+		Math.min(BUBBLE_WOBBLE_DAMPING * 1.3, 1),
+	);
+	const rippleDiagonal = stepDampedOscillator(
+		body.deformationRippleY,
+		body.deformationRippleVelocityY,
+		elapsed,
+		BUBBLE_WOBBLE_FREQUENCY * 1.48,
+		Math.min(BUBBLE_WOBBLE_DAMPING * 1.4, 1),
+	);
 	body.deformationModeX = horizontal.position;
 	body.deformationVelocityX = horizontal.velocity;
 	body.deformationModeY = diagonal.position;
 	body.deformationVelocityY = diagonal.velocity;
-	const deformation = Math.hypot(body.deformationModeX, body.deformationModeY);
+	body.deformationRippleX = rippleHorizontal.position;
+	body.deformationRippleVelocityX = rippleHorizontal.velocity;
+	body.deformationRippleY = rippleDiagonal.position;
+	body.deformationRippleVelocityY = rippleDiagonal.velocity;
+	const deformation = Math.hypot(
+		body.deformationModeX,
+		body.deformationModeY,
+		body.deformationRippleX,
+		body.deformationRippleY,
+	);
 	if (deformation > BUBBLE_MAXIMUM_DEFORMATION) {
 		const scale = BUBBLE_MAXIMUM_DEFORMATION / deformation;
 		body.deformationModeX *= scale;
 		body.deformationModeY *= scale;
+		body.deformationRippleX *= scale;
+		body.deformationRippleY *= scale;
+	}
+
+	const deformationSpeed = Math.hypot(
+		body.deformationVelocityX,
+		body.deformationVelocityY,
+		body.deformationRippleVelocityX,
+		body.deformationRippleVelocityY,
+	);
+	if (deformation < 0.0005 && deformationSpeed < 0.01) {
+		body.element.dataset.wobbleState = 'idle';
 	}
 }
 
@@ -417,12 +480,22 @@ function renderCircle(body: RenderedCircle, fieldHeight: number): void {
 	body.element.style.transform = `translate3d(${body.x - body.radius}px, ${body.y - body.radius}px, 0)`;
 
 	if (body.material === 'bubble' && body.role === 'skill') {
-		const rawDeformation = Math.hypot(body.deformationModeX, body.deformationModeY);
-		const deformation = Math.min(rawDeformation, BUBBLE_MAXIMUM_DEFORMATION);
-		const deformationAngle = Math.atan2(body.deformationModeY, body.deformationModeX) / 2;
-		body.element.style.setProperty('--deform-x', String(Math.exp(deformation)));
-		body.element.style.setProperty('--deform-y', String(Math.exp(-deformation)));
-		body.element.style.setProperty('--deform-angle', `${deformationAngle}rad`);
+		const shape = calculateBubbleShape(
+			body.deformationModeX,
+			body.deformationModeY,
+			body.deformationRippleX,
+			body.deformationRippleY,
+		);
+		const [topLeftX, topRightX, bottomRightX, bottomLeftX,
+			topLeftY, topRightY, bottomRightY, bottomLeftY] = shape.radii;
+		body.element.style.setProperty('--deform-x', String(shape.scaleX));
+		body.element.style.setProperty('--deform-y', String(shape.scaleY));
+		body.element.style.setProperty('--deform-angle', `${shape.angle}rad`);
+		body.element.style.setProperty(
+			'--deform-radius',
+			`${topLeftX}% ${topRightX}% ${bottomRightX}% ${bottomLeftX}% / ` +
+			`${topLeftY}% ${topRightY}% ${bottomRightY}% ${bottomLeftY}%`,
+		);
 	} else if (body.material === 'marble') {
 		const floorDistance = Math.max(fieldHeight - body.y - body.radius, 0);
 		const heightRatio = Math.min(floorDistance / Math.max(fieldHeight * 0.65, 1), 1);
@@ -538,7 +611,10 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 			body.vy += influence.impulseY * strength;
 			exciteBubbleDeformation(
 				body,
-				Math.min(0.24, influence.deformation * Math.max(strength, 1)),
+				Math.min(
+					BUBBLE_MAXIMUM_DEFORMATION,
+					influence.deformation * Math.max(strength, 1),
+				),
 				influence.normalX,
 				influence.normalY,
 			);
@@ -553,6 +629,21 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		fieldBounds = field.getBoundingClientRect();
 		const position = getLocalPointer(event);
 		const pointer = updateActivePointer(event, position, true);
+		const targetElement = event.target instanceof Element
+			? event.target.closest<HTMLElement>('[data-physics-object]')
+			: null;
+		const targetBody = targetElement ? bodiesByElement.get(targetElement) : undefined;
+
+		if (targetBody?.material === 'bubble' && targetBody.role === 'skill') {
+			event.preventDefault();
+			const contactX = pointer.x - targetBody.x;
+			const contactY = pointer.y - targetBody.y;
+			exciteBubbleDeformation(targetBody, BUBBLE_MAXIMUM_DEFORMATION, contactX, contactY);
+			targetBody.vx -= contactX * 0.24;
+			targetBody.vy -= contactY * 0.24;
+			return;
+		}
+
 		const marble = findNearestMarble(bodies, pointer.x, pointer.y);
 
 		if (marble) {
@@ -775,7 +866,10 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 
 					if (collision) {
 						const relativeOverlap = collision.overlap / Math.max(Math.min(left.radius, right.radius), 1);
-						const impact = Math.min(0.24, closingSpeed / 850 + relativeOverlap * 0.12);
+						const impact = Math.min(
+							BUBBLE_MAXIMUM_DEFORMATION,
+							closingSpeed / 700 + relativeOverlap * 0.18,
+						);
 					exciteBubbleDeformation(left, impact, -collision.normalX, -collision.normalY);
 					exciteBubbleDeformation(right, impact, collision.normalX, collision.normalY);
 					}

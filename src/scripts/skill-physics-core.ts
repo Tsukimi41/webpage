@@ -40,6 +40,13 @@ export interface OscillatorState {
 	readonly velocity: number;
 }
 
+export interface BubbleShape {
+	readonly scaleX: number;
+	readonly scaleY: number;
+	readonly angle: number;
+	readonly radii: readonly [number, number, number, number, number, number, number, number];
+}
+
 export const CIRCLE_BOUNDARY = Object.freeze({
 	left: 1,
 	right: 2,
@@ -122,10 +129,10 @@ export const SKILL_PHYSICS_TUNING = Object.freeze({
 	mixedDynamicFriction: 0.065,
 	bubbleStaticFriction: 0.025,
 	bubbleDynamicFriction: 0.012,
-	bubbleWobbleFrequency: 4.2,
-	bubbleWobbleDamping: 0.16,
-	bubbleMaximumDeformation: 0.24,
-	bubbleDeformationImpulse: 32,
+	bubbleWobbleFrequency: 2.25,
+	bubbleWobbleDamping: 0.1,
+	bubbleMaximumDeformation: 0.4,
+	bubbleDeformationImpulse: 38,
 	maximumLinearSpeed: 1_600,
 	maximumAngularSpeed: 32,
 });
@@ -134,6 +141,47 @@ const FULL_ROTATION = Math.PI * 2;
 
 function clamp(value: number, minimum: number, maximum: number): number {
 	return Math.min(Math.max(value, minimum), maximum);
+}
+
+export function calculateBubbleShape(
+	quadrupoleX: number,
+	quadrupoleY: number,
+	rippleX: number,
+	rippleY: number,
+): BubbleShape {
+	if (![quadrupoleX, quadrupoleY, rippleX, rippleY].every(Number.isFinite)) {
+		return {
+			scaleX: 1,
+			scaleY: 1,
+			angle: 0,
+			radii: [50, 50, 50, 50, 50, 50, 50, 50],
+		};
+	}
+
+	const quadrupoleMagnitude = Math.min(
+		Math.hypot(quadrupoleX, quadrupoleY),
+		SKILL_PHYSICS_TUNING.bubbleMaximumDeformation,
+	);
+	const angle = quadrupoleMagnitude > 0.0001
+		? Math.atan2(quadrupoleY, quadrupoleX) / 2
+		: 0;
+	const radius = (value: number): number => clamp(50 + value * 76, 22, 78);
+
+	return {
+		scaleX: Math.exp(quadrupoleMagnitude),
+		scaleY: Math.exp(-quadrupoleMagnitude),
+		angle,
+		radii: [
+			radius(quadrupoleX + rippleY),
+			radius(-quadrupoleY + rippleX),
+			radius(-quadrupoleX - rippleY),
+			radius(quadrupoleY - rippleX),
+			radius(quadrupoleY - rippleX),
+			radius(quadrupoleX + rippleY),
+			radius(-quadrupoleY + rippleX),
+			radius(-quadrupoleX - rippleY),
+		],
+	};
 }
 
 function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {

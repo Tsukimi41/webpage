@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
 	applyFloorFriction,
+	calculateBubbleShape,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -35,6 +36,11 @@ test('physics tuning is immutable and keeps material relationships explicit', ()
 	assert.ok(SKILL_PHYSICS_TUNING.marbleStaticFriction > SKILL_PHYSICS_TUNING.marbleDynamicFriction);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleRestitution < SKILL_PHYSICS_TUNING.marbleRestitution);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleNetBuoyancy > 0);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleFrequency >= 2);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleFrequency < 3);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleDamping <= 0.1);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleMaximumDeformation >= 0.4);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleDeformationImpulse >= 38);
 });
 
 test('circle mass follows area and rejects invalid geometry', () => {
@@ -98,6 +104,32 @@ test('bubble deformation oscillates repeatedly and settles through damping', () 
 	assert.ok(Math.abs(velocity) < 0.02);
 });
 
+test('configured bubble wobble remains visible before settling softly', () => {
+	let position = 0;
+	let velocity = SKILL_PHYSICS_TUNING.bubbleMaximumDeformation *
+		SKILL_PHYSICS_TUNING.bubbleDeformationImpulse;
+	let oneSecondAmplitude = 0;
+
+	for (let step = 0; step < 600; step += 1) {
+		const state = stepDampedOscillator(
+			position,
+			velocity,
+			1 / 120,
+			SKILL_PHYSICS_TUNING.bubbleWobbleFrequency,
+			SKILL_PHYSICS_TUNING.bubbleWobbleDamping,
+		);
+		position = state.position;
+		velocity = state.velocity;
+		if (step >= 108 && step <= 132) {
+			oneSecondAmplitude = Math.max(oneSecondAmplitude, Math.abs(position));
+		}
+	}
+
+	assert.ok(oneSecondAmplitude > 0.08);
+	assert.ok(Math.abs(position) < 0.002);
+	assert.ok(Math.abs(velocity) < 0.03);
+});
+
 test('bubble oscillator fails closed for malformed inputs', () => {
 	assert.deepEqual(stepDampedOscillator(Number.NaN, 1, 1 / 120, 4.2, 0.16), {
 		position: 0,
@@ -107,6 +139,29 @@ test('bubble oscillator fails closed for malformed inputs', () => {
 		position: 0,
 		velocity: 0,
 	});
+});
+
+test('bubble shape combines large area-preserving stretch with asymmetric membrane ripples', () => {
+	const shape = calculateBubbleShape(0.4, -0.08, 0.08, -0.06);
+
+	assert.ok(Math.abs(shape.scaleX * shape.scaleY - 1) < 0.000001);
+	assert.ok(shape.scaleX > 1.48);
+	assert.ok(shape.scaleY < 0.68);
+	assert.ok(new Set(shape.radii).size >= 4);
+	assert.ok(shape.radii.every((radius) => radius >= 22 && radius <= 78));
+	assert.ok(Math.max(...shape.radii) - Math.min(...shape.radii) >= 40);
+	assert.notEqual(shape.angle, 0);
+});
+
+test('bubble shape returns a stable circle for rest and malformed input', () => {
+	const circleRadii = [50, 50, 50, 50, 50, 50, 50, 50];
+	assert.deepEqual(calculateBubbleShape(0, 0, 0, 0), {
+		scaleX: 1,
+		scaleY: 1,
+		angle: 0,
+		radii: circleRadii,
+	});
+	assert.deepEqual(calculateBubbleShape(Number.NaN, 0, 0, 0).radii, circleRadii);
 });
 
 test('circle boundary contacts identify every wall independently', () => {
