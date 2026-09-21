@@ -179,6 +179,13 @@ const { items, topics } = Astro.props;
 </script>
 
 <style>
+	.article-explorer {
+		container: article-explorer / inline-size;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+	}
+
 	.article-explorer[data-enhanced='false'] .article-explorer__controls {
 		display: none;
 	}
@@ -186,6 +193,8 @@ const { items, topics } = Astro.props;
 	.article-explorer__controls {
 		display: grid;
 		grid-template-columns: minmax(14rem, 1.5fr) minmax(15rem, 1fr) minmax(10rem, 0.75fr) auto;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		align-items: end;
 		gap: var(--space-2);
 		margin-block-end: var(--space-4);
@@ -197,6 +206,7 @@ const { items, topics } = Astro.props;
 	.article-explorer__search-field,
 	.article-explorer__topic-field {
 		display: grid;
+		min-inline-size: 0;
 		gap: 0.35rem;
 	}
 
@@ -222,6 +232,8 @@ const { items, topics } = Astro.props;
 	.article-explorer input,
 	.article-explorer select {
 		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		padding-inline: 0.75rem;
 	}
 
@@ -322,13 +334,13 @@ const { items, topics } = Astro.props;
 		margin-block-end: var(--space-3);
 	}
 
-	@media (max-width: 64rem) {
+	@container article-explorer (max-width: 64rem) {
 		.article-explorer__controls {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
-	@media (max-width: 42rem) {
+	@container article-explorer (max-width: 42rem) {
 		.article-explorer__controls,
 		.article-explorer__list {
 			grid-template-columns: minmax(0, 1fr);

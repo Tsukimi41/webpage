@@ -38,7 +38,10 @@ const { item } = Astro.props;
 <style>
 	.article-index-card {
 		display: grid;
-		grid-template-columns: clamp(4.5rem, 11vw, 7rem) minmax(0, 1fr);
+		grid-template-columns: clamp(3.5rem, 16%, 7rem) minmax(0, 1fr);
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		min-block-size: 100%;
 		overflow: hidden;
 		border-block-end: 1px solid var(--color-border);
@@ -140,11 +143,5 @@ const { item } = Astro.props;
 		color: var(--color-text-muted);
 		font-size: 0.72rem;
 		font-weight: 700;
-	}
-
-	@media (max-width: 30rem) {
-		.article-index-card {
-			grid-template-columns: 3.5rem minmax(0, 1fr);
-		}
 	}
 </style>

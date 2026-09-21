@@ -37,13 +37,25 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 <style>
 	.introduction {
+		--introduction-icon-max-size: 16rem;
+		--introduction-icon-track-ratio: 36%;
+
 		position: relative;
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
-		gap: clamp(var(--space-3), 5vw, var(--space-5));
+		grid-template-columns:
+			minmax(0, 1fr)
+			minmax(
+				0,
+				min(var(--introduction-icon-max-size), var(--introduction-icon-track-ratio))
+			);
+		gap: clamp(var(--space-2), 4%, var(--space-5));
 		align-content: center;
 		align-items: center;
 		overflow: hidden;
+		box-sizing: border-box;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		min-block-size: min(28rem, 58svh);
 		padding: clamp(var(--space-3), 6vw, var(--space-5)) 0;
 		border-block: 1px solid var(--color-border);
@@ -60,14 +72,21 @@ const { headingId = 'introduction-title' } = Astro.props;
 		display: grid;
 		place-items: center;
 		justify-self: end;
-		inline-size: min(100%, 16rem);
+		box-sizing: border-box;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: var(--introduction-icon-max-size);
 		aspect-ratio: 1;
 	}
 
 	.introduction__icon {
 		display: block;
 		inline-size: 100%;
-		block-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+		block-size: auto;
+		max-block-size: 100%;
+		aspect-ratio: 1;
 		object-fit: contain;
 	}
 
@@ -97,13 +116,13 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 	.introduction__name {
 		display: flex;
-		flex-wrap: nowrap;
+		flex-wrap: wrap;
 		align-items: baseline;
 		gap: 0 clamp(var(--space-1), 2vw, var(--space-3));
-		inline-size: max-content;
+		inline-size: auto;
 		max-inline-size: 100%;
-		white-space: nowrap;
-		word-break: keep-all;
+		white-space: normal;
+		word-break: normal;
 		font-family: var(--font-mono);
 		animation: content-enter 420ms 100ms ease-out both;
 	}
@@ -157,30 +176,17 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 	@media (max-width: 42rem) {
 		.introduction {
-			grid-template-columns: minmax(0, 1fr) minmax(8rem, 10rem);
-			gap: var(--space-3);
 			padding: clamp(var(--space-3), 6vw, var(--space-5));
 		}
 	}
 
 	@media (max-width: 30rem) {
 		.introduction {
-			grid-template-columns: minmax(0, 1fr) minmax(7rem, 8rem);
-			gap: var(--space-2);
 			min-block-size: 24rem;
-		}
-
-		.introduction__visual {
-			inline-size: min(8rem, 100%);
-			justify-self: end;
 		}
 
 		.introduction__name {
 			font-size: clamp(1.4rem, 7vw, 1.8rem);
-			inline-size: auto;
-			white-space: normal;
-			word-break: normal;
-			flex-wrap: wrap;
 		}
 	}
 </style>

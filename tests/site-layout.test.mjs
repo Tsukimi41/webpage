@@ -72,12 +72,29 @@ test('profile introduction places the favicon icon beside readable profile conte
 	assert.match(source, /width=\{profile\.icon\.width\}/);
 	assert.match(source, /height=\{profile\.icon\.height\}/);
 	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);
-	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(12rem, 16rem\)/);
-	assert.match(source, /\.introduction__visual \{[\s\S]*?inline-size: min\(100%, 16rem\)/);
-	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(7rem, 8rem\)/);
+	assert.match(source, /--introduction-icon-max-size: 16rem/);
+	assert.match(source, /--introduction-icon-track-ratio: 36%/);
+	assert.match(
+		source,
+		/grid-template-columns:\s*minmax\(0, 1fr\)\s*minmax\(\s*0,\s*min\(var\(--introduction-icon-max-size\), var\(--introduction-icon-track-ratio\)\)\s*\)/,
+	);
+	assert.match(
+		source,
+		/\.introduction \{[\s\S]*?box-sizing: border-box;[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: 100%/,
+	);
+	assert.match(
+		source,
+		/\.introduction__visual \{[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: var\(--introduction-icon-max-size\)/,
+	);
+	assert.match(
+		source,
+		/\.introduction__icon \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?block-size: auto;[\s\S]*?object-fit: contain/,
+	);
+	assert.match(source, /\.introduction__name \{[\s\S]*?flex-wrap: wrap;[\s\S]*?white-space: normal/);
 	assert.doesNotMatch(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr;/);
 	const visualStyles = source.match(/\.introduction__visual \{([\s\S]*?)\n\t\}/)?.[1] ?? '';
-	assert.doesNotMatch(visualStyles, /padding|border|background|box-shadow/);
+	assert.doesNotMatch(visualStyles, /(?:^|\s)(?:padding|border|background|box-shadow)\s*:/);
+	assert.doesNotMatch(visualStyles, /(?:^|\s)(?:margin-inline|inset-inline|translate)\s*:/);
 	assert.deepEqual(profile.icon, { src: '/favicon.ico', width: 256, height: 256 });
 	assert.equal(Object.isFrozen(profile.icon), true);
 	assert.throws(

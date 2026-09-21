@@ -35,6 +35,9 @@ const { item, duplicate = false } = Astro.props;
 	.article-feed-card {
 		display: grid;
 		grid-template-rows: auto 1fr;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		min-block-size: 22rem;
 		overflow: hidden;
 		border: 1px solid var(--color-border);

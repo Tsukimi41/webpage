@@ -28,11 +28,16 @@ const pageDescription = `${profileDisplayName}のプロジェクト詳細と長�
 
 <style>
 	.articles-page {
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
 	}
 
 	.articles-page__header {
 		display: flex;
+		min-inline-size: 0;
+		flex-wrap: wrap;
 		align-items: flex-end;
 		justify-content: space-between;
 		gap: var(--space-3);
