@@ -8,6 +8,7 @@ import {
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
+	stepDampedOscillator,
 } from '../src/scripts/skill-physics.ts';
 
 function circle(overrides = {}) {
@@ -67,6 +68,42 @@ test('pointer influence ignores distant and malformed contacts', () => {
 		calculateBubblePointerInfluence(bubble, { x: Number.NaN, y: 50, vx: 0, vy: 0 }),
 		undefined,
 	);
+});
+
+test('bubble deformation oscillates repeatedly and settles through damping', () => {
+	let position = 0;
+	let velocity = 8;
+	let previousSign = 0;
+	let signChanges = 0;
+	let maximumPosition = 0;
+
+	for (let step = 0; step < 360; step += 1) {
+		const state = stepDampedOscillator(position, velocity, 1 / 120, 4.2, 0.16);
+		position = state.position;
+		velocity = state.velocity;
+		maximumPosition = Math.max(maximumPosition, Math.abs(position));
+		const sign = Math.sign(position);
+		if (previousSign !== 0 && sign !== 0 && sign !== previousSign) {
+			signChanges += 1;
+		}
+		if (sign !== 0) previousSign = sign;
+	}
+
+	assert.ok(signChanges >= 6);
+	assert.ok(maximumPosition > 0.1);
+	assert.ok(Math.abs(position) < 0.001);
+	assert.ok(Math.abs(velocity) < 0.02);
+});
+
+test('bubble oscillator fails closed for malformed inputs', () => {
+	assert.deepEqual(stepDampedOscillator(Number.NaN, 1, 1 / 120, 4.2, 0.16), {
+		position: 0,
+		velocity: 0,
+	});
+	assert.deepEqual(stepDampedOscillator(0, 1, -1, 4.2, 0.16), {
+		position: 0,
+		velocity: 0,
+	});
 });
 
 test('separated circles do not produce a collision', () => {

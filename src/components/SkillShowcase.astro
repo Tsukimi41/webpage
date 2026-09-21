@@ -32,7 +32,7 @@ const marblePlacements: readonly ObjectPlacement[] = [
 	{ x: 70, y: 5, size: 5.25, delay: -2.5 },
 ] as const;
 
-const decorativeBubbles = Array.from({ length: 11 }, (_, index) => ({
+const decorativeBubbles = Array.from({ length: 6 }, (_, index) => ({
 	x: (index * 29 + 9) % 92,
 	y: (index * 19 + 8) % 63,
 	size: 0.7 + (index % 4) * 0.32,
@@ -72,6 +72,7 @@ const skillObjects = skills.map((skill) => {
 					class="ambient-bubble"
 					data-physics-object
 					data-physics-material="bubble"
+					data-physics-role="ambient"
 					data-physics-x={bubble.x}
 					data-physics-y={bubble.y}
 					style={`--ambient-x:${bubble.x}%;--ambient-y:${bubble.y}%;--ambient-size:${bubble.size}rem;--ambient-delay:${bubble.delay}s`}
@@ -85,6 +86,7 @@ const skillObjects = skills.map((skill) => {
 						class={`skill-object skill-object--${skill.presentation}`}
 						data-physics-object
 						data-physics-material={skill.presentation}
+						data-physics-role="skill"
 						data-physics-x={placement.x}
 						data-physics-y={placement.y}
 						style={`--object-x:${placement.x}%;--object-y:${placement.y}%;--object-size:${placement.size}rem;--object-delay:${placement.delay}s`}
@@ -397,6 +399,11 @@ const skillObjects = skills.map((skill) => {
 		--deform-x: 1;
 		--deform-y: 1;
 		--deform-angle: 0rad;
+		--burst-angle: 0rad;
+		--burst-duration: 360ms;
+		--burst-hue: 0deg;
+		--burst-rotation: 0deg;
+		--burst-scale: 1.8;
 
 		position: absolute;
 		z-index: 1;
@@ -412,6 +419,57 @@ const skillObjects = skills.map((skill) => {
 		pointer-events: none;
 		rotate: var(--deform-angle);
 		scale: var(--deform-x) var(--deform-y);
+	}
+
+	.ambient-bubble.is-bursting {
+		animation: ambient-bubble-burst var(--burst-duration) ease-out both;
+	}
+
+	.ambient-bubble.is-bursting::before,
+	.ambient-bubble.is-bursting::after {
+		position: absolute;
+		inset: 50% auto auto 50%;
+		content: '';
+		pointer-events: none;
+	}
+
+	.ambient-bubble.is-bursting::before {
+		inline-size: 100%;
+		aspect-ratio: 1;
+		border: 1px solid rgb(255 255 255 / 72%);
+		border-radius: 50%;
+		animation: ambient-burst-ring var(--burst-duration) ease-out both;
+		filter: hue-rotate(var(--burst-hue));
+	}
+
+	.ambient-bubble.is-bursting::after {
+		inline-size: 0.16rem;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: rgb(255 255 255 / 82%);
+		box-shadow:
+			0.72rem 0 rgb(120 224 255 / 76%),
+			-0.62rem 0.24rem rgb(255 132 215 / 72%),
+			0.18rem -0.74rem rgb(255 247 155 / 74%),
+			-0.2rem 0.68rem rgb(181 137 255 / 72%);
+		animation: ambient-burst-droplets var(--burst-duration) ease-out both;
+		filter: hue-rotate(var(--burst-hue));
+	}
+
+	@keyframes ambient-bubble-burst {
+		0% { opacity: 0.72; filter: brightness(1); }
+		35% { opacity: 0.95; filter: brightness(1.7); }
+		100% { opacity: 0; filter: brightness(2); }
+	}
+
+	@keyframes ambient-burst-ring {
+		from { opacity: 0.85; transform: translate(-50%, -50%) rotate(var(--burst-angle)) scale(0.45); }
+		to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--burst-angle)) scale(2.25); }
+	}
+
+	@keyframes ambient-burst-droplets {
+		from { opacity: 0.95; transform: translate(-50%, -50%) rotate(var(--burst-angle)) scale(0.25); }
+		to { opacity: 0; transform: translate(-50%, -50%) rotate(calc(var(--burst-angle) + var(--burst-rotation))) scale(var(--burst-scale)); }
 	}
 
 	@supports not (background: color-mix(in srgb, black, white)) {
@@ -431,5 +489,8 @@ const skillObjects = skills.map((skill) => {
 		.skill-object__symbol { animation: none; transition: none; }
 		.skill-object button:is(:hover, :focus-visible) .skill-object__symbol { transform: none; }
 		.skill-object__label { transition: none; }
+		.ambient-bubble.is-bursting,
+		.ambient-bubble.is-bursting::before,
+		.ambient-bubble.is-bursting::after { animation: none; }
 	}
 </style>

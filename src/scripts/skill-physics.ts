@@ -5,6 +5,7 @@ import {
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
+	stepDampedOscillator,
 	type PhysicsCircle,
 	type PhysicsMaterial,
 	type PointerKinematics,
@@ -17,9 +18,11 @@ export {
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
+	stepDampedOscillator,
 } from './skill-physics-core.ts';
 export type {
 	CollisionResult,
+	OscillatorState,
 	PhysicsCircle,
 	PhysicsMaterial,
 	PointerKinematics,
@@ -29,10 +32,16 @@ interface RenderedCircle extends PhysicsCircle {
 	readonly element: HTMLElement;
 	readonly phase: number;
 	readonly density: number;
+	readonly role: 'ambient' | 'skill';
 	readonly initialXRatio: number;
 	readonly initialYRatio: number;
-	deformation: number;
-	deformationAngle: number;
+	deformationModeX: number;
+	deformationModeY: number;
+	deformationVelocityX: number;
+	deformationVelocityY: number;
+	burstCount: number;
+	respawnAt: number;
+	isBursting: boolean;
 	dragPointerId?: number;
 	dragOffsetX: number;
 	dragOffsetY: number;
@@ -52,9 +61,18 @@ const FIXED_TIME_STEP = 1 / 120;
 const MAX_FRAME_TIME = 1 / 20;
 const SOLVER_ITERATIONS = 5;
 const DRAG_VELOCITY_SMOOTHING = 0.38;
+const BOUNDARY_LEFT = 1;
+const BOUNDARY_RIGHT = 2;
+const BOUNDARY_TOP = 4;
+const BOUNDARY_BOTTOM = 8;
+const BURST_BOUNDARIES = BOUNDARY_LEFT | BOUNDARY_RIGHT | BOUNDARY_TOP;
 const {
 	bubbleNetBuoyancy: BUBBLE_NET_BUOYANCY,
 	bubbleRestitution: BUBBLE_RESTITUTION,
+	bubbleDeformationImpulse: BUBBLE_DEFORMATION_IMPULSE,
+	bubbleMaximumDeformation: BUBBLE_MAXIMUM_DEFORMATION,
+	bubbleWobbleDamping: BUBBLE_WOBBLE_DAMPING,
+	bubbleWobbleFrequency: BUBBLE_WOBBLE_FREQUENCY,
 	gravity: GRAVITY,
 	marbleRestitution: MARBLE_RESTITUTION,
 	maximumAngularSpeed: MAX_ANGULAR_SPEED,
@@ -117,11 +135,13 @@ function createCircle(
 	const bounds = element.getBoundingClientRect();
 	const radius = Math.max(bounds.width / 2, 8);
 	const material: PhysicsMaterial = element.dataset.physicsMaterial === 'marble' ? 'marble' : 'bubble';
+	const role = element.dataset.physicsRole === 'ambient' ? 'ambient' : 'skill';
 	const percentageX = parseNumber(element.dataset.physicsX, 50) / 100;
 	const percentageY = parseNumber(element.dataset.physicsY, 50) / 100;
 	const density = material === 'marble' ? 1 : 0.055;
 	const initial = getInitialCoordinates(
 		material,
+		role,
 		fieldWidth,
 		fieldHeight,
 		radius,
@@ -144,8 +164,13 @@ function createCircle(
 		density,
 		initialXRatio: percentageX,
 		initialYRatio: percentageY,
-		deformation: 0,
-		deformationAngle: 0,
+		deformationModeX: 0,
+		deformationModeY: 0,
+		deformationVelocityX: 0,
+		deformationVelocityY: 0,
+		burstCount: 0,
+		respawnAt: 0,
+		isBursting: false,
 		dragOffsetX: 0,
 		dragOffsetY: 0,
 	};
@@ -166,8 +191,13 @@ function resetCircle(body: RenderedCircle, width: number, height: number): void 
 	body.vy = 0;
 	body.angle = 0;
 	body.angularVelocity = 0;
-	body.deformation = 0;
-	body.deformationAngle = 0;
+	body.deformationModeX = 0;
+	body.deformationModeY = 0;
+	body.deformationVelocityX = 0;
+	body.deformationVelocityY = 0;
+	body.respawnAt = 0;
+	body.isBursting = false;
+	body.element.classList.remove('is-bursting');
 }
 
 function resizeCircle(
@@ -200,16 +230,19 @@ function constrainToField(
 	width: number,
 	height: number,
 	elapsed = 0,
-): void {
+): number {
 	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
+	let contacts = 0;
 
 	if (!Number.isFinite(width) || width <= body.radius * 2) {
 		body.x = Math.max(Number.isFinite(width) ? width : 0, 0) / 2;
 		body.vx = 0;
 	} else if (body.x < body.radius) {
+		contacts |= BOUNDARY_LEFT;
 		body.x = body.radius;
 		body.vx = Math.abs(body.vx) * restitution;
 	} else if (body.x > width - body.radius) {
+		contacts |= BOUNDARY_RIGHT;
 		body.x = width - body.radius;
 		body.vx = -Math.abs(body.vx) * restitution;
 	}
@@ -218,9 +251,11 @@ function constrainToField(
 		body.y = Math.max(Number.isFinite(height) ? height : 0, 0) / 2;
 		body.vy = 0;
 	} else if (body.y < body.radius) {
+		contacts |= BOUNDARY_TOP;
 		body.y = body.radius;
 		body.vy = Math.abs(body.vy) * restitution;
 	} else if (body.y > height - body.radius) {
+		contacts |= BOUNDARY_BOTTOM;
 		body.y = height - body.radius;
 		body.vy = -Math.abs(body.vy) * restitution;
 
@@ -231,30 +266,132 @@ function constrainToField(
 			}
 		}
 	}
+
+	return contacts;
 }
 
-function deformBubble(
+function exciteBubbleDeformation(
 	body: RenderedCircle,
 	impact: number,
 	normalX: number,
 	normalY: number,
 ): void {
-	if (body.material !== 'bubble') {
+	if (body.material !== 'bubble' || body.role !== 'skill') {
 		return;
 	}
 
-	body.deformation = Math.min(0.24, Math.max(body.deformation, impact));
-	body.deformationAngle = Math.atan2(normalY, normalX);
+	const direction = Math.atan2(normalY, normalX) * 2;
+	const velocityImpulse =
+		clamp(impact, 0, BUBBLE_MAXIMUM_DEFORMATION) * BUBBLE_DEFORMATION_IMPULSE;
+	body.deformationVelocityX += Math.cos(direction) * velocityImpulse;
+	body.deformationVelocityY += Math.sin(direction) * velocityImpulse;
+
+	const deformationSpeed = Math.hypot(
+		body.deformationVelocityX,
+		body.deformationVelocityY,
+	);
+	const maximumDeformationSpeed =
+		BUBBLE_MAXIMUM_DEFORMATION * BUBBLE_DEFORMATION_IMPULSE * 1.35;
+	if (deformationSpeed > maximumDeformationSpeed) {
+		const scale = maximumDeformationSpeed / deformationSpeed;
+		body.deformationVelocityX *= scale;
+		body.deformationVelocityY *= scale;
+	}
+}
+
+function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
+	if (body.material !== 'bubble' || body.role !== 'skill') {
+		return;
+	}
+
+	const horizontal = stepDampedOscillator(
+		body.deformationModeX,
+		body.deformationVelocityX,
+		elapsed,
+		BUBBLE_WOBBLE_FREQUENCY,
+		BUBBLE_WOBBLE_DAMPING,
+	);
+	const diagonal = stepDampedOscillator(
+		body.deformationModeY,
+		body.deformationVelocityY,
+		elapsed,
+		BUBBLE_WOBBLE_FREQUENCY,
+		BUBBLE_WOBBLE_DAMPING,
+	);
+	body.deformationModeX = horizontal.position;
+	body.deformationVelocityX = horizontal.velocity;
+	body.deformationModeY = diagonal.position;
+	body.deformationVelocityY = diagonal.velocity;
+	const deformation = Math.hypot(body.deformationModeX, body.deformationModeY);
+	if (deformation > BUBBLE_MAXIMUM_DEFORMATION) {
+		const scale = BUBBLE_MAXIMUM_DEFORMATION / deformation;
+		body.deformationModeX *= scale;
+		body.deformationModeY *= scale;
+	}
+}
+
+function fractional(value: number): number {
+	return value - Math.floor(value);
+}
+
+function burstAmbientBubble(body: RenderedCircle, contacts: number, time: number): void {
+	if (body.role !== 'ambient' || body.material !== 'bubble' || body.isBursting) {
+		return;
+	}
+
+	const normalX = (contacts & BOUNDARY_LEFT ? 1 : 0) -
+		(contacts & BOUNDARY_RIGHT ? 1 : 0);
+	const normalY = contacts & BOUNDARY_TOP ? 1 : 0;
+	const variant = body.burstCount % 4;
+	const duration = 300 + variant * 45;
+	body.burstCount += 1;
+	body.isBursting = true;
+	body.respawnAt = time + duration + 120;
+	body.vx = 0;
+	body.vy = 0;
+	body.element.style.setProperty('--burst-angle', `${Math.atan2(normalY, normalX)}rad`);
+	body.element.style.setProperty('--burst-duration', `${duration}ms`);
+	body.element.style.setProperty('--burst-hue', `${variant * 67}deg`);
+	body.element.style.setProperty('--burst-rotation', `${35 + variant * 29}deg`);
+	body.element.style.setProperty('--burst-scale', String(1.45 + variant * 0.22));
+	body.element.classList.add('is-bursting');
+}
+
+function respawnAmbientBubble(
+	body: RenderedCircle,
+	width: number,
+	height: number,
+): void {
+	const horizontalSeed = fractional(Math.sin((body.burstCount + 1) * 12.9898 + body.phase) * 43_758.5453);
+	const verticalSeed = fractional(Math.sin((body.burstCount + 1) * 78.233 + body.phase) * 12_345.6789);
+	body.x = fitCoordinateToAxis(
+		width,
+		body.radius,
+		body.radius + horizontalSeed * Math.max(width - body.radius * 2, 0),
+	);
+	body.y = fitCoordinateToAxis(
+		height,
+		body.radius,
+		height - body.radius - verticalSeed * Math.min(height * 0.16, body.radius * 5),
+	);
+	body.vx = (horizontalSeed - 0.5) * 28;
+	body.vy = -24 - verticalSeed * 18;
+	body.respawnAt = 0;
+	body.isBursting = false;
+	body.element.classList.remove('is-bursting');
 }
 
 function renderCircle(body: RenderedCircle, fieldHeight: number): void {
 	body.element.style.inset = '0 auto auto 0';
 	body.element.style.transform = `translate3d(${body.x - body.radius}px, ${body.y - body.radius}px, 0)`;
 
-	if (body.material === 'bubble') {
-		body.element.style.setProperty('--deform-x', String(1 + body.deformation));
-		body.element.style.setProperty('--deform-y', String(1 - body.deformation * 0.72));
-		body.element.style.setProperty('--deform-angle', `${body.deformationAngle}rad`);
+	if (body.material === 'bubble' && body.role === 'skill') {
+		const rawDeformation = Math.hypot(body.deformationModeX, body.deformationModeY);
+		const deformation = Math.min(rawDeformation, BUBBLE_MAXIMUM_DEFORMATION);
+		const deformationAngle = Math.atan2(body.deformationModeY, body.deformationModeX) / 2;
+		body.element.style.setProperty('--deform-x', String(Math.exp(deformation)));
+		body.element.style.setProperty('--deform-y', String(Math.exp(-deformation)));
+		body.element.style.setProperty('--deform-angle', `${deformationAngle}rad`);
 	} else {
 		const floorDistance = Math.max(fieldHeight - body.y - body.radius, 0);
 		const heightRatio = Math.min(floorDistance / Math.max(fieldHeight * 0.65, 1), 1);
@@ -357,7 +494,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		strength = 1,
 	): void => {
 		for (const body of bodies) {
-			if (body.material !== 'bubble') {
+			if (body.material !== 'bubble' || body.isBursting) {
 				continue;
 			}
 
@@ -368,7 +505,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 
 			body.vx += influence.impulseX * strength;
 			body.vy += influence.impulseY * strength;
-			deformBubble(
+			exciteBubbleDeformation(
 				body,
 				Math.min(0.24, influence.deformation * Math.max(strength, 1)),
 				influence.normalX,
@@ -425,7 +562,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 			return;
 		}
 
-		applyPointerToBubbles(pointer, 74);
+		applyPointerToBubbles(pointer, 74, pointer.isPressed ? 1.35 : 1);
 	};
 
 	const clearDraggedBody = (pointerId?: number, releaseCapture = true): void => {
@@ -508,7 +645,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		event.preventDefault();
 		body.vx += impulse[0];
 		body.vy += impulse[1];
-		deformBubble(body, 0.12, impulse[0], impulse[1]);
+		exciteBubbleDeformation(body, 0.12, impulse[0], impulse[1]);
 	};
 
 	const resizeObserver = new ResizeObserver(() => {
@@ -528,6 +665,14 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 
 	const simulate = (elapsed: number, time: number): void => {
 		for (const body of bodies) {
+			if (body.isBursting) {
+				if (time >= body.respawnAt) {
+					respawnAmbientBubble(body, fieldBounds.width, fieldBounds.height);
+				} else {
+					continue;
+				}
+			}
+
 			if (body.dragPointerId !== undefined) {
 				continue;
 			}
@@ -543,35 +688,25 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				body.vx *= Math.pow(0.993, elapsed * 60);
 				body.vy *= Math.pow(0.995, elapsed * 60);
 
-				let closestPointer: ActivePointer | undefined;
-				let closestDistance = Number.POSITIVE_INFINITY;
-				for (const pointer of activePointers.values()) {
-					const distance = Math.hypot(body.x - pointer.x, body.y - pointer.y);
-					if (distance < closestDistance) {
-						closestPointer = pointer;
-						closestDistance = distance;
-					}
-				}
-
-				if (closestPointer && closestDistance < body.radius + 56) {
-					deformBubble(
-						body,
-						closestPointer.isPressed ? 0.07 : 0.04,
-						body.x - closestPointer.x,
-						body.y - closestPointer.y,
-					);
-				}
 			}
 
 			body.x += body.vx * elapsed;
 			body.y += body.vy * elapsed;
 			body.angle += body.angularVelocity * elapsed;
-			body.deformation *= Math.exp(-7 * elapsed);
+			advanceBubbleDeformation(body, elapsed);
 			if (!stabilizePhysicsCircle(body)) {
 				resetCircle(body, fieldBounds.width, fieldBounds.height);
 				continue;
 			}
-			constrainToField(body, fieldBounds.width, fieldBounds.height, elapsed);
+			const contacts = constrainToField(
+				body,
+				fieldBounds.width,
+				fieldBounds.height,
+				elapsed,
+			);
+			if (contacts & BURST_BOUNDARIES) {
+				burstAmbientBubble(body, contacts, time);
+			}
 		}
 
 		for (let pass = 0; pass < SOLVER_ITERATIONS; pass += 1) {
@@ -579,7 +714,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				for (let rightIndex = leftIndex + 1; rightIndex < bodies.length; rightIndex += 1) {
 					const left = bodies[leftIndex];
 					const right = bodies[rightIndex];
-					if (!left || !right) {
+					if (!left || !right || left.isBursting || right.isBursting) {
 						continue;
 					}
 
@@ -596,8 +731,8 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 					if (collision) {
 						const relativeOverlap = collision.overlap / Math.max(Math.min(left.radius, right.radius), 1);
 						const impact = Math.min(0.24, closingSpeed / 850 + relativeOverlap * 0.12);
-						deformBubble(left, impact, -collision.normalX, -collision.normalY);
-						deformBubble(right, impact, collision.normalX, collision.normalY);
+					exciteBubbleDeformation(left, impact, -collision.normalX, -collision.normalY);
+					exciteBubbleDeformation(right, impact, collision.normalX, collision.normalY);
 					}
 				}
 			}

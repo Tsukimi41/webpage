@@ -35,6 +35,11 @@ export interface BubblePointerInfluence {
 	readonly deformation: number;
 }
 
+export interface OscillatorState {
+	readonly position: number;
+	readonly velocity: number;
+}
+
 interface FrictionCoefficients {
 	readonly static: number;
 	readonly dynamic: number;
@@ -56,6 +61,10 @@ export const SKILL_PHYSICS_TUNING = Object.freeze({
 	mixedDynamicFriction: 0.065,
 	bubbleStaticFriction: 0.025,
 	bubbleDynamicFriction: 0.012,
+	bubbleWobbleFrequency: 4.2,
+	bubbleWobbleDamping: 0.16,
+	bubbleMaximumDeformation: 0.24,
+	bubbleDeformationImpulse: 32,
 	maximumLinearSpeed: 1_600,
 	maximumAngularSpeed: 32,
 });
@@ -151,6 +160,36 @@ export function calculateBubblePointerInfluence(
 		normalY,
 		deformation: Math.min(0.22, influence * (0.04 + pointerSpeed / 7_500)),
 	};
+}
+
+export function stepDampedOscillator(
+	position: number,
+	velocity: number,
+	elapsed: number,
+	frequency: number,
+	dampingRatio: number,
+): OscillatorState {
+	if (
+		![position, velocity, elapsed, frequency, dampingRatio].every(Number.isFinite) ||
+		elapsed <= 0 ||
+		frequency <= 0 ||
+		dampingRatio < 0
+	) {
+		return { position: 0, velocity: 0 };
+	}
+
+	const angularFrequency = Math.PI * 2 * frequency;
+	const acceleration =
+		-angularFrequency * angularFrequency * position -
+		2 * dampingRatio * angularFrequency * velocity;
+	const nextVelocity = velocity + acceleration * elapsed;
+	const nextPosition = position + nextVelocity * elapsed;
+
+	if (Math.abs(nextPosition) < 0.0001 && Math.abs(nextVelocity) < 0.001) {
+		return { position: 0, velocity: 0 };
+	}
+
+	return { position: nextPosition, velocity: nextVelocity };
 }
 
 export function stabilizePhysicsCircle(
