@@ -3,6 +3,7 @@ import {
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
+	getAmbientBurstTrigger,
 	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
@@ -11,6 +12,7 @@ import {
 	type PhysicsCircle,
 	type PhysicsMaterial,
 	type PointerKinematics,
+	type AmbientBurstTrigger,
 } from './skill-physics-core.ts';
 
 export {
@@ -18,6 +20,7 @@ export {
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
+	getAmbientBurstTrigger,
 	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
@@ -25,6 +28,7 @@ export {
 	stepDampedOscillator,
 } from './skill-physics-core.ts';
 export type {
+	AmbientBurstTrigger,
 	CollisionResult,
 	OscillatorState,
 	PhysicsCircle,
@@ -44,6 +48,8 @@ interface RenderedCircle extends PhysicsCircle {
 	deformationVelocityX: number;
 	deformationVelocityY: number;
 	burstCount: number;
+	ambientAge: number;
+	ambientLifetime: number;
 	respawnAt: number;
 	isBursting: boolean;
 	dragPointerId?: number;
@@ -65,7 +71,6 @@ const FIXED_TIME_STEP = 1 / 120;
 const MAX_FRAME_TIME = 1 / 20;
 const SOLVER_ITERATIONS = 5;
 const DRAG_VELOCITY_SMOOTHING = 0.38;
-const BURST_BOUNDARIES = CIRCLE_BOUNDARY.left | CIRCLE_BOUNDARY.right | CIRCLE_BOUNDARY.top;
 const {
 	bubbleNetBuoyancy: BUBBLE_NET_BUOYANCY,
 	bubbleRestitution: BUBBLE_RESTITUTION,
@@ -168,6 +173,8 @@ function createCircle(
 		deformationVelocityX: 0,
 		deformationVelocityY: 0,
 		burstCount: 0,
+		ambientAge: 0,
+		ambientLifetime: 0,
 		respawnAt: 0,
 		isBursting: false,
 		dragOffsetX: 0,
@@ -194,6 +201,8 @@ function resetCircle(body: RenderedCircle, width: number, height: number): void 
 	body.deformationModeY = 0;
 	body.deformationVelocityX = 0;
 	body.deformationVelocityY = 0;
+	body.ambientAge = 0;
+	body.ambientLifetime = 0;
 	body.respawnAt = 0;
 	body.isBursting = false;
 	body.element.classList.remove('is-bursting');
@@ -330,15 +339,33 @@ function fractional(value: number): number {
 	return value - Math.floor(value);
 }
 
-function burstAmbientBubble(body: RenderedCircle, contacts: number, time: number): void {
+function getAmbientLifetime(body: Pick<RenderedCircle, 'phase' | 'burstCount'>): number {
+	const variation = fractional(
+		Math.sin((body.burstCount + 1) * 41.73 + body.phase * 2.17) * 9_173.481,
+	);
+	return 5_500 + variation * 4_500;
+}
+
+function burstAmbientBubble(
+	body: RenderedCircle,
+	contacts: number,
+	time: number,
+	trigger: AmbientBurstTrigger,
+): void {
 	if (body.role !== 'ambient' || body.material !== 'bubble' || body.isBursting) {
 		return;
 	}
 
-	const normalX = (contacts & CIRCLE_BOUNDARY.left ? 1 : 0) -
-		(contacts & CIRCLE_BOUNDARY.right ? 1 : 0);
-	const normalY = contacts & CIRCLE_BOUNDARY.top ? 1 : 0;
-	const variant = body.burstCount % 4;
+	const lifetimeAngle = body.phase + body.burstCount * 1.37;
+	const normalX = trigger === 'lifetime'
+		? Math.cos(lifetimeAngle)
+		: (contacts & CIRCLE_BOUNDARY.left ? 1 : 0) -
+			(contacts & CIRCLE_BOUNDARY.right ? 1 : 0);
+	const normalY = trigger === 'lifetime'
+		? Math.sin(lifetimeAngle)
+		: contacts & CIRCLE_BOUNDARY.top ? 1 : 0;
+	const triggerVariantOffset = trigger === 'side' ? 0 : trigger === 'ceiling' ? 1 : 2;
+	const variant = (body.burstCount + triggerVariantOffset) % 4;
 	const duration = 520 + variant * 65;
 	body.burstCount += 1;
 	body.isBursting = true;
@@ -351,6 +378,8 @@ function burstAmbientBubble(body: RenderedCircle, contacts: number, time: number
 	body.element.style.setProperty('--burst-rotation', `${35 + variant * 29}deg`);
 	body.element.style.setProperty('--burst-scale', String(2.1 + variant * 0.28));
 	body.element.dataset.burstState = 'bursting';
+	body.element.dataset.burstTrigger = trigger;
+	body.element.dataset.burstVariant = String(variant);
 	body.element.classList.add('is-bursting');
 }
 
@@ -373,10 +402,14 @@ function respawnAmbientBubble(
 	);
 	body.vx = (horizontalSeed - 0.5) * 28;
 	body.vy = -24 - verticalSeed * 18;
+	body.ambientAge = 0;
+	body.ambientLifetime = getAmbientLifetime(body);
 	body.respawnAt = 0;
 	body.isBursting = false;
 	body.element.classList.remove('is-bursting');
 	body.element.dataset.burstState = 'idle';
+	delete body.element.dataset.burstTrigger;
+	delete body.element.dataset.burstVariant;
 }
 
 function renderCircle(body: RenderedCircle, fieldHeight: number): void {
@@ -675,6 +708,13 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				continue;
 			}
 
+			if (body.role === 'ambient') {
+				if (body.ambientLifetime <= 0) {
+					body.ambientLifetime = getAmbientLifetime(body);
+				}
+				body.ambientAge += elapsed * 1_000;
+			}
+
 			if (body.material === 'marble') {
 				body.vy += GRAVITY * elapsed;
 				body.vx *= Math.exp(-0.035 * elapsed);
@@ -702,8 +742,15 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				fieldBounds.height,
 				elapsed,
 			);
-			if (contacts & BURST_BOUNDARIES) {
-				burstAmbientBubble(body, contacts, time);
+			if (body.role === 'ambient') {
+				const trigger = getAmbientBurstTrigger(
+					contacts,
+					body.ambientAge,
+					body.ambientLifetime,
+				);
+				if (trigger) {
+					burstAmbientBubble(body, contacts, time, trigger);
+				}
 			}
 		}
 

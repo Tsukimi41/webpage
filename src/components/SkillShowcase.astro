@@ -445,6 +445,24 @@ const skillObjects = skills.map((skill) => {
 		filter: hue-rotate(var(--burst-hue));
 	}
 
+	.ambient-bubble[data-burst-variant='1']::before {
+		border-style: dashed;
+	}
+
+	.ambient-bubble[data-burst-variant='2']::before {
+		border-width: 0.125rem;
+		box-shadow: 0 0 0.45rem rgb(125 224 255 / 48%);
+	}
+
+	.ambient-bubble[data-burst-variant='3']::after {
+		box-shadow:
+			0.9rem 0.12rem rgb(120 224 255 / 76%),
+			-0.78rem 0.36rem rgb(255 132 215 / 72%),
+			0.28rem -0.92rem rgb(255 247 155 / 74%),
+			-0.38rem 0.84rem rgb(181 137 255 / 72%),
+			0.65rem -0.58rem rgb(154 255 203 / 70%);
+	}
+
 	.ambient-bubble[data-burst-state='bursting']::after {
 		inline-size: 0.16rem;
 		aspect-ratio: 1;

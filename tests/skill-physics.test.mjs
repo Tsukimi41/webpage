@@ -6,6 +6,7 @@ import {
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
+	getAmbientBurstTrigger,
 	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
@@ -132,6 +133,24 @@ test('circle boundary contacts fail closed for invalid geometry', () => {
 	assert.equal(getCircleBoundaryContacts({ x: 0, y: 0, radius: 0 }, 100, 100), 0);
 	assert.equal(getCircleBoundaryContacts({ x: 0, y: 0, radius: 10 }, 20, 100), 0);
 	assert.equal(getCircleBoundaryContacts({ x: Number.NaN, y: 0, radius: 10 }, 100, 100), 0);
+});
+
+test('ambient bubbles burst for side, ceiling, and lifetime conditions', () => {
+	assert.equal(getAmbientBurstTrigger(CIRCLE_BOUNDARY.left, 0, 8_000), 'side');
+	assert.equal(getAmbientBurstTrigger(CIRCLE_BOUNDARY.right, 0, 8_000), 'side');
+	assert.equal(getAmbientBurstTrigger(CIRCLE_BOUNDARY.top, 0, 8_000), 'ceiling');
+	assert.equal(getAmbientBurstTrigger(0, 8_000, 8_000), 'lifetime');
+	assert.equal(getAmbientBurstTrigger(0, 7_999, 8_000), undefined);
+});
+
+test('physical contact takes priority over lifetime and invalid timers fail closed', () => {
+	assert.equal(
+		getAmbientBurstTrigger(CIRCLE_BOUNDARY.top | CIRCLE_BOUNDARY.left, 9_000, 8_000),
+		'side',
+	);
+	assert.equal(getAmbientBurstTrigger(0, Number.NaN, 8_000), undefined);
+	assert.equal(getAmbientBurstTrigger(0, 8_000, 0), undefined);
+	assert.equal(getAmbientBurstTrigger(-1, 8_000, 8_000), undefined);
 });
 
 test('separated circles do not produce a collision', () => {

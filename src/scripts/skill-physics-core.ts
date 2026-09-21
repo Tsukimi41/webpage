@@ -47,6 +47,38 @@ export const CIRCLE_BOUNDARY = Object.freeze({
 	bottom: 8,
 });
 
+export type AmbientBurstTrigger = 'side' | 'ceiling' | 'lifetime';
+
+export function getAmbientBurstTrigger(
+	contacts: number,
+	age: number,
+	lifetime: number,
+): AmbientBurstTrigger | undefined {
+	if (!Number.isInteger(contacts) || contacts < 0) {
+		return undefined;
+	}
+
+	if (contacts & (CIRCLE_BOUNDARY.left | CIRCLE_BOUNDARY.right)) {
+		return 'side';
+	}
+
+	if (contacts & CIRCLE_BOUNDARY.top) {
+		return 'ceiling';
+	}
+
+	if (
+		Number.isFinite(age) &&
+		Number.isFinite(lifetime) &&
+		age >= 0 &&
+		lifetime > 0 &&
+		age >= lifetime
+	) {
+		return 'lifetime';
+	}
+
+	return undefined;
+}
+
 export function getCircleBoundaryContacts(
 	body: Pick<PhysicsCircle, 'x' | 'y' | 'radius'>,
 	width: number,
@@ -76,7 +108,7 @@ interface FrictionCoefficients {
 
 export const SKILL_PHYSICS_TUNING = Object.freeze({
 	gravity: 1_650,
-	bubbleNetBuoyancy: 70,
+	bubbleNetBuoyancy: 160,
 	marbleRestitution: 0.58,
 	bubbleRestitution: 0.22,
 	mixedRestitution: 0.28,
