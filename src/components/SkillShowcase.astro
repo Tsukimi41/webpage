@@ -92,7 +92,9 @@ const skillObjects = skills.map((skill) => {
 						<button
 							type="button"
 							data-physics-control
-							aria-label={`${skill.label}の${skill.presentation === 'marble' ? 'マーブル' : 'シャボン玉'}。ドラッグ、ポインター、矢印キーで動かせます`}
+							aria-label={skill.presentation === 'marble'
+								? `${skill.label}のマーブル。ドラッグして投げるか、矢印キーで動かせます`
+								: `${skill.label}のシャボン玉。ポインターで触れるか、矢印キーで動かせます`}
 						>
 							<span class="skill-object__surface" aria-hidden="true">
 								<span class="skill-object__symbol">
@@ -179,6 +181,8 @@ const skillObjects = skills.map((skill) => {
 			radial-gradient(circle at 50% 115%, var(--color-backdrop-glow), transparent 55%),
 			var(--color-canvas);
 		contain: layout paint;
+		touch-action: pan-y pinch-zoom;
+		user-select: none;
 	}
 
 	.skill-field__light {

@@ -20,6 +20,21 @@ export interface CollisionResult {
 	readonly frictionImpulse: number;
 }
 
+export interface PointerKinematics {
+	readonly x: number;
+	readonly y: number;
+	readonly vx: number;
+	readonly vy: number;
+}
+
+export interface BubblePointerInfluence {
+	readonly impulseX: number;
+	readonly impulseY: number;
+	readonly normalX: number;
+	readonly normalY: number;
+	readonly deformation: number;
+}
+
 interface FrictionCoefficients {
 	readonly static: number;
 	readonly dynamic: number;
@@ -99,6 +114,43 @@ export function calculateCircleInverseMass(radius: number, density: number): num
 	}
 
 	return 1 / (Math.PI * radius * radius * density);
+}
+
+export function calculateBubblePointerInfluence(
+	body: Pick<PhysicsCircle, 'x' | 'y' | 'radius'>,
+	pointer: PointerKinematics,
+	rangePadding = 74,
+): BubblePointerInfluence | undefined {
+	if (
+		![body.x, body.y, body.radius, pointer.x, pointer.y, pointer.vx, pointer.vy, rangePadding]
+			.every(Number.isFinite) ||
+		body.radius <= 0 ||
+		rangePadding < 0
+	) {
+		return undefined;
+	}
+
+	const deltaX = body.x - pointer.x;
+	const deltaY = body.y - pointer.y;
+	const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
+	const range = body.radius + rangePadding;
+	if (distance >= range) {
+		return undefined;
+	}
+
+	const influence = 1 - distance / range;
+	const normalX = deltaX / distance;
+	const normalY = deltaY / distance;
+	const pointerSpeed = Math.hypot(pointer.vx, pointer.vy);
+	const transfer = 0.04 * influence;
+
+	return {
+		impulseX: normalX * 8 * influence + pointer.vx * transfer,
+		impulseY: normalY * 8 * influence + pointer.vy * transfer,
+		normalX,
+		normalY,
+		deformation: Math.min(0.22, influence * (0.04 + pointerSpeed / 7_500)),
+	};
 }
 
 export function stabilizePhysicsCircle(

@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
 	applyFloorFriction,
+	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
@@ -39,6 +40,33 @@ test('circle mass follows area and rejects invalid geometry', () => {
 	assert.ok(Math.abs(smallInverseMass / largeInverseMass - 4) < 0.0001);
 	assert.equal(calculateCircleInverseMass(0, 1), 0);
 	assert.equal(calculateCircleInverseMass(10, Number.NaN), 0);
+});
+
+test('pointer motion pushes and deforms nearby bubbles', () => {
+	const bubble = circle({ material: 'bubble', radius: 20, x: 50, y: 50 });
+	const influence = calculateBubblePointerInfluence(
+		bubble,
+		{ x: 40, y: 50, vx: 300, vy: 0 },
+		20,
+	);
+
+	assert.ok(influence);
+	assert.ok(influence.impulseX > 0);
+	assert.equal(influence.impulseY, 0);
+	assert.ok(influence.deformation > 0 && influence.deformation <= 0.22);
+});
+
+test('pointer influence ignores distant and malformed contacts', () => {
+	const bubble = circle({ material: 'bubble', radius: 20, x: 50, y: 50 });
+
+	assert.equal(
+		calculateBubblePointerInfluence(bubble, { x: 200, y: 50, vx: 0, vy: 0 }),
+		undefined,
+	);
+	assert.equal(
+		calculateBubblePointerInfluence(bubble, { x: Number.NaN, y: 50, vx: 0, vy: 0 }),
+		undefined,
+	);
 });
 
 test('separated circles do not produce a collision', () => {

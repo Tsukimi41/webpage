@@ -1,15 +1,18 @@
 import {
 	applyFloorFriction,
+	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
 	type PhysicsCircle,
 	type PhysicsMaterial,
+	type PointerKinematics,
 } from './skill-physics-core.ts';
 
 export {
 	applyFloorFriction,
+	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
@@ -19,6 +22,7 @@ export type {
 	CollisionResult,
 	PhysicsCircle,
 	PhysicsMaterial,
+	PointerKinematics,
 } from './skill-physics-core.ts';
 
 interface RenderedCircle extends PhysicsCircle {
@@ -30,11 +34,18 @@ interface RenderedCircle extends PhysicsCircle {
 	deformation: number;
 	deformationAngle: number;
 	dragPointerId?: number;
-	lastPointerX: number;
-	lastPointerY: number;
-	lastPointerTime: number;
 	dragOffsetX: number;
 	dragOffsetY: number;
+}
+
+interface ActivePointer {
+	x: number;
+	y: number;
+	vx: number;
+	vy: number;
+	readonly pointerType: string;
+	lastTime: number;
+	isPressed: boolean;
 }
 
 const FIXED_TIME_STEP = 1 / 120;
@@ -135,9 +146,6 @@ function createCircle(
 		initialYRatio: percentageY,
 		deformation: 0,
 		deformationAngle: 0,
-		lastPointerX: 0,
-		lastPointerY: 0,
-		lastPointerTime: 0,
 		dragOffsetX: 0,
 		dragOffsetY: 0,
 	};
@@ -268,7 +276,7 @@ function findNearestMarble(
 	let nearestDistance = Number.POSITIVE_INFINITY;
 
 	for (const body of bodies) {
-		if (body.material !== 'marble') {
+		if (body.material !== 'marble' || body.dragPointerId !== undefined) {
 			continue;
 		}
 
@@ -297,9 +305,8 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		createCircle(element, fieldBounds.width, fieldBounds.height, index),
 	);
 	const bodiesByElement = new Map(bodies.map((body) => [body.element, body]));
-	let draggedBody: RenderedCircle | undefined;
-	let pointerX = -10000;
-	let pointerY = -10000;
+	const activePointers = new Map<number, ActivePointer>();
+	const draggedBodies = new Map<number, RenderedCircle>();
 	let previousTime = performance.now();
 	let accumulator = 0;
 	let animationFrame = 0;
@@ -312,22 +319,78 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		y: event.clientY - fieldBounds.top,
 	});
 
+	const updateActivePointer = (
+		event: PointerEvent,
+		position: { x: number; y: number },
+		isPressed?: boolean,
+	): ActivePointer => {
+		const previous = activePointers.get(event.pointerId);
+		const elapsed = previous
+			? Math.max((event.timeStamp - previous.lastTime) / 1000, 1 / 240)
+			: 0;
+		const measuredVelocityX = previous && elapsed > 0
+			? (position.x - previous.x) / elapsed
+			: 0;
+		const measuredVelocityY = previous && elapsed > 0
+			? (position.y - previous.y) / elapsed
+			: 0;
+		const pointer: ActivePointer = {
+			x: position.x,
+			y: position.y,
+			vx: previous
+				? previous.vx + (measuredVelocityX - previous.vx) * 0.45
+				: measuredVelocityX,
+			vy: previous
+				? previous.vy + (measuredVelocityY - previous.vy) * 0.45
+				: measuredVelocityY,
+			pointerType: event.pointerType,
+			lastTime: event.timeStamp,
+			isPressed: isPressed ?? previous?.isPressed ?? false,
+		};
+		activePointers.set(event.pointerId, pointer);
+		return pointer;
+	};
+
+	const applyPointerToBubbles = (
+		pointer: ActivePointer,
+		rangePadding: number,
+		strength = 1,
+	): void => {
+		for (const body of bodies) {
+			if (body.material !== 'bubble') {
+				continue;
+			}
+
+			const influence = calculateBubblePointerInfluence(body, pointer, rangePadding);
+			if (!influence) {
+				continue;
+			}
+
+			body.vx += influence.impulseX * strength;
+			body.vy += influence.impulseY * strength;
+			deformBubble(
+				body,
+				Math.min(0.24, influence.deformation * Math.max(strength, 1)),
+				influence.normalX,
+				influence.normalY,
+			);
+		}
+	};
+
 	const onPointerDown = (event: PointerEvent): void => {
 		if (!isRunning) {
 			return;
 		}
 
 		fieldBounds = field.getBoundingClientRect();
-		const pointer = getLocalPointer(event);
+		const position = getLocalPointer(event);
+		const pointer = updateActivePointer(event, position, true);
 		const marble = findNearestMarble(bodies, pointer.x, pointer.y);
 
 		if (marble) {
 			event.preventDefault();
-			draggedBody = marble;
+			draggedBodies.set(event.pointerId, marble);
 			marble.dragPointerId = event.pointerId;
-			marble.lastPointerX = pointer.x;
-			marble.lastPointerY = pointer.y;
-			marble.lastPointerTime = event.timeStamp;
 			marble.dragOffsetX = marble.x - pointer.x;
 			marble.dragOffsetY = marble.y - pointer.y;
 			marble.vx = 0;
@@ -337,23 +400,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 			return;
 		}
 
-		for (const body of bodies) {
-			if (body.material !== 'bubble') {
-				continue;
-			}
-
-			const deltaX = body.x - pointer.x;
-			const deltaY = body.y - pointer.y;
-			const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
-			if (distance > body.radius + 42) {
-				continue;
-			}
-
-			const impulse = 115 * (1 - distance / (body.radius + 42));
-			body.vx += (deltaX / distance) * impulse;
-			body.vy += (deltaY / distance) * impulse;
-			deformBubble(body, 0.18, deltaX / distance, deltaY / distance);
-		}
+		applyPointerToBubbles(pointer, 42, 12);
 	};
 
 	const onPointerMove = (event: PointerEvent): void => {
@@ -362,78 +409,75 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 		}
 
 		fieldBounds = field.getBoundingClientRect();
-		const pointer = getLocalPointer(event);
-		pointerX = pointer.x;
-		pointerY = pointer.y;
+		const position = getLocalPointer(event);
+		const pointer = updateActivePointer(event, position);
+		const draggedBody = draggedBodies.get(event.pointerId);
 
-		if (draggedBody?.dragPointerId === event.pointerId) {
+		if (draggedBody) {
 			event.preventDefault();
-			const elapsed = Math.max((event.timeStamp - draggedBody.lastPointerTime) / 1000, 1 / 240);
-			const measuredVelocityX = (pointer.x - draggedBody.lastPointerX) / elapsed;
-			const measuredVelocityY = (pointer.y - draggedBody.lastPointerY) / elapsed;
 			draggedBody.vx +=
-				(measuredVelocityX - draggedBody.vx) * DRAG_VELOCITY_SMOOTHING;
+				(pointer.vx - draggedBody.vx) * DRAG_VELOCITY_SMOOTHING;
 			draggedBody.vy +=
-				(measuredVelocityY - draggedBody.vy) * DRAG_VELOCITY_SMOOTHING;
+				(pointer.vy - draggedBody.vy) * DRAG_VELOCITY_SMOOTHING;
 			draggedBody.x = pointer.x + draggedBody.dragOffsetX;
 			draggedBody.y = pointer.y + draggedBody.dragOffsetY;
-			draggedBody.lastPointerX = pointer.x;
-			draggedBody.lastPointerY = pointer.y;
-			draggedBody.lastPointerTime = event.timeStamp;
 			constrainToField(draggedBody, fieldBounds.width, fieldBounds.height);
 			return;
 		}
 
-		for (const body of bodies) {
-			if (body.material !== 'bubble') {
-				continue;
-			}
-
-			const deltaX = body.x - pointer.x;
-			const deltaY = body.y - pointer.y;
-			const distance = Math.max(Math.hypot(deltaX, deltaY), 1);
-			const range = body.radius + 74;
-
-			if (distance < range) {
-				const force = (1 - distance / range) * 8;
-				body.vx += (deltaX / distance) * force;
-				body.vy += (deltaY / distance) * force;
-				deformBubble(body, force * 0.015, deltaX / distance, deltaY / distance);
-			}
-		}
+		applyPointerToBubbles(pointer, 74);
 	};
 
 	const clearDraggedBody = (pointerId?: number, releaseCapture = true): void => {
-		if (!draggedBody || (pointerId !== undefined && draggedBody.dragPointerId !== pointerId)) {
-			return;
-		}
+		const pointerIds = pointerId === undefined
+			? Array.from(draggedBodies.keys())
+			: [pointerId];
 
-		const capturedPointerId = draggedBody.dragPointerId;
-		stabilizePhysicsCircle(draggedBody, 1_250, MAX_ANGULAR_SPEED);
-		draggedBody.element.classList.remove('is-dragged');
-		draggedBody.dragPointerId = undefined;
-		draggedBody = undefined;
+		for (const capturedPointerId of pointerIds) {
+			const body = draggedBodies.get(capturedPointerId);
+			if (!body) {
+				continue;
+			}
 
-		if (
-			releaseCapture &&
-			capturedPointerId !== undefined &&
-			field.hasPointerCapture(capturedPointerId)
-		) {
-			field.releasePointerCapture(capturedPointerId);
+			stabilizePhysicsCircle(body, 1_250, MAX_ANGULAR_SPEED);
+			body.element.classList.remove('is-dragged');
+			body.dragPointerId = undefined;
+			draggedBodies.delete(capturedPointerId);
+
+			if (releaseCapture && field.hasPointerCapture(capturedPointerId)) {
+				field.releasePointerCapture(capturedPointerId);
+			}
 		}
 	};
 
 	const releaseDraggedBody = (event: PointerEvent): void => {
 		clearDraggedBody(event.pointerId);
+		const pointer = activePointers.get(event.pointerId);
+		if (pointer?.pointerType === 'mouse') {
+			pointer.isPressed = false;
+			pointer.vx = 0;
+			pointer.vy = 0;
+		} else {
+			activePointers.delete(event.pointerId);
+		}
+	};
+
+	const cancelPointer = (event: PointerEvent): void => {
+		clearDraggedBody(event.pointerId);
+		activePointers.delete(event.pointerId);
 	};
 
 	const onLostPointerCapture = (event: PointerEvent): void => {
 		clearDraggedBody(event.pointerId, false);
+		if (event.pointerType !== 'mouse') {
+			activePointers.delete(event.pointerId);
+		}
 	};
 
-	const onPointerLeave = (): void => {
-		pointerX = -10000;
-		pointerY = -10000;
+	const onPointerLeave = (event: PointerEvent): void => {
+		if (!draggedBodies.has(event.pointerId)) {
+			activePointers.delete(event.pointerId);
+		}
 	};
 
 	const onKeyDown = (event: KeyboardEvent): void => {
@@ -499,9 +543,23 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				body.vx *= Math.pow(0.993, elapsed * 60);
 				body.vy *= Math.pow(0.995, elapsed * 60);
 
-				const pointerDistance = Math.hypot(body.x - pointerX, body.y - pointerY);
-				if (pointerDistance < body.radius + 56) {
-					deformBubble(body, 0.04, body.x - pointerX, body.y - pointerY);
+				let closestPointer: ActivePointer | undefined;
+				let closestDistance = Number.POSITIVE_INFINITY;
+				for (const pointer of activePointers.values()) {
+					const distance = Math.hypot(body.x - pointer.x, body.y - pointer.y);
+					if (distance < closestDistance) {
+						closestPointer = pointer;
+						closestDistance = distance;
+					}
+				}
+
+				if (closestPointer && closestDistance < body.radius + 56) {
+					deformBubble(
+						body,
+						closestPointer.isPressed ? 0.07 : 0.04,
+						body.x - closestPointer.x,
+						body.y - closestPointer.y,
+					);
 				}
 			}
 
@@ -603,6 +661,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	const synchronizeActivity = (): void => {
 		if (document.hidden || reducedMotion.matches || !isIntersecting) {
 			clearDraggedBody();
+			activePointers.clear();
 			stopLoop();
 			field.dataset.physicsState = reducedMotion.matches
 				? 'reduced-motion'
@@ -628,7 +687,7 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	field.addEventListener('pointerdown', onPointerDown);
 	field.addEventListener('pointermove', onPointerMove);
 	field.addEventListener('pointerup', releaseDraggedBody);
-	field.addEventListener('pointercancel', releaseDraggedBody);
+	field.addEventListener('pointercancel', cancelPointer);
 	field.addEventListener('lostpointercapture', onLostPointerCapture);
 	field.addEventListener('pointerleave', onPointerLeave);
 	field.addEventListener('keydown', onKeyDown);
@@ -641,13 +700,14 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 	return () => {
 		isDestroyed = true;
 		clearDraggedBody();
+		activePointers.clear();
 		stopLoop();
 		resizeObserver.disconnect();
 		intersectionObserver?.disconnect();
 		field.removeEventListener('pointerdown', onPointerDown);
 		field.removeEventListener('pointermove', onPointerMove);
 		field.removeEventListener('pointerup', releaseDraggedBody);
-		field.removeEventListener('pointercancel', releaseDraggedBody);
+		field.removeEventListener('pointercancel', cancelPointer);
 		field.removeEventListener('lostpointercapture', onLostPointerCapture);
 		field.removeEventListener('pointerleave', onPointerLeave);
 		field.removeEventListener('keydown', onKeyDown);
