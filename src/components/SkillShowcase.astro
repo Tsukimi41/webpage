@@ -73,6 +73,7 @@ const skillObjects = skills.map((skill) => {
 					data-physics-object
 					data-physics-material="bubble"
 					data-physics-role="ambient"
+					data-burst-state="idle"
 					data-physics-x={bubble.x}
 					data-physics-y={bubble.y}
 					style={`--ambient-x:${bubble.x}%;--ambient-y:${bubble.y}%;--ambient-size:${bubble.size}rem;--ambient-delay:${bubble.delay}s`}
@@ -228,6 +229,12 @@ const skillObjects = skills.map((skill) => {
 		transform: translateX(-50%);
 	}
 
+	.skill-object--bubble {
+		--deform-x: 1;
+		--deform-y: 1;
+		--deform-angle: 0rad;
+	}
+
 	.skill-object button {
 		position: relative;
 		display: block;
@@ -272,10 +279,6 @@ const skillObjects = skills.map((skill) => {
 	}
 
 	.skill-object--bubble .skill-object__surface {
-		--deform-x: 1;
-		--deform-y: 1;
-		--deform-angle: 0rad;
-
 		border: 1px solid rgb(255 255 255 / 54%);
 		background:
 			radial-gradient(circle at 31% 24%, rgb(255 255 255 / 88%) 0 4%, transparent 10%),
@@ -421,19 +424,19 @@ const skillObjects = skills.map((skill) => {
 		scale: var(--deform-x) var(--deform-y);
 	}
 
-	.ambient-bubble.is-bursting {
+	.ambient-bubble[data-burst-state='bursting'] {
 		animation: ambient-bubble-burst var(--burst-duration) ease-out both;
 	}
 
-	.ambient-bubble.is-bursting::before,
-	.ambient-bubble.is-bursting::after {
+	.ambient-bubble[data-burst-state='bursting']::before,
+	.ambient-bubble[data-burst-state='bursting']::after {
 		position: absolute;
 		inset: 50% auto auto 50%;
 		content: '';
 		pointer-events: none;
 	}
 
-	.ambient-bubble.is-bursting::before {
+	.ambient-bubble[data-burst-state='bursting']::before {
 		inline-size: 100%;
 		aspect-ratio: 1;
 		border: 1px solid rgb(255 255 255 / 72%);
@@ -442,7 +445,7 @@ const skillObjects = skills.map((skill) => {
 		filter: hue-rotate(var(--burst-hue));
 	}
 
-	.ambient-bubble.is-bursting::after {
+	.ambient-bubble[data-burst-state='bursting']::after {
 		inline-size: 0.16rem;
 		aspect-ratio: 1;
 		border-radius: 50%;
@@ -489,8 +492,8 @@ const skillObjects = skills.map((skill) => {
 		.skill-object__symbol { animation: none; transition: none; }
 		.skill-object button:is(:hover, :focus-visible) .skill-object__symbol { transform: none; }
 		.skill-object__label { transition: none; }
-		.ambient-bubble.is-bursting,
-		.ambient-bubble.is-bursting::before,
-		.ambient-bubble.is-bursting::after { animation: none; }
+		.ambient-bubble[data-burst-state='bursting'],
+		.ambient-bubble[data-burst-state='bursting']::before,
+		.ambient-bubble[data-burst-state='bursting']::after { animation: none; }
 	}
 </style>

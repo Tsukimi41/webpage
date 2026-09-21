@@ -40,6 +40,35 @@ export interface OscillatorState {
 	readonly velocity: number;
 }
 
+export const CIRCLE_BOUNDARY = Object.freeze({
+	left: 1,
+	right: 2,
+	top: 4,
+	bottom: 8,
+});
+
+export function getCircleBoundaryContacts(
+	body: Pick<PhysicsCircle, 'x' | 'y' | 'radius'>,
+	width: number,
+	height: number,
+): number {
+	if (
+		![body.x, body.y, body.radius, width, height].every(Number.isFinite) ||
+		body.radius <= 0 ||
+		width <= body.radius * 2 ||
+		height <= body.radius * 2
+	) {
+		return 0;
+	}
+
+	let contacts = 0;
+	if (body.x < body.radius) contacts |= CIRCLE_BOUNDARY.left;
+	if (body.x > width - body.radius) contacts |= CIRCLE_BOUNDARY.right;
+	if (body.y < body.radius) contacts |= CIRCLE_BOUNDARY.top;
+	if (body.y > height - body.radius) contacts |= CIRCLE_BOUNDARY.bottom;
+	return contacts;
+}
+
 interface FrictionCoefficients {
 	readonly static: number;
 	readonly dynamic: number;

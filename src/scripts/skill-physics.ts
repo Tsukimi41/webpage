@@ -2,6 +2,8 @@ import {
 	applyFloorFriction,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
+	CIRCLE_BOUNDARY,
+	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -15,6 +17,8 @@ export {
 	applyFloorFriction,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
+	CIRCLE_BOUNDARY,
+	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -61,11 +65,7 @@ const FIXED_TIME_STEP = 1 / 120;
 const MAX_FRAME_TIME = 1 / 20;
 const SOLVER_ITERATIONS = 5;
 const DRAG_VELOCITY_SMOOTHING = 0.38;
-const BOUNDARY_LEFT = 1;
-const BOUNDARY_RIGHT = 2;
-const BOUNDARY_TOP = 4;
-const BOUNDARY_BOTTOM = 8;
-const BURST_BOUNDARIES = BOUNDARY_LEFT | BOUNDARY_RIGHT | BOUNDARY_TOP;
+const BURST_BOUNDARIES = CIRCLE_BOUNDARY.left | CIRCLE_BOUNDARY.right | CIRCLE_BOUNDARY.top;
 const {
 	bubbleNetBuoyancy: BUBBLE_NET_BUOYANCY,
 	bubbleRestitution: BUBBLE_RESTITUTION,
@@ -141,7 +141,6 @@ function createCircle(
 	const density = material === 'marble' ? 1 : 0.055;
 	const initial = getInitialCoordinates(
 		material,
-		role,
 		fieldWidth,
 		fieldHeight,
 		radius,
@@ -198,6 +197,7 @@ function resetCircle(body: RenderedCircle, width: number, height: number): void 
 	body.respawnAt = 0;
 	body.isBursting = false;
 	body.element.classList.remove('is-bursting');
+	body.element.dataset.burstState = 'idle';
 }
 
 function resizeCircle(
@@ -232,17 +232,15 @@ function constrainToField(
 	elapsed = 0,
 ): number {
 	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
-	let contacts = 0;
+	const contacts = getCircleBoundaryContacts(body, width, height);
 
 	if (!Number.isFinite(width) || width <= body.radius * 2) {
 		body.x = Math.max(Number.isFinite(width) ? width : 0, 0) / 2;
 		body.vx = 0;
 	} else if (body.x < body.radius) {
-		contacts |= BOUNDARY_LEFT;
 		body.x = body.radius;
 		body.vx = Math.abs(body.vx) * restitution;
 	} else if (body.x > width - body.radius) {
-		contacts |= BOUNDARY_RIGHT;
 		body.x = width - body.radius;
 		body.vx = -Math.abs(body.vx) * restitution;
 	}
@@ -251,11 +249,9 @@ function constrainToField(
 		body.y = Math.max(Number.isFinite(height) ? height : 0, 0) / 2;
 		body.vy = 0;
 	} else if (body.y < body.radius) {
-		contacts |= BOUNDARY_TOP;
 		body.y = body.radius;
 		body.vy = Math.abs(body.vy) * restitution;
 	} else if (body.y > height - body.radius) {
-		contacts |= BOUNDARY_BOTTOM;
 		body.y = height - body.radius;
 		body.vy = -Math.abs(body.vy) * restitution;
 
@@ -339,21 +335,22 @@ function burstAmbientBubble(body: RenderedCircle, contacts: number, time: number
 		return;
 	}
 
-	const normalX = (contacts & BOUNDARY_LEFT ? 1 : 0) -
-		(contacts & BOUNDARY_RIGHT ? 1 : 0);
-	const normalY = contacts & BOUNDARY_TOP ? 1 : 0;
+	const normalX = (contacts & CIRCLE_BOUNDARY.left ? 1 : 0) -
+		(contacts & CIRCLE_BOUNDARY.right ? 1 : 0);
+	const normalY = contacts & CIRCLE_BOUNDARY.top ? 1 : 0;
 	const variant = body.burstCount % 4;
-	const duration = 300 + variant * 45;
+	const duration = 520 + variant * 65;
 	body.burstCount += 1;
 	body.isBursting = true;
-	body.respawnAt = time + duration + 120;
+	body.respawnAt = time + duration + 180;
 	body.vx = 0;
 	body.vy = 0;
 	body.element.style.setProperty('--burst-angle', `${Math.atan2(normalY, normalX)}rad`);
 	body.element.style.setProperty('--burst-duration', `${duration}ms`);
 	body.element.style.setProperty('--burst-hue', `${variant * 67}deg`);
 	body.element.style.setProperty('--burst-rotation', `${35 + variant * 29}deg`);
-	body.element.style.setProperty('--burst-scale', String(1.45 + variant * 0.22));
+	body.element.style.setProperty('--burst-scale', String(2.1 + variant * 0.28));
+	body.element.dataset.burstState = 'bursting';
 	body.element.classList.add('is-bursting');
 }
 
@@ -379,6 +376,7 @@ function respawnAmbientBubble(
 	body.respawnAt = 0;
 	body.isBursting = false;
 	body.element.classList.remove('is-bursting');
+	body.element.dataset.burstState = 'idle';
 }
 
 function renderCircle(body: RenderedCircle, fieldHeight: number): void {
@@ -392,7 +390,7 @@ function renderCircle(body: RenderedCircle, fieldHeight: number): void {
 		body.element.style.setProperty('--deform-x', String(Math.exp(deformation)));
 		body.element.style.setProperty('--deform-y', String(Math.exp(-deformation)));
 		body.element.style.setProperty('--deform-angle', `${deformationAngle}rad`);
-	} else {
+	} else if (body.material === 'marble') {
 		const floorDistance = Math.max(fieldHeight - body.y - body.radius, 0);
 		const heightRatio = Math.min(floorDistance / Math.max(fieldHeight * 0.65, 1), 1);
 

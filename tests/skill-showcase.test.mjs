@@ -10,5 +10,11 @@ test('skill showcase keeps ambient and skill bubbles as separate physics roles',
 	assert.match(source, /Array\.from\(\{ length: 6 \}/);
 	assert.match(source, /data-physics-role="ambient"/);
 	assert.match(source, /data-physics-role="skill"/);
-	assert.match(source, /\.ambient-bubble\.is-bursting/);
+	assert.match(source, /data-burst-state="idle"/);
+	assert.match(source, /\.ambient-bubble\[data-burst-state='bursting'\]/);
+	assert.match(source, /\.skill-object--bubble\s*\{[^}]*--deform-x:\s*1;/s);
+	assert.doesNotMatch(
+		source,
+		/\.skill-object--bubble \.skill-object__surface\s*\{[^}]*--deform-x:/s,
+	);
 });

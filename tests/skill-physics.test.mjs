@@ -5,6 +5,8 @@ import {
 	applyFloorFriction,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
+	CIRCLE_BOUNDARY,
+	getCircleBoundaryContacts,
 	resolveCircleCollision,
 	SKILL_PHYSICS_TUNING,
 	stabilizePhysicsCircle,
@@ -104,6 +106,32 @@ test('bubble oscillator fails closed for malformed inputs', () => {
 		position: 0,
 		velocity: 0,
 	});
+});
+
+test('circle boundary contacts identify every wall independently', () => {
+	const field = { width: 200, height: 120 };
+	assert.equal(
+		getCircleBoundaryContacts({ x: 9, y: 60, radius: 10 }, field.width, field.height),
+		CIRCLE_BOUNDARY.left,
+	);
+	assert.equal(
+		getCircleBoundaryContacts({ x: 191, y: 60, radius: 10 }, field.width, field.height),
+		CIRCLE_BOUNDARY.right,
+	);
+	assert.equal(
+		getCircleBoundaryContacts({ x: 100, y: 9, radius: 10 }, field.width, field.height),
+		CIRCLE_BOUNDARY.top,
+	);
+	assert.equal(
+		getCircleBoundaryContacts({ x: 100, y: 111, radius: 10 }, field.width, field.height),
+		CIRCLE_BOUNDARY.bottom,
+	);
+});
+
+test('circle boundary contacts fail closed for invalid geometry', () => {
+	assert.equal(getCircleBoundaryContacts({ x: 0, y: 0, radius: 0 }, 100, 100), 0);
+	assert.equal(getCircleBoundaryContacts({ x: 0, y: 0, radius: 10 }, 20, 100), 0);
+	assert.equal(getCircleBoundaryContacts({ x: Number.NaN, y: 0, radius: 10 }, 100, 100), 0);
 });
 
 test('separated circles do not produce a collision', () => {
