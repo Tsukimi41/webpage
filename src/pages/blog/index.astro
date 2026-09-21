@@ -1,0 +1,81 @@
+---
+import BlogList from '../../components/BlogList.astro';
+import ContentStateNotice from '../../components/ContentStateNotice.astro';
+import { getBlogPosts } from '../../content/blog';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = `ブログ | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}の技術メモと学習記録。開発で考えたことをブログ記事として整理しています。`;
+const posts = getBlogPosts();
+const includesMockData = posts.some((post) => post.state === 'mock');
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="blog-page">
+		<a class="blog-page__back" href="/">ホームへ戻る</a>
+
+		<header class="blog-page__header">
+			<div>
+				<p class="blog-page__eyebrow" aria-hidden="true">BLOG</p>
+				<h1>ブログ</h1>
+			</div>
+			<ContentStateNotice hasMockData={includesMockData} />
+		</header>
+
+		<BlogList posts={posts} />
+	</div>
+</BaseLayout>
+
+<style>
+	.blog-page {
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.blog-page__back {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 2.75rem;
+		color: var(--color-text-muted);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.blog-page__back:hover {
+		color: var(--color-accent);
+	}
+
+	.blog-page__back:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.blog-page__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block: var(--space-4);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.blog-page__eyebrow {
+		margin: 0;
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+	}
+
+	.blog-page h1 {
+		margin-block-start: var(--space-1);
+	}
+
+	@media (max-width: 30rem) {
+		.blog-page__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

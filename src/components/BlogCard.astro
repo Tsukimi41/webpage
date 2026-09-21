@@ -1,0 +1,115 @@
+---
+import type { BlogPostDefinition } from '../content/blog';
+
+interface Props {
+	post: Readonly<BlogPostDefinition>;
+}
+
+const { post } = Astro.props;
+const formatDate = (date: string): string => date.replaceAll('-', '.');
+---
+
+<article class="blog-card">
+	<header class="blog-card__header">
+		<p class="blog-card__eyebrow">BLOG</p>
+		<h2 class="blog-card__title">{post.title}</h2>
+	</header>
+
+	<p class="blog-card__description">{post.description}</p>
+
+	<div class="blog-card__meta">
+		<time datetime={post.publishedAt}>公開 {formatDate(post.publishedAt)}</time>
+		{post.updatedAt !== post.publishedAt && (
+			<time datetime={post.updatedAt}>更新 {formatDate(post.updatedAt)}</time>
+		)}
+		<span>読了 約{post.readingTimeMinutes}分</span>
+	</div>
+
+	{post.tags.length > 0 && (
+		<ul class="blog-card__tags" aria-label="タグ" role="list">
+			{post.tags.map((tag) => <li>{tag}</li>)}
+		</ul>
+	)}
+</article>
+
+<style>
+	.blog-card {
+		position: relative;
+		display: flex;
+		min-inline-size: 0;
+		min-block-size: 100%;
+		flex-direction: column;
+		padding: clamp(var(--space-3), 4vw, var(--space-4));
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+	}
+
+	.blog-card::before {
+		position: absolute;
+		inset-block: var(--space-3);
+		inset-inline-start: 0;
+		inline-size: 0.1875rem;
+		background: var(--color-accent);
+		content: '';
+	}
+
+	.blog-card__eyebrow,
+	.blog-card__meta {
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+	}
+
+	.blog-card__eyebrow {
+		margin: 0;
+	}
+
+	.blog-card__title {
+		margin-block-start: var(--space-1);
+		font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+		line-height: 1.45;
+		overflow-wrap: anywhere;
+	}
+
+	.blog-card__description {
+		margin-block-start: var(--space-2);
+		overflow-wrap: anywhere;
+	}
+
+	.blog-card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-2);
+		margin-block-start: auto;
+		padding-block-start: var(--space-4);
+		letter-spacing: 0.02em;
+	}
+
+	.blog-card__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin: var(--space-2) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.blog-card__tags li {
+		padding: 0.25rem 0.5rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+		line-height: 1.4;
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.blog-card {
+			background: var(--color-surface);
+		}
+	}
+</style>

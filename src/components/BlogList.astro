@@ -1,0 +1,52 @@
+---
+import type { BlogPostDefinition } from '../content/blog';
+import BlogCard from './BlogCard.astro';
+
+interface Props {
+	posts: readonly Readonly<BlogPostDefinition>[];
+	emptyMessage?: string;
+}
+
+const { posts, emptyMessage = '表示できるブログ記事はありません。' } = Astro.props;
+---
+
+{posts.length > 0 ? (
+	<ul class="blog-list" role="list">
+		{posts.map((post) => (
+			<li>
+				<BlogCard post={post} />
+			</li>
+		))}
+	</ul>
+) : (
+	<p class="blog-list__empty">{emptyMessage}</p>
+)}
+
+<style>
+	.blog-list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: clamp(var(--space-3), 4vw, var(--space-4));
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.blog-list li {
+		min-inline-size: 0;
+	}
+
+	.blog-list__empty {
+		margin: 0;
+		padding: var(--space-4);
+		border: 1px dashed var(--color-border);
+		color: var(--color-text-muted);
+		text-align: center;
+	}
+
+	@media (max-width: 42rem) {
+		.blog-list {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>
