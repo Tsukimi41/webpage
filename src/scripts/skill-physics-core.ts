@@ -42,7 +42,7 @@ interface FrictionCoefficients {
 
 export const SKILL_PHYSICS_TUNING = Object.freeze({
 	gravity: 1_650,
-	bubbleNetBuoyancy: 40,
+	bubbleNetBuoyancy: 70,
 	marbleRestitution: 0.58,
 	bubbleRestitution: 0.22,
 	mixedRestitution: 0.28,
