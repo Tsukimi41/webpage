@@ -5,6 +5,7 @@ import test from 'node:test';
 const baseLayoutUrl = new URL('../src/layouts/BaseLayout.astro', import.meta.url);
 const headerUrl = new URL('../src/components/SiteHeader.astro', import.meta.url);
 const footerUrl = new URL('../src/components/SiteFooter.astro', import.meta.url);
+const profileIntroductionUrl = new URL('../src/components/ProfileIntroduction.astro', import.meta.url);
 const homeUrl = new URL('../src/pages/index.astro', import.meta.url);
 const projectCardUrl = new URL('../src/components/ProjectCard.astro', import.meta.url);
 const projectDetailUrl = new URL('../src/components/ProjectDetail.astro', import.meta.url);
@@ -36,7 +37,11 @@ test('shared navigation exposes home, profile, blog, theme, and back-to-top link
 	assert.match(header, /\.site-header__nav a\[aria-current='page'\],[\s\S]*border-block-end-color: var\(--color-accent\)/);
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
-	assert.match(footer, /class="site-footer__top-icon" aria-hidden="true">↑<\/span>/);
+	assert.match(footer, /<svg[\s\S]*class="site-footer__top-icon"[\s\S]*aria-hidden="true"[\s\S]*focusable="false"/);
+	assert.match(footer, /<path d="m5 15 7-7 7 7"><\/path>/);
+	assert.doesNotMatch(footer, /class="site-footer__top-icon"[^>]*>↑<\/span>/);
+	assert.match(footer, /\.site-footer__nav a,[\s\S]*\.site-footer__top \{[\s\S]*block-size: 2\.75rem/);
+	assert.match(footer, /\.site-footer__top \{[\s\S]*border: 0[;\s]/);
 	assert.match(footer, /class="site-footer__site-nav"/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
@@ -44,6 +49,17 @@ test('shared navigation exposes home, profile, blog, theme, and back-to-top link
 	);
 	assert.match(footer, /href="#site-top"/);
 	assert.match(footer, /<span>一番上へ<\/span>/);
+});
+
+test('profile introduction places the favicon icon beside readable profile content', async () => {
+	const source = await readFile(profileIntroductionUrl, 'utf8');
+
+	assert.match(source, /class="introduction__content"/);
+	assert.match(source, /class="introduction__visual"/);
+	assert.match(source, /class="introduction__icon"[\s\S]*src="\/favicon\.ico"/);
+	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);
+	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(8rem, 12rem\)/);
+	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr/);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {

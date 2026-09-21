@@ -10,23 +10,39 @@ const { headingId = 'introduction-title' } = Astro.props;
 ---
 
 <section class="introduction" aria-labelledby={headingId}>
-	<h1 id={headingId} class="introduction__name">
-		<span>{profile.handle}</span>
-		<span class="introduction__separator" aria-hidden="true">/</span>
-		<span lang="ja">{profile.penName}</span>
-	</h1>
-	<p class="introduction__affiliation">
-		<span>{profile.affiliation.university}</span>
-		<span>{profile.affiliation.faculty}</span>
-	</p>
-	<SocialLinks />
+	<div class="introduction__content">
+		<h1 id={headingId} class="introduction__name">
+			<span>{profile.handle}</span>
+			<span class="introduction__separator" aria-hidden="true">/</span>
+			<span lang="ja">{profile.penName}</span>
+		</h1>
+		<p class="introduction__affiliation">
+			<span>{profile.affiliation.university}</span>
+			<span>{profile.affiliation.faculty}</span>
+		</p>
+		<SocialLinks />
+	</div>
+
+	<div class="introduction__visual">
+		<img
+			class="introduction__icon"
+			src="/favicon.ico"
+			alt={`${profile.handle} / ${profile.penName} のアイコン`}
+			width="192"
+			height="192"
+			decoding="async"
+		/>
+	</div>
 </section>
 
 <style>
 	.introduction {
 		position: relative;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem);
+		gap: clamp(var(--space-3), 8vw, var(--space-5));
 		align-content: center;
+		align-items: center;
 		overflow: hidden;
 		min-block-size: min(42rem, 72svh);
 		padding: clamp(var(--space-3), 7vw, 6rem);
@@ -36,6 +52,54 @@ const { headingId = 'introduction-title' } = Astro.props;
 			linear-gradient(135deg, var(--color-surface-raised) 0 1px, transparent 1px) 100% 0 / 8rem 8rem no-repeat,
 			color-mix(in srgb, var(--color-surface) 92%, transparent);
 		box-shadow: 0 1.5rem 4rem var(--color-shadow);
+	}
+
+	.introduction__content {
+		position: relative;
+		z-index: 1;
+		min-inline-size: 0;
+	}
+
+	.introduction__visual {
+		position: relative;
+		display: grid;
+		place-items: center;
+		justify-self: end;
+		inline-size: min(100%, 12rem);
+		aspect-ratio: 1;
+		padding: clamp(var(--space-1), 2vw, var(--space-2));
+		border: 1px solid color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
+		border-radius: 50%;
+		background:
+			radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 68%),
+			var(--color-surface-raised);
+		box-shadow:
+			0 0 0 0.5rem color-mix(in srgb, var(--color-accent) 7%, transparent),
+			0 1rem 2rem var(--color-shadow);
+	}
+
+	.introduction__visual::before,
+	.introduction__visual::after {
+		position: absolute;
+		inset: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+		border-radius: 50%;
+		content: '';
+		pointer-events: none;
+	}
+
+	.introduction__visual::after {
+		inset: 1.35rem;
+		border-color: color-mix(in srgb, var(--color-text) 18%, transparent);
+	}
+
+	.introduction__icon {
+		position: relative;
+		z-index: 1;
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		object-fit: contain;
 	}
 
 	.introduction::before {
@@ -121,9 +185,24 @@ const { headingId = 'introduction-title' } = Astro.props;
 		}
 	}
 
+	@media (max-width: 42rem) {
+		.introduction {
+			grid-template-columns: minmax(0, 1fr) minmax(6rem, 8rem);
+			gap: var(--space-3);
+			padding: clamp(var(--space-3), 6vw, var(--space-5));
+		}
+	}
+
 	@media (max-width: 30rem) {
 		.introduction {
+			grid-template-columns: 1fr;
+			gap: var(--space-4);
 			min-block-size: 70svh;
+		}
+
+		.introduction__visual {
+			inline-size: min(10rem, 52vw);
+			justify-self: start;
 		}
 
 		.introduction__name {

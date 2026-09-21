@@ -16,7 +16,21 @@ import SocialLinks from './SocialLinks.astro';
 				</nav>
 			</div>
 			<a class="site-footer__top" href="#site-top">
-				<span class="site-footer__top-icon" aria-hidden="true">↑</span>
+				<svg
+					class="site-footer__top-icon"
+					width="18"
+					height="18"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+					focusable="false"
+				>
+					<path d="m5 15 7-7 7 7"></path>
+				</svg>
 				<span>一番上へ</span>
 			</a>
 		</div>
@@ -73,21 +87,26 @@ import SocialLinks from './SocialLinks.astro';
 	.site-footer__nav a,
 	.site-footer__top {
 		display: inline-flex;
+		block-size: 2.75rem;
 		align-items: center;
-		min-block-size: 2.75rem;
 		color: var(--color-text-muted);
 		font-weight: 700;
-		text-underline-offset: 0.25em;
+		text-decoration: none;
+		white-space: nowrap;
 	}
 
 	.site-footer__top {
 		justify-self: end;
 		gap: 0.4rem;
-		padding-inline: 0.75rem;
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-small);
-		background: var(--color-surface-raised);
-		text-decoration: none;
+		padding-inline: 0;
+		border: 0;
+		background: transparent;
+	}
+
+	.site-footer__top-icon {
+		flex: none;
+		inline-size: 1rem;
+		block-size: 1rem;
 	}
 
 	.site-footer__nav a:hover,
