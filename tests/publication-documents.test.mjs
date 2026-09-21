@@ -175,5 +175,8 @@ test('base layout exposes canonical, robots, sharing, RSS, and JSON-LD metadata'
 	assert.match(footer, /href="\/rss\.xml">RSS</);
 	assert.match(blogPage, /pageType="article"/);
 	assert.match(blogPage, /publishedAt=\{post\.publishedAt\}/);
-	assert.match(packageSource, /"build:release": "npm run check:site-url && astro build"/);
+	assert.match(
+		packageSource,
+		/"build:release": "npm run test:content && npm run check:release && astro build"/,
+	);
 });

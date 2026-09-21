@@ -9,12 +9,14 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-		"build:release": "npm run check:site-url && astro build",
+		"build:release": "npm run test:content && npm run check:release && astro build",
     "preview": "astro preview",
     "astro": "astro",
 		"test:content": "node --experimental-strip-types --test tests/*.test.mjs",
 		"report:publication": "node --experimental-strip-types scripts/report-publication.mjs",
-		"check:site-url": "node --experimental-strip-types scripts/check-site-url.mjs"
+		"check:site-url": "node --experimental-strip-types scripts/check-site-url.mjs",
+		"check:release": "node --experimental-strip-types scripts/check-release-readiness.mjs",
+		"audit:dependencies": "npm audit --audit-level=moderate"
   },
   "dependencies": {
     "astro": "^7.3.2"
