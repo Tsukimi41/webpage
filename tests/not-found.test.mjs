@@ -19,7 +19,7 @@ test('404 page is explicitly non-indexable and never reflects the missing URL', 
 	const source = await readFile(notFoundUrl, 'utf8');
 
 	assert.match(source, /<BaseLayout[\s\S]*indexing="disabled"/);
-	assert.match(source, /<h1 id="not-found-title">ページが見つかりません<\/h1>/);
+	assert.match(source, /<SectionHeading id="not-found-title" label="ページが見つかりません" level="h1" \/>/);
 	assert.doesNotMatch(source, /Astro\.(?:url|originPathname)|searchParams|window\.location/);
 	assert.doesNotMatch(source, /<script/);
 });

@@ -1,6 +1,7 @@
 ---
 import ArticleExplorer from '../../components/ArticleExplorer.astro';
 import ContentStateNotice from '../../components/ContentStateNotice.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
 import { getArticleIndex, getArticleTopics } from '../../content/articles';
 import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -16,7 +17,7 @@ const pageDescription = `${profileDisplayName}のプロジェクト詳細と長�
 	<div class="articles-page">
 		<header class="articles-page__header">
 			<div>
-				<h1>記事</h1>
+				<SectionHeading id="articles-page-title" label="記事" level="h1" />
 			</div>
 			<ContentStateNotice hasMockData={includesMockData} />
 		</header>
@@ -27,6 +28,7 @@ const pageDescription = `${profileDisplayName}のプロジェクト詳細と長�
 
 <style>
 	.articles-page {
+		container: articles-page / inline-size;
 		inline-size: 100%;
 		min-inline-size: 0;
 		max-inline-size: 100%;

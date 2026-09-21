@@ -1,7 +1,7 @@
 ---
 import type { ProjectDefinition } from '../content/projects';
 import ContentStateNotice from './ContentStateNotice.astro';
-import HomeSectionHeading from './HomeSectionHeading.astro';
+import SectionHeading from './SectionHeading.astro';
 import ProjectGrid from './ProjectGrid.astro';
 
 interface Props {
@@ -18,7 +18,7 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 		<section class="project-showcase" aria-labelledby={headingId}>
 			<header class="project-showcase__header">
 				<div>
-					<HomeSectionHeading id={headingId} label="TIMELINE" />
+					<SectionHeading id={headingId} label="TIMELINE" />
 				</div>
 				<div class="project-showcase__actions">
 					<ContentStateNotice hasMockData={includesMockData} />

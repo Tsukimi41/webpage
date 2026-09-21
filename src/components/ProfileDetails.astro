@@ -1,6 +1,7 @@
 ---
 import type { ProfileDetailDefinition } from '../content/profile';
 import ContentStateNotice from './ContentStateNotice.astro';
+import SectionHeading from './SectionHeading.astro';
 
 interface Props {
 	detail?: Readonly<ProfileDetailDefinition>;
@@ -17,7 +18,7 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 >
 	<header class="profile-details__header">
 		<div>
-			<h2 id={headingId}>プロフィール</h2>
+			<SectionHeading id={headingId} label="プロフィール" />
 		</div>
 		<ContentStateNotice hasMockData={detail?.state === 'mock'} />
 	</header>
@@ -77,6 +78,7 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 
 <style>
 	.profile-details {
+		container: profile-details / inline-size;
 		padding-block: clamp(var(--space-5), 10vw, 7rem);
 	}
 
@@ -94,11 +96,6 @@ const { detail, headingId = 'profile-details-title' } = Astro.props;
 	.profile-details h4 {
 		color: var(--color-text);
 		line-height: 1.4;
-	}
-
-	.profile-details h2 {
-		margin: 0;
-		font-size: clamp(1.75rem, 5vw, 2.5rem);
 	}
 
 	.profile-details__summary {

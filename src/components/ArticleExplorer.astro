@@ -1,6 +1,7 @@
 ---
 import type { ArticleIndexItem, ArticleTopicFacet } from '../content/articles';
 import ArticleIndexCard from './ArticleIndexCard.astro';
+import SectionHeading from './SectionHeading.astro';
 
 interface Props {
 	items: readonly Readonly<ArticleIndexItem>[];
@@ -53,7 +54,7 @@ const { items, topics } = Astro.props;
 	</noscript>
 
 	<div class="article-explorer__summary">
-		<h2 id="article-results-title">検索結果</h2>
+		<SectionHeading id="article-results-title" label="検索結果" size="section" />
 		<p data-result-count aria-live="polite">全{items.length}件</p>
 	</div>
 
@@ -296,11 +297,6 @@ const { items, topics } = Astro.props;
 		margin-block-end: var(--space-3);
 		padding-block-end: var(--space-2);
 		border-block-end: 1px solid var(--color-border);
-	}
-
-	.article-explorer__summary h2 {
-		margin: 0;
-		font-size: 1.25rem;
 	}
 
 	.article-explorer__summary p {

@@ -1,6 +1,7 @@
 ---
 import type { ProjectDefinition } from '../content/projects';
 import ContentStateNotice from './ContentStateNotice.astro';
+import SectionHeading from './SectionHeading.astro';
 import SkillLabels from './SkillLabels.astro';
 
 interface Props {
@@ -25,7 +26,11 @@ const hasMockData = project.state === 'mock';
 		<div class="project-detail__sections">
 			{project.detailSections.map((section) => (
 				<section aria-labelledby={`${project.slug}-${section.id}`}>
-					<h2 id={`${project.slug}-${section.id}`}>{section.title}</h2>
+					<SectionHeading
+						id={`${project.slug}-${section.id}`}
+						label={section.title}
+						size="section"
+					/>
 					{section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 				</section>
 			))}
@@ -70,6 +75,7 @@ const hasMockData = project.state === 'mock';
 
 <style>
 	.project-detail {
+		container: project-detail / inline-size;
 		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
 	}
 
@@ -133,12 +139,6 @@ const hasMockData = project.state === 'mock';
 		inline-size: 0.1875rem;
 		background: var(--color-accent);
 		content: '';
-	}
-
-	.project-detail h2 {
-		margin: 0;
-		font-size: clamp(1.35rem, 4vw, 1.8rem);
-		line-height: 1.4;
 	}
 
 	.project-detail__sections p {

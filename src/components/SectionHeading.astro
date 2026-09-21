@@ -2,15 +2,31 @@
 interface Props {
 	id: string;
 	label: string;
+	level?: 'h1' | 'h2';
+	size?: 'display' | 'section';
 }
 
-const { id, label } = Astro.props;
+const {
+	id,
+	label,
+	level = 'h2',
+	size = 'display',
+} = Astro.props;
+const HeadingTag = level;
 ---
 
-<h2 id={id} class="home-section-heading">{label}</h2>
+<HeadingTag
+	id={id}
+	class:list={[
+		'section-heading',
+		`section-heading--${size}`,
+	]}
+>
+	{label}
+</HeadingTag>
 
 <style>
-	.home-section-heading {
+	.section-heading {
 		position: relative;
 		display: inline-flex;
 		box-sizing: border-box;
@@ -20,18 +36,27 @@ const { id, label } = Astro.props;
 		padding-inline-end: 0.12em;
 		color: var(--color-text);
 		font-family: var(--font-display);
-		font-size: clamp(2.25rem, 10cqi, 4.75rem);
 		font-style: italic;
 		font-weight: 900;
 		font-kerning: normal;
-		line-height: 0.86;
+		line-height: 0.9;
 		letter-spacing: -0.075em;
+		overflow-wrap: anywhere;
 		text-rendering: geometricPrecision;
 		text-shadow: 0.045em 0.045em 0 var(--color-shadow);
-		white-space: nowrap;
+		text-wrap: balance;
 	}
 
-	.home-section-heading::after {
+	.section-heading--display {
+		font-size: clamp(2.25rem, 10cqi, 4.75rem);
+	}
+
+	.section-heading--section {
+		font-size: clamp(1.4rem, 5cqi, 2.25rem);
+		letter-spacing: -0.055em;
+	}
+
+	.section-heading::after {
 		position: absolute;
 		inset-block-end: 0;
 		inset-inline: 0 0.12em;
@@ -48,8 +73,12 @@ const { id, label } = Astro.props;
 	}
 
 	@container (max-width: 24rem) {
-		.home-section-heading {
+		.section-heading--display {
 			font-size: clamp(2rem, 11cqi, 3rem);
+		}
+
+		.section-heading--section {
+			font-size: clamp(1.3rem, 7cqi, 1.8rem);
 		}
 	}
 </style>

@@ -1,7 +1,7 @@
 ---
 import type { SkillDefinition } from '../content/skills';
 import ContentStateNotice from './ContentStateNotice.astro';
-import HomeSectionHeading from './HomeSectionHeading.astro';
+import SectionHeading from './SectionHeading.astro';
 import SkillVisual from './SkillVisual.astro';
 
 interface Props {
@@ -55,7 +55,7 @@ const skillObjects = skills.map((skill) => {
 <section class="skill-showcase" aria-labelledby="skill-showcase-title">
 	<header class="skill-showcase__header">
 		<div>
-			<HomeSectionHeading id="skill-showcase-title" label="SKILLS" />
+			<SectionHeading id="skill-showcase-title" label="SKILLS" />
 			<p class="skill-showcase__lead">今までに触れたことのある技術です。</p>
 		</div>
 		<ContentStateNotice hasMockData={includesMockData} />

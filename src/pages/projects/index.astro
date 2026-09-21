@@ -1,6 +1,7 @@
 ---
 import ContentStateNotice from '../../components/ContentStateNotice.astro';
 import ProjectGrid from '../../components/ProjectGrid.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
 import { getProjects } from '../../content/projects';
 import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -17,7 +18,7 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 
 		<header class="projects-page__header">
 			<div>
-				<h1>プロジェクト</h1>
+				<SectionHeading id="projects-page-title" label="プロジェクト" level="h1" />
 			</div>
 			<ContentStateNotice hasMockData={includesMockData} />
 		</header>
@@ -28,6 +29,7 @@ const includesMockData = projects.some((project) => project.state === 'mock');
 
 <style>
 	.projects-page {
+		container: projects-page / inline-size;
 		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
 	}
 

@@ -2,7 +2,7 @@
 import type { ArticleFeedItem } from '../content/articles';
 import ArticleFeedCard from './ArticleFeedCard.astro';
 import ContentStateNotice from './ContentStateNotice.astro';
-import HomeSectionHeading from './HomeSectionHeading.astro';
+import SectionHeading from './SectionHeading.astro';
 
 interface Props {
 	items: readonly ArticleFeedItem[];
@@ -15,7 +15,7 @@ const includesMockData = items.some((item) => item.state === 'mock');
 <section class="article-showcase" aria-labelledby="article-showcase-title">
 	<header class="article-showcase__header">
 		<div>
-			<HomeSectionHeading id="article-showcase-title" label="ARTICLES" />
+			<SectionHeading id="article-showcase-title" label="ARTICLES" />
 		</div>
 		<div class="article-showcase__actions">
 			<ContentStateNotice hasMockData={includesMockData} />

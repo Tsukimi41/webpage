@@ -9,10 +9,16 @@ const articleExplorerUrl = new URL('../src/components/ArticleExplorer.astro', im
 const articleShowcaseUrl = new URL('../src/components/ArticleShowcase.astro', import.meta.url);
 const articleFeedCardUrl = new URL('../src/components/ArticleFeedCard.astro', import.meta.url);
 const articleIndexCardUrl = new URL('../src/components/ArticleIndexCard.astro', import.meta.url);
-const homeSectionHeadingUrl = new URL('../src/components/HomeSectionHeading.astro', import.meta.url);
+const sectionHeadingUrl = new URL('../src/components/SectionHeading.astro', import.meta.url);
+const blogArticleUrl = new URL('../src/components/BlogArticle.astro', import.meta.url);
+const profileDetailsUrl = new URL('../src/components/ProfileDetails.astro', import.meta.url);
+const projectDetailUrl = new URL('../src/components/ProjectDetail.astro', import.meta.url);
 const skillShowcaseUrl = new URL('../src/components/SkillShowcase.astro', import.meta.url);
 const projectGridUrl = new URL('../src/components/ProjectGrid.astro', import.meta.url);
 const projectShowcaseUrl = new URL('../src/components/ProjectShowcase.astro', import.meta.url);
+const articlesPageUrl = new URL('../src/pages/articles/index.astro', import.meta.url);
+const projectsPageUrl = new URL('../src/pages/projects/index.astro', import.meta.url);
+const notFoundPageUrl = new URL('../src/pages/404.astro', import.meta.url);
 
 test('shared layout provides an editorial main column and reusable sidebar', async () => {
 	const [layout, sidebar] = await Promise.all([
@@ -76,21 +82,32 @@ test('editorial theme stays local, responsive, and motion-aware', async () => {
 	assert.doesNotMatch(source, /url\(|@import/);
 });
 
-test('home showcases share one responsive display heading', async () => {
-	const [heading, articles, projects, skills] = await Promise.all([
-		readFile(homeSectionHeadingUrl, 'utf8'),
+test('page and section titles share one responsive display system', async () => {
+	const [heading, articles, projects, skills, articlesPage, projectsPage, profile, explorer, blog, projectDetail, notFound] = await Promise.all([
+		readFile(sectionHeadingUrl, 'utf8'),
 		readFile(articleShowcaseUrl, 'utf8'),
 		readFile(projectShowcaseUrl, 'utf8'),
 		readFile(skillShowcaseUrl, 'utf8'),
+		readFile(articlesPageUrl, 'utf8'),
+		readFile(projectsPageUrl, 'utf8'),
+		readFile(profileDetailsUrl, 'utf8'),
+		readFile(articleExplorerUrl, 'utf8'),
+		readFile(blogArticleUrl, 'utf8'),
+		readFile(projectDetailUrl, 'utf8'),
+		readFile(notFoundPageUrl, 'utf8'),
 	]);
 
-	assert.match(heading, /<h2 id=\{id\} class="home-section-heading">\{label\}<\/h2>/);
+	assert.match(heading, /level\?: 'h1' \| 'h2'/);
+	assert.match(heading, /size\?: 'display' \| 'section'/);
+	assert.match(heading, /const HeadingTag = level/);
+	assert.match(heading, /<HeadingTag[\s\S]*id=\{id\}[\s\S]*'section-heading'/);
 	assert.match(heading, /font-family: var\(--font-display\)/);
 	assert.match(heading, /font-size: clamp\(2\.25rem, 10cqi, 4\.75rem\)/);
+	assert.match(heading, /font-size: clamp\(1\.4rem, 5cqi, 2\.25rem\)/);
 	assert.match(heading, /font-style: italic/);
 	assert.match(heading, /font-weight: 900/);
 	assert.match(heading, /letter-spacing: -0\.075em/);
-	assert.match(heading, /\.home-section-heading::after/);
+	assert.match(heading, /\.section-heading::after/);
 	assert.match(heading, /@container \(max-width: 24rem\)/);
 
 	for (const [source, label] of [
@@ -98,10 +115,24 @@ test('home showcases share one responsive display heading', async () => {
 		[projects, 'TIMELINE'],
 		[skills, 'SKILLS'],
 	]) {
-		assert.match(source, /import HomeSectionHeading from/);
-		assert.match(source, new RegExp(`<HomeSectionHeading[^>]*label="${label}"`));
+		assert.match(source, /import SectionHeading from/);
+		assert.match(source, new RegExp(`<SectionHeading[^>]*label="${label}"`));
 		assert.doesNotMatch(source, /\.\w+-showcase h2 \{/);
 	}
+
+	for (const source of [articlesPage, projectsPage, profile, explorer, blog, projectDetail, notFound]) {
+		assert.match(source, /import SectionHeading from/);
+		assert.match(source, /<SectionHeading/);
+	}
+
+	assert.match(articlesPage, /label="記事" level="h1"/);
+	assert.match(projectsPage, /label="プロジェクト" level="h1"/);
+	assert.match(notFound, /label="ページが見つかりません" level="h1"/);
+	assert.match(profile, /label="プロフィール"/);
+	assert.match(explorer, /label="検索結果" size="section"/);
+	assert.match(blog, /label="目次" size="section"/);
+	assert.match(blog, /label="関連記事" size="section"/);
+	assert.match(projectDetail, /label=\{section\.title\}[\s\S]*size="section"/);
 
 	assert.match(articles, /container: article-showcase \/ inline-size/);
 	assert.match(projects, /container: project-showcase \/ inline-size/);

@@ -1,6 +1,7 @@
 ---
 import type { BlogPostView } from '../content/blog';
 import ContentStateNotice from './ContentStateNotice.astro';
+import SectionHeading from './SectionHeading.astro';
 
 interface ArticleHeading {
 	readonly depth: number;
@@ -51,7 +52,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 	<div class="blog-article__layout">
 		{tableOfContents.length > 0 && (
 			<nav class="blog-article__toc" aria-labelledby="article-toc-title">
-				<h2 id="article-toc-title">目次</h2>
+				<SectionHeading id="article-toc-title" label="目次" size="section" />
 				<ol>
 					{tableOfContents.map((heading) => (
 						<li data-depth={heading.depth}>
@@ -69,7 +70,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 
 	{relatedPosts.length > 0 && (
 		<aside class="blog-article__related" aria-labelledby="related-posts-title">
-			<h2 id="related-posts-title">関連記事</h2>
+			<SectionHeading id="related-posts-title" label="関連記事" size="section" />
 			<ul role="list">
 				{relatedPosts.map(({ post: relatedPost }) => (
 					<li>
@@ -86,6 +87,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 
 <style>
 	.blog-article {
+		container: blog-article / inline-size;
 		inline-size: min(100%, 68rem);
 		margin-inline: auto;
 	}
@@ -180,12 +182,6 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		padding: var(--space-3);
 		border-inline-start: 0.1875rem solid var(--color-accent);
 		background: color-mix(in srgb, var(--color-surface) 90%, transparent);
-	}
-
-	.blog-article__toc h2,
-	.blog-article__related h2 {
-		margin: 0;
-		font-size: 1.1rem;
 	}
 
 	.blog-article__toc ol {
