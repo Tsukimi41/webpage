@@ -4,12 +4,16 @@ import { socialLinks } from '../data/social-links';
 
 interface Props {
 	accessibleLabel?: string;
+	variant?: 'default' | 'footer';
 }
 
-const { accessibleLabel = '外部プロフィール' } = Astro.props;
+const { accessibleLabel = '外部プロフィール', variant = 'default' } = Astro.props;
 ---
 
-<nav class="social-links" aria-label={accessibleLabel}>
+<nav
+	class:list={['social-links', { 'social-links--footer': variant === 'footer' }]}
+	aria-label={accessibleLabel}
+>
 	<ul class="social-links__list" role="list">
 		{
 			socialLinks.map((link) => (
@@ -49,6 +53,10 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 		list-style: none;
 	}
 
+	.social-links__list > li {
+		display: flex;
+	}
+
 	.social-links__link {
 		display: inline-flex;
 		align-items: center;
@@ -81,6 +89,22 @@ const { accessibleLabel = '外部プロフィール' } = Astro.props;
 
 	.social-links__icon {
 		flex: none;
+	}
+
+	.social-links--footer {
+		display: flex;
+		min-block-size: var(--site-footer-control-block-size, 2.75rem);
+		align-items: center;
+		margin-block-start: 0;
+	}
+
+	.social-links--footer .social-links__list {
+		align-items: center;
+	}
+
+	.social-links--footer .social-links__link {
+		block-size: var(--site-footer-control-block-size, 2.75rem);
+		min-block-size: var(--site-footer-control-block-size, 2.75rem);
 	}
 
 	@keyframes social-links-enter {

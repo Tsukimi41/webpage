@@ -7,6 +7,7 @@ import { defineProfile, profile } from '../src/data/profile.ts';
 const baseLayoutUrl = new URL('../src/layouts/BaseLayout.astro', import.meta.url);
 const headerUrl = new URL('../src/components/SiteHeader.astro', import.meta.url);
 const footerUrl = new URL('../src/components/SiteFooter.astro', import.meta.url);
+const socialLinksUrl = new URL('../src/components/SocialLinks.astro', import.meta.url);
 const backToTopUrl = new URL('../src/components/BackToTopLink.astro', import.meta.url);
 const profileIntroductionUrl = new URL('../src/components/ProfileIntroduction.astro', import.meta.url);
 const profilePageUrl = new URL('../src/pages/profile.astro', import.meta.url);
@@ -26,9 +27,10 @@ test('base layout includes shared header, main content, and footer', async () =>
 });
 
 test('shared navigation exposes home, profile, articles, theme, and back-to-top links', async () => {
-	const [header, footer, backToTop] = await Promise.all([
+	const [header, footer, socialLinks, backToTop] = await Promise.all([
 		readFile(headerUrl, 'utf8'),
 		readFile(footerUrl, 'utf8'),
+		readFile(socialLinksUrl, 'utf8'),
 		readFile(backToTopUrl, 'utf8'),
 	]);
 
@@ -42,13 +44,25 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	assert.match(header, /opacity: 0/);
 	assert.match(header, /\.site-header__nav a:hover \{[\s\S]*color-mix\(in srgb, var\(--color-accent\) 52%, transparent\)/);
 	assert.match(header, /\.site-header__nav a\[aria-current='page'\],[\s\S]*border-block-end-color: var\(--color-accent\)/);
-	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" \/>/);
+	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" variant="footer" \/>/);
 	assert.match(footer, /<BackToTopLink \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
 	assert.match(footer, /href="\/articles\/">Articles</);
 	assert.doesNotMatch(footer, /href="\/blog\/"|>Blog</);
 	assert.doesNotMatch(footer, /site-footer__top|site-footer__top-icon/);
 	assert.match(footer, /class="site-footer__site-nav"/);
+	assert.match(footer, /--site-footer-control-block-size: 2\.75rem/);
+	assert.match(
+		footer,
+		/\.site-footer__nav a \{[\s\S]*?block-size: var\(--site-footer-control-block-size\)[\s\S]*?align-items: center/,
+	);
+	assert.doesNotMatch(footer, /\.site-footer__site-nav \.social-links/);
+	assert.match(socialLinks, /variant\?: 'default' \| 'footer'/);
+	assert.match(socialLinks, /'social-links--footer': variant === 'footer'/);
+	assert.match(
+		socialLinks,
+		/\.social-links--footer \.social-links__link \{[\s\S]*?block-size: var\(--site-footer-control-block-size, 2\.75rem\)/,
+	);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
 			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href="/">Home'),

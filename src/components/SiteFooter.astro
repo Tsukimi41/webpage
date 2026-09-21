@@ -8,7 +8,7 @@ import SocialLinks from './SocialLinks.astro';
 	<div class="site-footer__inner">
 		<div class="site-footer__main">
 			<div class="site-footer__site-nav">
-				<SocialLinks accessibleLabel="外部プロフィール" />
+				<SocialLinks accessibleLabel="外部プロフィール" variant="footer" />
 				<span class="site-footer__divider" aria-hidden="true"></span>
 				<nav class="site-footer__nav" aria-label="フッターメニュー">
 					<a href="/">Home</a>
@@ -46,14 +46,12 @@ import SocialLinks from './SocialLinks.astro';
 	}
 
 	.site-footer__site-nav {
+		--site-footer-control-block-size: 2.75rem;
+
 		display: flex;
 		min-inline-size: 0;
 		align-items: center;
 		gap: var(--space-3);
-	}
-
-	.site-footer__site-nav .social-links {
-		margin-block-start: 0;
 	}
 
 	.site-footer__divider {
@@ -64,6 +62,7 @@ import SocialLinks from './SocialLinks.astro';
 
 	.site-footer__nav {
 		display: flex;
+		min-block-size: var(--site-footer-control-block-size);
 		align-items: center;
 		flex-wrap: wrap;
 		gap: var(--space-1) var(--space-3);
@@ -71,12 +70,13 @@ import SocialLinks from './SocialLinks.astro';
 
 	.site-footer__nav a {
 		display: inline-flex;
-		block-size: 2.75rem;
+		block-size: var(--site-footer-control-block-size);
 		align-items: center;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
 		font-size: 0.75rem;
 		font-weight: 700;
+		line-height: 1;
 		text-decoration: none;
 		white-space: nowrap;
 	}
