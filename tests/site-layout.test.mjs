@@ -61,6 +61,8 @@ test('profile introduction places the favicon icon beside readable profile conte
 	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(8rem, 12rem\)/);
 	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(4\.5rem, 6rem\)/);
 	assert.doesNotMatch(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr;/);
+	assert.doesNotMatch(source, /\.introduction__visual::before/);
+	assert.doesNotMatch(source, /\.introduction__visual::after/);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {

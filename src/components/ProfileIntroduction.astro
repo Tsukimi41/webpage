@@ -69,28 +69,13 @@ const { headingId = 'introduction-title' } = Astro.props;
 		aspect-ratio: 1;
 		padding: clamp(var(--space-1), 2vw, var(--space-2));
 		border: 1px solid color-mix(in srgb, var(--color-accent) 65%, var(--color-border));
-		border-radius: 50%;
+		border-radius: var(--radius-small);
 		background:
 			radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 68%),
 			var(--color-surface-raised);
 		box-shadow:
 			0 0 0 0.5rem color-mix(in srgb, var(--color-accent) 7%, transparent),
 			0 1rem 2rem var(--color-shadow);
-	}
-
-	.introduction__visual::before,
-	.introduction__visual::after {
-		position: absolute;
-		inset: 0.75rem;
-		border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
-		border-radius: 50%;
-		content: '';
-		pointer-events: none;
-	}
-
-	.introduction__visual::after {
-		inset: 1.35rem;
-		border-color: color-mix(in srgb, var(--color-text) 18%, transparent);
 	}
 
 	.introduction__icon {
