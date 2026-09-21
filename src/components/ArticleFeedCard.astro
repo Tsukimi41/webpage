@@ -35,12 +35,12 @@ const { item, duplicate = false } = Astro.props;
 	.article-feed-card {
 		display: grid;
 		grid-template-rows: auto 1fr;
-		min-block-size: 25rem;
+		min-block-size: 22rem;
 		overflow: hidden;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-small);
 		background: var(--color-surface);
-		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+		box-shadow: 0.35rem 0.35rem 0 var(--color-shadow);
 	}
 
 	.article-feed-card__cover {
@@ -109,6 +109,7 @@ const { item, duplicate = false } = Astro.props;
 		font-size: clamp(1.1rem, 3vw, 1.4rem);
 		line-height: 1.45;
 		overflow-wrap: anywhere;
+		font-family: var(--font-mono);
 	}
 
 	.article-feed-card__summary {
@@ -134,7 +135,7 @@ const { item, duplicate = false } = Astro.props;
 	}
 
 	.article-feed-card__footer a:hover {
-		color: var(--color-accent-strong);
+		color: var(--color-accent-alt);
 	}
 
 	.article-feed-card a:focus-visible {

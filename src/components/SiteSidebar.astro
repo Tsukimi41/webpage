@@ -1,0 +1,186 @@
+---
+import { getArticleFeed, getArticleIndex, getArticleTopics } from '../content/articles';
+import { profile, profileDisplayName } from '../data/profile';
+import SocialLinks from './SocialLinks.astro';
+
+const recentArticles = getArticleFeed({ limit: 5 });
+const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
+---
+
+<aside class="site-sidebar" aria-label="サイト情報">
+	<section class="site-sidebar__profile" aria-labelledby="sidebar-profile-title">
+		<img
+			src={profile.icon.src}
+			alt=""
+			width={profile.icon.width}
+			height={profile.icon.height}
+			decoding="async"
+		/>
+		<div>
+			<h2 id="sidebar-profile-title">{profileDisplayName}</h2>
+			<p>{profile.affiliation.university}<br />{profile.affiliation.faculty}</p>
+		</div>
+		<SocialLinks accessibleLabel="サイドバーの外部プロフィール" />
+	</section>
+
+	<section class="site-sidebar__section" aria-labelledby="sidebar-recent-title">
+		<h2 id="sidebar-recent-title">Recent</h2>
+		{recentArticles.length > 0 ? (
+			<ol class="site-sidebar__recent">
+				{recentArticles.map((article) => (
+					<li data-content-state={article.state}>
+						<a href={article.href}>{article.title}</a>
+						<time>{article.dateLabel}</time>
+					</li>
+				))}
+			</ol>
+		) : (
+			<p class="site-sidebar__empty">公開準備中です。</p>
+		)}
+	</section>
+
+	<section class="site-sidebar__section" aria-labelledby="sidebar-topics-title">
+		<h2 id="sidebar-topics-title">Topics</h2>
+		{topics.length > 0 ? (
+			<ul class="site-sidebar__topics" role="list">
+				{topics.map((topic) => (
+					<li><a href={`/articles/?topic=${encodeURIComponent(topic.id)}`}>{topic.label} <span>{topic.count}</span></a></li>
+				))}
+			</ul>
+		) : (
+			<p class="site-sidebar__empty">公開準備中です。</p>
+		)}
+	</section>
+</aside>
+
+<style>
+	.site-sidebar {
+		position: sticky;
+		inset-block-start: calc(3.25rem + var(--space-3));
+		display: grid;
+		gap: var(--space-4);
+		min-inline-size: 0;
+		padding-block-end: var(--space-5);
+	}
+
+	.site-sidebar__profile,
+	.site-sidebar__section {
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.site-sidebar__profile {
+		display: grid;
+		grid-template-columns: 4.25rem minmax(0, 1fr);
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.site-sidebar__profile img {
+		display: block;
+		inline-size: 4.25rem;
+		block-size: 4.25rem;
+		object-fit: contain;
+	}
+
+	.site-sidebar h2 {
+		margin: 0;
+		color: var(--color-text);
+		font-family: var(--font-mono);
+		font-size: 0.875rem;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	.site-sidebar__profile p,
+	.site-sidebar__empty {
+		margin-block-start: 0.35rem;
+		font-size: 0.72rem;
+		line-height: 1.55;
+	}
+
+	.site-sidebar__profile :global(.social-links) {
+		grid-column: 1 / -1;
+		margin-block-start: 0;
+	}
+
+	.site-sidebar__recent {
+		display: grid;
+		gap: 0;
+		margin: var(--space-1) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.site-sidebar__recent li {
+		display: grid;
+		gap: 0.15rem;
+		padding-block: 0.65rem;
+		border-block-end: 1px dotted var(--color-border);
+	}
+
+	.site-sidebar__recent a,
+	.site-sidebar__topics a {
+		color: var(--color-text);
+		font-size: 0.76rem;
+		font-weight: 700;
+		line-height: 1.5;
+		text-decoration: none;
+		overflow-wrap: anywhere;
+	}
+
+	.site-sidebar__recent a:hover,
+	.site-sidebar__topics a:hover {
+		color: var(--color-accent-alt);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.site-sidebar__recent time {
+		color: var(--color-text-muted);
+		font-family: var(--font-mono);
+		font-size: 0.65rem;
+	}
+
+	.site-sidebar__topics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem 0.75rem;
+		margin: var(--space-2) 0 0;
+		padding: 0;
+	}
+
+	.site-sidebar__topics span {
+		color: var(--color-text-muted);
+		font-family: var(--font-mono);
+		font-size: 0.65rem;
+	}
+
+	.site-sidebar a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	@media (max-width: 52rem) {
+		.site-sidebar {
+			position: static;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			padding-block-start: var(--space-4);
+			border-block-start: 1px solid var(--color-border);
+		}
+
+		.site-sidebar__profile {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.site-sidebar {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.site-sidebar__profile {
+			grid-column: auto;
+		}
+	}
+</style>

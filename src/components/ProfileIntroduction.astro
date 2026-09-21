@@ -44,14 +44,10 @@ const { headingId = 'introduction-title' } = Astro.props;
 		align-content: center;
 		align-items: center;
 		overflow: hidden;
-		min-block-size: min(42rem, 72svh);
-		padding: clamp(var(--space-3), 7vw, 6rem);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-small);
-		background:
-			linear-gradient(135deg, var(--color-surface-raised) 0 1px, transparent 1px) 100% 0 / 8rem 8rem no-repeat,
-			color-mix(in srgb, var(--color-surface) 92%, transparent);
-		box-shadow: 0 1.5rem 4rem var(--color-shadow);
+		min-block-size: min(28rem, 58svh);
+		padding: clamp(var(--space-3), 6vw, var(--space-5)) 0;
+		border-block: 1px solid var(--color-border);
+		background: transparent;
 	}
 
 	.introduction__content {
@@ -79,8 +75,8 @@ const { headingId = 'introduction-title' } = Astro.props;
 		position: absolute;
 		inset-block-start: 0;
 		inset-inline: 0;
-		block-size: 0.1875rem;
-		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
+		block-size: 0.125rem;
+		background: linear-gradient(90deg, var(--color-accent), var(--color-accent-alt));
 		content: '';
 		transform: scaleX(0);
 		transform-origin: left;
@@ -93,8 +89,8 @@ const { headingId = 'introduction-title' } = Astro.props;
 		inset-inline-end: clamp(var(--space-2), 3vw, var(--space-4));
 		inline-size: clamp(2rem, 6vw, 4rem);
 		aspect-ratio: 1;
-		border-inline-end: 1px solid var(--color-accent);
-		border-block-end: 1px solid var(--color-accent);
+		border-inline-end: 1px dashed var(--color-accent);
+		border-block-end: 1px dashed var(--color-accent);
 		content: '';
 		opacity: 0.65;
 	}
@@ -108,6 +104,7 @@ const { headingId = 'introduction-title' } = Astro.props;
 		max-inline-size: 100%;
 		white-space: nowrap;
 		word-break: keep-all;
+		font-family: var(--font-mono);
 		animation: content-enter 420ms 100ms ease-out both;
 	}
 
@@ -123,7 +120,7 @@ const { headingId = 'introduction-title' } = Astro.props;
 		gap: var(--space-1);
 		margin-block-start: var(--space-3);
 		padding-inline-start: var(--space-2);
-		border-inline-start: 1px solid var(--color-accent);
+		border-inline-start: 0.2rem solid var(--color-accent);
 		font-weight: 600;
 		animation: content-enter 420ms 180ms ease-out both;
 	}
@@ -170,7 +167,7 @@ const { headingId = 'introduction-title' } = Astro.props;
 		.introduction {
 			grid-template-columns: minmax(0, 1fr) minmax(7rem, 8rem);
 			gap: var(--space-2);
-			min-block-size: 70svh;
+			min-block-size: 24rem;
 		}
 
 		.introduction__visual {

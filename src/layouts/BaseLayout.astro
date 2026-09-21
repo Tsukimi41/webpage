@@ -3,6 +3,7 @@ import ThemeInitializer from '../components/ThemeInitializer.astro';
 import SkipLink from '../components/SkipLink.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import SiteSidebar from '../components/SiteSidebar.astro';
 import {
 	createCanonicalUrl,
 	defineSiteUrl,
@@ -20,6 +21,7 @@ interface Props {
 	publishedAt?: string;
 	updatedAt?: string;
 	indexing?: 'auto' | 'disabled';
+	showSidebar?: boolean;
 }
 
 const {
@@ -30,6 +32,7 @@ const {
 	publishedAt,
 	updatedAt,
 	indexing = 'auto',
+	showSidebar = true,
 } = Astro.props;
 const siteUrl = defineSiteUrl(import.meta.env.PUBLIC_SITE_URL);
 const siteHref = Astro.site?.href ?? siteUrl.href;
@@ -86,8 +89,11 @@ const structuredData = serializeJsonLd({
 		<SkipLink />
 		<SiteHeader />
 		<main>
-			<div id="main-content" class="page-content" tabindex="-1">
-				<slot />
+			<div class:list={['site-shell', { 'site-shell--single': !showSidebar }]}>
+				<div id="main-content" class="page-content" tabindex="-1">
+					<slot />
+				</div>
+				{showSidebar && <SiteSidebar />}
 			</div>
 		</main>
 		<SiteFooter />
@@ -95,7 +101,28 @@ const structuredData = serializeJsonLd({
 </html>
 
 <style>
+	.site-shell {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+		align-items: start;
+		gap: clamp(var(--space-3), 4vw, var(--space-5));
+	}
+
+	.site-shell--single {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.page-content {
+		min-inline-size: 0;
+	}
+
 	.page-content:focus {
 		outline: none;
+	}
+
+	@media (max-width: 52rem) {
+		.site-shell {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 </style>

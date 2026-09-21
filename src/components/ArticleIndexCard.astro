@@ -41,14 +41,13 @@ const { item } = Astro.props;
 		grid-template-columns: clamp(4.5rem, 11vw, 7rem) minmax(0, 1fr);
 		min-block-size: 100%;
 		overflow: hidden;
-		border: 1px solid var(--color-border);
-		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
-		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+		border-block-end: 1px solid var(--color-border);
+		background: transparent;
 	}
 
 	.article-index-card:focus-within,
 	.article-index-card:hover {
-		border-color: var(--color-accent);
+		background: color-mix(in srgb, var(--color-surface) 60%, transparent);
 	}
 
 	.article-index-card__accent {
@@ -58,16 +57,12 @@ const { item } = Astro.props;
 		justify-content: space-between;
 		padding: var(--space-2) var(--space-1);
 		border-inline-end: 1px solid var(--color-border);
-		background:
-			linear-gradient(135deg, rgb(255 255 255 / 12%) 1px, transparent 1px) 0 0 / 1.1rem 1.1rem,
-			var(--color-surface-raised);
+		background: var(--color-surface-raised);
 		color: var(--color-accent);
 	}
 
 	.article-index-card[data-kind='blog'] .article-index-card__accent {
-		background:
-			linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 12%) 43% 46%, transparent 47%) 0 0 / 2.5rem 2.5rem,
-			var(--color-surface-raised);
+		background: color-mix(in srgb, var(--color-surface-raised) 82%, var(--color-accent-alt));
 	}
 
 	.article-index-card__accent span:first-child {
@@ -108,14 +103,15 @@ const { item } = Astro.props;
 	}
 
 	.article-index-card h2 a {
-		color: var(--color-text);
+		color: var(--color-accent);
+		font-family: var(--font-mono);
 		text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
 		text-decoration-thickness: 0.1em;
 		text-underline-offset: 0.22em;
 	}
 
 	.article-index-card h2 a:hover {
-		color: var(--color-accent);
+		color: var(--color-accent-alt);
 	}
 
 	.article-index-card h2 a:focus-visible {
@@ -144,12 +140,6 @@ const { item } = Astro.props;
 		color: var(--color-text-muted);
 		font-size: 0.72rem;
 		font-weight: 700;
-	}
-
-	@supports not (background: color-mix(in srgb, black, white)) {
-		.article-index-card {
-			background: var(--color-surface);
-		}
 	}
 
 	@media (max-width: 30rem) {
