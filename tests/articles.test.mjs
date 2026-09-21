@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getArticleFeed } from '../src/content/articles/index.ts';
+import {
+	filterArticleSearch,
+	getArticleFeed,
+	getArticleIndex,
+	getArticleTopics,
+	matchesArticleSearch,
+	normalizeArticleSearchText,
+	parseArticleSearchKind,
+} from '../src/content/articles/index.ts';
 
 test('article feed combines project details and blog posts without duplicating their source data', () => {
 	const items = getArticleFeed();
@@ -32,4 +40,73 @@ test('article feed supports state filtering and a deterministic limit', () => {
 	assert.deepEqual(getArticleFeed({ limit: 0 }), []);
 	assert.throws(() => getArticleFeed({ limit: -1 }), /non-negative safe integer/);
 	assert.throws(() => getArticleFeed({ limit: 1.5 }), /non-negative safe integer/);
+});
+
+test('article index carries normalized searchable topics without copying source content', () => {
+	const items = getArticleIndex();
+
+	assert.equal(items.length, 6);
+	assert.deepEqual(
+		items.map((item) => item.id),
+		[
+			'project-mock-learning-log',
+			'project-mock-campus-guide',
+			'project-mock-command-notes',
+			'blog-mock-command-notes',
+			'blog-mock-accessible-motion-notes',
+			'blog-mock-astro-foundation-notes',
+		],
+	);
+	assert.equal(items.every(Object.isFrozen), true);
+	assert.equal(items.every((item) => Object.isFrozen(item.topicIds)), true);
+	assert.equal(items.every((item) => Object.isFrozen(item.topicLabels)), true);
+	assert.equal(items.every((item) => item.href.startsWith('/')), true);
+	assert.equal(items.every((item) => item.searchText === normalizeArticleSearchText(item.searchText)), true);
+});
+
+test('article topics merge matching skill and tag ids with deterministic counts', () => {
+	const topics = getArticleTopics(getArticleIndex());
+	const astro = topics.find((topic) => topic.id === 'astro');
+	const webDevelopment = topics.find((topic) => topic.id === 'web-development');
+
+	assert.deepEqual(astro, { id: 'astro', label: 'Astro', count: 3 });
+	assert.deepEqual(webDevelopment, { id: 'web-development', label: 'Web制作', count: 2 });
+	assert.equal(Object.isFrozen(topics), true);
+	assert.equal(topics.every(Object.isFrozen), true);
+	assert.throws(
+		() =>
+			getArticleTopics([
+				{ ...getArticleIndex()[0], topicIds: ['shared-topic'], topicLabels: ['First label'] },
+				{ ...getArticleIndex()[1], topicIds: ['shared-topic'], topicLabels: ['Second label'] },
+			]),
+		/inconsistent labels/,
+	);
+	assert.throws(
+		() => getArticleTopics([{ ...getArticleIndex()[0], topicIds: ['missing-label'], topicLabels: [] }]),
+		/missing its label/,
+	);
+});
+
+test('article search normalizes text and combines query, kind, and topic filters', () => {
+	const items = getArticleIndex();
+
+	assert.equal(normalizeArticleSearchText('  ＡＳＴＲＯ   TypeScript  '), 'astro typescript');
+	assert.equal(parseArticleSearchKind('project'), 'project');
+	assert.equal(parseArticleSearchKind('unsupported'), 'all');
+	assert.equal(filterArticleSearch(items).length, 6);
+	assert.deepEqual(
+		filterArticleSearch(items, { query: 'Astro TypeScript' }).map((item) => item.id),
+		['project-mock-learning-log', 'project-mock-campus-guide', 'blog-mock-astro-foundation-notes'],
+	);
+	assert.deepEqual(
+		filterArticleSearch(items, { kind: 'blog' }).map((item) => item.id),
+		['blog-mock-command-notes', 'blog-mock-accessible-motion-notes', 'blog-mock-astro-foundation-notes'],
+	);
+	assert.deepEqual(
+		filterArticleSearch(items, { kind: 'project', topicId: 'markdown' }).map((item) => item.id),
+		['project-mock-campus-guide'],
+	);
+	assert.deepEqual(filterArticleSearch(items, { query: '存在しない検索語' }), []);
+	assert.equal(Object.isFrozen(filterArticleSearch(items)), true);
+	assert.equal(matchesArticleSearch(items[0], { query: '学習', topicId: 'astro' }), true);
 });

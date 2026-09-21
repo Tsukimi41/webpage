@@ -14,17 +14,17 @@ const includesMockData = items.some((item) => item.state === 'mock');
 <section class="blog-showcase" aria-labelledby="blog-showcase-title">
 	<header class="blog-showcase__header">
 		<div>
-			<p class="blog-showcase__eyebrow" aria-hidden="true">BLOG</p>
-			<h2 id="blog-showcase-title">ブログ</h2>
+			<p class="blog-showcase__eyebrow" aria-hidden="true">ARTICLES</p>
+			<h2 id="blog-showcase-title">記事</h2>
 		</div>
 		<div class="blog-showcase__actions">
 			<ContentStateNotice hasMockData={includesMockData} />
-			<a href="/blog/">すべてのブログを見る</a>
+			<a href="/articles/">すべての記事を見る</a>
 		</div>
 	</header>
 
 	{items.length > 0 ? (
-		<div class="article-marquee" aria-label="活動履歴の詳細な記事とブログ記事">
+		<div class="article-marquee" aria-label="プロジェクト詳細とブログ記事">
 			<div class="article-marquee__track">
 				<ul class="article-marquee__group" role="list">
 					{items.map((item) => <li><ArticleFeedCard item={item} /></li>)}

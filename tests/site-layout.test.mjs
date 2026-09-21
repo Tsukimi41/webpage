@@ -20,7 +20,7 @@ test('base layout includes shared header, main content, and footer', async () =>
 	assert.match(source, /<body id="site-top">/);
 });
 
-test('shared navigation exposes home, profile, blog, theme, and back-to-top links', async () => {
+test('shared navigation exposes home, profile, articles, blog, theme, and back-to-top links', async () => {
 	const [header, footer] = await Promise.all([
 		readFile(headerUrl, 'utf8'),
 		readFile(footerUrl, 'utf8'),
@@ -28,6 +28,7 @@ test('shared navigation exposes home, profile, blog, theme, and back-to-top link
 
 	assert.match(header, /href="\/"[^>]*>Home</);
 	assert.match(header, /href="\/profile\/"[^>]*>Profile</);
+	assert.match(header, /href="\/articles\/"[^>]*>Articles</);
 	assert.match(header, /href="\/blog\/"[^>]*>Blog</);
 	assert.match(header, /<ThemeSwitcher \/>/);
 	assert.match(header, /\.site-header__nav \{[\s\S]*margin-inline-start: auto/);
@@ -37,6 +38,7 @@ test('shared navigation exposes home, profile, blog, theme, and back-to-top link
 	assert.match(header, /\.site-header__nav a\[aria-current='page'\],[\s\S]*border-block-end-color: var\(--color-accent\)/);
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
+	assert.match(footer, /href="\/articles\/">Articles</);
 	assert.match(footer, /<svg[\s\S]*class="site-footer__top-icon"[\s\S]*aria-hidden="true"[\s\S]*focusable="false"/);
 	assert.match(footer, /<path d="m5 15 7-7 7 7"><\/path>/);
 	assert.doesNotMatch(footer, /class="site-footer__top-icon"[^>]*>↑<\/span>/);
