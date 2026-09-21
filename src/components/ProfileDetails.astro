@@ -1,0 +1,255 @@
+---
+import type { ProfileDetailDefinition } from '../content/profile';
+import ContentStateNotice from './ContentStateNotice.astro';
+
+interface Props {
+	detail?: Readonly<ProfileDetailDefinition>;
+	headingId?: string;
+}
+
+const { detail, headingId = 'profile-details-title' } = Astro.props;
+---
+
+<section class="profile-details" aria-labelledby={headingId}>
+	<header class="profile-details__header">
+		<div>
+			<p class="profile-details__eyebrow" aria-hidden="true">PROFILE DETAILS</p>
+			<h2 id={headingId}>プロフィール</h2>
+		</div>
+		<ContentStateNotice hasMockData={detail?.state === 'mock'} />
+	</header>
+
+	{detail ? (
+		<>
+			<p class="profile-details__summary">{detail.summary}</p>
+
+			<div class="profile-details__biography">
+				{detail.biography.map((paragraph) => <p>{paragraph}</p>)}
+			</div>
+
+			{detail.interests.length > 0 && (
+				<section class="profile-details__section" aria-labelledby="profile-interests-title">
+					<h3 id="profile-interests-title">興味分野</h3>
+					<ul class="profile-details__grid" role="list">
+						{detail.interests.map((interest) => (
+							<li>
+								<h4>{interest.title}</h4>
+								<p>{interest.description}</p>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+
+			{detail.principles.length > 0 && (
+				<section class="profile-details__section" aria-labelledby="profile-principles-title">
+					<h3 id="profile-principles-title">技術への取り組み方</h3>
+					<ol class="profile-details__principles">
+						{detail.principles.map((principle) => (
+							<li>
+								<div>
+									<h4>{principle.title}</h4>
+									<p>{principle.description}</p>
+								</div>
+							</li>
+						))}
+					</ol>
+				</section>
+			)}
+
+			{detail.contact && (
+				<aside class="profile-details__contact" aria-labelledby="profile-contact-title">
+					<div>
+						<p class="profile-details__contact-label" id="profile-contact-title">{detail.contact.label}</p>
+						{detail.contact.note && <p>{detail.contact.note}</p>}
+					</div>
+					<a href={`mailto:${detail.contact.email}`}>{detail.contact.email}</a>
+				</aside>
+			)}
+		</>
+	) : (
+		<p class="profile-details__empty">表示できるプロフィール詳細はありません。</p>
+	)}
+</section>
+
+<style>
+	.profile-details {
+		padding-block: clamp(var(--space-5), 10vw, 7rem);
+	}
+
+	.profile-details__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding-block-end: var(--space-2);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.profile-details__eyebrow {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+	}
+
+	.profile-details h2,
+	.profile-details h3,
+	.profile-details h4 {
+		color: var(--color-text);
+		line-height: 1.4;
+	}
+
+	.profile-details h2 {
+		margin-block: var(--space-1) 0;
+		font-size: clamp(1.75rem, 5vw, 2.5rem);
+	}
+
+	.profile-details__summary {
+		max-inline-size: 36ch;
+		margin-block-start: var(--space-4);
+		color: var(--color-text);
+		font-size: clamp(1.25rem, 3vw, 1.75rem);
+		font-weight: 700;
+		line-height: 1.6;
+	}
+
+	.profile-details__biography {
+		max-inline-size: var(--content-width);
+		margin-block-start: var(--space-3);
+	}
+
+	.profile-details__section {
+		margin-block-start: var(--space-5);
+	}
+
+	.profile-details__section > h3 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.profile-details__grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-3);
+		margin: var(--space-3) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.profile-details__grid li {
+		min-inline-size: 0;
+		padding: var(--space-3);
+		border-block-start: 0.1875rem solid var(--color-accent);
+		background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+	}
+
+	.profile-details__grid h4,
+	.profile-details__principles h4 {
+		margin: 0;
+		font-size: 1rem;
+		overflow-wrap: anywhere;
+	}
+
+	.profile-details__grid p,
+	.profile-details__principles p {
+		overflow-wrap: anywhere;
+	}
+
+	.profile-details__principles {
+		display: grid;
+		gap: 0;
+		margin: var(--space-3) 0 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: principle;
+	}
+
+	.profile-details__principles li {
+		display: grid;
+		grid-template-columns: 3rem minmax(0, 1fr);
+		gap: var(--space-2);
+		padding-block: var(--space-3);
+		border-block-start: 1px solid var(--color-border);
+		counter-increment: principle;
+	}
+
+	.profile-details__principles li::before {
+		color: var(--color-accent);
+		content: counter(principle, decimal-leading-zero);
+		font-size: 0.8rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+	}
+
+	.profile-details__contact {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block-start: var(--space-5);
+		padding: clamp(var(--space-3), 5vw, var(--space-4));
+		border: 1px solid var(--color-border);
+		background: var(--color-surface-raised);
+	}
+
+	.profile-details__contact-label {
+		margin: 0;
+		color: var(--color-text);
+		font-weight: 800;
+	}
+
+	.profile-details__contact a {
+		flex: none;
+		color: var(--color-accent);
+		font-weight: 800;
+		overflow-wrap: anywhere;
+		text-underline-offset: 0.25em;
+	}
+
+	.profile-details__contact a:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.profile-details__empty {
+		margin: var(--space-3) 0 0;
+		padding: var(--space-4);
+		border: 1px dashed var(--color-border);
+		text-align: center;
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.profile-details__grid li {
+			background: var(--color-surface);
+		}
+	}
+
+	@media (max-width: 48rem) {
+		.profile-details__grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.profile-details__contact {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.profile-details__contact a {
+			max-inline-size: 100%;
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.profile-details__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.profile-details__principles li {
+			grid-template-columns: 2.25rem minmax(0, 1fr);
+		}
+	}
+</style>

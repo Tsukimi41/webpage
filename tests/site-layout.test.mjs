@@ -9,6 +9,7 @@ const headerUrl = new URL('../src/components/SiteHeader.astro', import.meta.url)
 const footerUrl = new URL('../src/components/SiteFooter.astro', import.meta.url);
 const backToTopUrl = new URL('../src/components/BackToTopLink.astro', import.meta.url);
 const profileIntroductionUrl = new URL('../src/components/ProfileIntroduction.astro', import.meta.url);
+const profilePageUrl = new URL('../src/pages/profile.astro', import.meta.url);
 const homeUrl = new URL('../src/pages/index.astro', import.meta.url);
 const projectCardUrl = new URL('../src/components/ProjectCard.astro', import.meta.url);
 const projectDetailUrl = new URL('../src/components/ProjectDetail.astro', import.meta.url);
@@ -86,6 +87,15 @@ test('profile introduction places the favicon icon beside readable profile conte
 		() => defineProfile({ ...profile, icon: { ...profile.icon, width: 0 } }),
 		/positive safe integer/,
 	);
+});
+
+test('profile page renders typed profile details through the dedicated component', async () => {
+	const source = await readFile(profilePageUrl, 'utf8');
+
+	assert.match(source, /import ProfileDetails from/);
+	assert.match(source, /import \{ getProfileDetail \} from/);
+	assert.match(source, /const detail = getProfileDetail\(\)/);
+	assert.match(source, /<ProfileDetails detail=\{detail\} \/>/);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {
