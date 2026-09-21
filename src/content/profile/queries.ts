@@ -1,5 +1,5 @@
 import {
-	PREVIEW_CONTENT_STATES,
+	ACTIVE_CONTENT_STATES,
 	selectContentByState,
 	type ContentState,
 } from '../core/content.ts';
@@ -21,7 +21,7 @@ export function selectProfileDetails<T extends ProfileDetailDefinition>(
 	records: readonly T[],
 	query: ProfileDetailQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 	assertOptionalLimit(limit);
 	const selectedDetails = selectContentByState(records, states);
 

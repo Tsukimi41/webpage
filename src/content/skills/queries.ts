@@ -1,5 +1,5 @@
 import {
-	PREVIEW_CONTENT_STATES,
+	ACTIVE_CONTENT_STATES,
 	assertContentId,
 	selectContentByState,
 	type ContentState,
@@ -23,7 +23,7 @@ export function selectSkills<T extends SkillDefinition>(
 	records: readonly T[],
 	query: SkillQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 	assertOptionalLimit(limit);
 
 	const selectedSkills = selectContentByState(records, states);
@@ -40,7 +40,7 @@ export function findSkillById<T extends SkillDefinition>(
 	query: Pick<SkillQuery, 'states'> = {},
 ): T | undefined {
 	assertContentId(id, 'skill query id');
-	const { states = PREVIEW_CONTENT_STATES } = query;
+	const { states = ACTIVE_CONTENT_STATES } = query;
 	return selectContentByState(records, states).find((skill) => skill.id === id);
 }
 
@@ -71,7 +71,7 @@ export function getSkillsByIds(
 export function selectProjectsForSkill<T extends ProjectDefinition>(
 	projects: readonly T[],
 	skillId: string,
-	states: readonly ContentState[] = PREVIEW_CONTENT_STATES,
+	states: readonly ContentState[] = ACTIVE_CONTENT_STATES,
 ): readonly T[] {
 	assertContentId(skillId, 'skill project query id');
 	return Object.freeze(

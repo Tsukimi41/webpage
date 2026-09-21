@@ -1,5 +1,5 @@
 import {
-	PREVIEW_CONTENT_STATES,
+	ACTIVE_CONTENT_STATES,
 	assertContentId,
 	selectContentByState,
 	type ContentState,
@@ -24,7 +24,7 @@ export function selectBlogTags<T extends BlogTagDefinition>(
 	records: readonly T[],
 	query: BlogTagQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 	assertOptionalLimit(limit);
 	const selectedTags = selectContentByState(records, states);
 
@@ -41,7 +41,7 @@ export function findBlogTagById<T extends BlogTagDefinition>(
 	query: Pick<BlogTagQuery, 'states'> = {},
 ): T | undefined {
 	assertContentId(id, 'blog tag query id');
-	const { states = PREVIEW_CONTENT_STATES } = query;
+	const { states = ACTIVE_CONTENT_STATES } = query;
 	return selectContentByState(records, states).find((tag) => tag.id === id);
 }
 
@@ -74,7 +74,7 @@ export function getBlogPostsForTag(
 	query: Pick<BlogTagQuery, 'states'> = {},
 ): readonly BlogPostDefinition[] {
 	assertContentId(tagId, 'blog tag post query id');
-	const { states = PREVIEW_CONTENT_STATES } = query;
+	const { states = ACTIVE_CONTENT_STATES } = query;
 
 	return Object.freeze(
 		selectContentByState(blogPosts, states)

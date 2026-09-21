@@ -9,7 +9,11 @@ interface Props {
 const { item, duplicate = false } = Astro.props;
 ---
 
-<article class:list={['article-feed-card', { 'article-feed-card--duplicate': duplicate }]} data-feed-kind={item.sourceKind}>
+<article
+	class:list={['article-feed-card', { 'article-feed-card--duplicate': duplicate }]}
+	data-feed-kind={item.sourceKind}
+	data-content-state={item.state}
+>
 	<div class="article-feed-card__cover" aria-hidden="true">
 		<span class="article-feed-card__cover-label">{item.sourceLabel}</span>
 		<span class="article-feed-card__cover-mark">{item.sourceKind === 'project' ? '↗' : '✦'}</span>

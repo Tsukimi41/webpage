@@ -1,5 +1,5 @@
 import {
-	PREVIEW_CONTENT_STATES,
+	ACTIVE_CONTENT_STATES,
 	assertContentId,
 	selectContentByState,
 	type ContentState,
@@ -27,7 +27,7 @@ export function selectFeaturedProjects<T extends ProjectDefinition>(
 	records: readonly T[],
 	query: ProjectQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 
 	const featuredProjects = selectContentByState(records, states).filter(
 		(project) => project.featured,
@@ -40,7 +40,7 @@ export function selectProjects<T extends ProjectDefinition>(
 	records: readonly T[],
 	query: ProjectQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 	const selectedProjects = selectContentByState(records, states);
 
 	return applyLimit(selectedProjects, limit);
@@ -61,7 +61,7 @@ export function findProjectBySlug<T extends ProjectDefinition>(
 ): T | undefined {
 	assertContentId(slug, 'project query slug');
 
-	const { states = PREVIEW_CONTENT_STATES } = query;
+	const { states = ACTIVE_CONTENT_STATES } = query;
 	return selectContentByState(records, states).find((project) => project.slug === slug);
 }
 

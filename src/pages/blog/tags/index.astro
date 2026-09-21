@@ -26,7 +26,7 @@ const pageDescription = `${profileDisplayName}のブログ記事をタグから�
 				{tags.map((tag) => {
 					const postCount = getBlogPostsForTag(tag.id, { states: [tag.state] }).length;
 					return (
-						<li>
+						<li data-content-state={tag.state}>
 							<a href={`/blog/tags/${tag.id}/`}>
 								<span class="tag-index__label">{tag.label}</span>
 								<span class="tag-index__count">{postCount}件</span>

@@ -1,6 +1,6 @@
 import {
 	assertContentId,
-	PREVIEW_CONTENT_STATES,
+	ACTIVE_CONTENT_STATES,
 	selectContentByState,
 	type ContentState,
 } from '../core/content.ts';
@@ -39,7 +39,7 @@ export function selectBlogPosts<T extends BlogPostDefinition>(
 	records: readonly T[],
 	query: BlogQuery = {},
 ): readonly T[] {
-	const { states = PREVIEW_CONTENT_STATES, limit } = query;
+	const { states = ACTIVE_CONTENT_STATES, limit } = query;
 	const selectedPosts = sortBlogPosts(selectContentByState(records, states));
 
 	return applyLimit(selectedPosts, limit);
@@ -56,7 +56,7 @@ export function findBlogPostBySlug<T extends BlogPostDefinition>(
 ): T | undefined {
 	assertContentId(slug, 'blog query slug');
 
-	const { states = PREVIEW_CONTENT_STATES } = query;
+	const { states = ACTIVE_CONTENT_STATES } = query;
 	return selectBlogPosts(records, { states }).find((post) => post.slug === slug);
 }
 

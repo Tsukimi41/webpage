@@ -10,7 +10,11 @@ interface Props {
 const { detail, headingId = 'profile-details-title' } = Astro.props;
 ---
 
-<section class="profile-details" aria-labelledby={headingId}>
+<section
+	class="profile-details"
+	aria-labelledby={headingId}
+	data-content-state={detail?.state}
+>
 	<header class="profile-details__header">
 		<div>
 			<p class="profile-details__eyebrow" aria-hidden="true">PROFILE DETAILS</p>

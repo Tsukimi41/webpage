@@ -8,7 +8,11 @@ interface Props {
 const { item } = Astro.props;
 ---
 
-<article class="article-index-card" data-kind={item.sourceKind}>
+<article
+	class="article-index-card"
+	data-kind={item.sourceKind}
+	data-content-state={item.state}
+>
 	<div class="article-index-card__accent" aria-hidden="true">
 		<span>{item.sourceKind === 'project' ? 'PROJECT' : 'BLOG'}</span>
 		<span>{item.sourceKind === 'project' ? '↗' : '✦'}</span>

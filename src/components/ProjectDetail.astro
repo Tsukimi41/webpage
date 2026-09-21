@@ -11,7 +11,7 @@ const { project } = Astro.props;
 const hasMockData = project.state === 'mock';
 ---
 
-<article class="project-detail">
+<article class="project-detail" data-content-state={project.state}>
 	<header class="project-detail__header">
 		<div class="project-detail__heading">
 			<p class="project-detail__period">{project.period}</p>

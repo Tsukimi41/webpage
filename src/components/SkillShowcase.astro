@@ -85,6 +85,7 @@ const skillObjects = skills.map((skill) => {
 				{skillObjects.map(({ skill, placement }) => (
 					<li
 						class={`skill-object skill-object--${skill.presentation}`}
+						data-content-state={skill.state}
 						data-physics-object
 						data-physics-material={skill.presentation}
 						data-physics-role="skill"

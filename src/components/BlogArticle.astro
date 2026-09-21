@@ -20,7 +20,7 @@ const tableOfContents = headings.filter((heading) => heading.depth === 2 || head
 const formatDate = (date: string): string => date.replaceAll('-', '.');
 ---
 
-<article class="blog-article">
+<article class="blog-article" data-content-state={post.state}>
 	<a class="blog-article__back" href="/blog/">ブログ一覧へ戻る</a>
 
 	<header class="blog-article__header">

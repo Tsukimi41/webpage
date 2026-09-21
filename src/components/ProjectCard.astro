@@ -11,7 +11,7 @@ const { project, headingLevel = 'h2' } = Astro.props;
 const Heading = headingLevel;
 ---
 
-<article class="project-card">
+<article class="project-card" data-content-state={project.state}>
 	<header class="project-card__header">
 		<p class="project-card__period">{project.period}</p>
 		<Heading class="project-card__title">

@@ -1,9 +1,36 @@
-export const CONTENT_STATES = ['mock', 'draft', 'published', 'archived'] as const;
+export const CONTENT_STATES = Object.freeze(['mock', 'draft', 'published', 'archived'] as const);
 
 export type ContentState = (typeof CONTENT_STATES)[number];
+export type ContentVisibility = 'preview' | 'public';
 
-export const PREVIEW_CONTENT_STATES = ['mock', 'draft', 'published'] as const satisfies readonly ContentState[];
-export const PUBLIC_CONTENT_STATES = ['published'] as const satisfies readonly ContentState[];
+export const PREVIEW_CONTENT_STATES = Object.freeze(
+	['mock', 'draft', 'published'] as const satisfies readonly ContentState[],
+);
+export const PUBLIC_CONTENT_STATES = Object.freeze(
+	['published'] as const satisfies readonly ContentState[],
+);
+
+export const ACTIVE_CONTENT_VISIBILITY: ContentVisibility = import.meta.env?.PROD
+	? 'public'
+	: 'preview';
+
+export function assertContentVisibility(
+	value: string,
+	fieldPath = 'content visibility',
+): asserts value is ContentVisibility {
+	if (value !== 'preview' && value !== 'public') {
+		throw new Error(`${fieldPath} has an unsupported value: ${value}`);
+	}
+}
+
+export function getContentStatesForVisibility(
+	visibility: ContentVisibility,
+): readonly ContentState[] {
+	assertContentVisibility(visibility);
+	return visibility === 'public' ? PUBLIC_CONTENT_STATES : PREVIEW_CONTENT_STATES;
+}
+
+export const ACTIVE_CONTENT_STATES = getContentStatesForVisibility(ACTIVE_CONTENT_VISIBILITY);
 
 export interface ContentRecord {
 	readonly id: string;
@@ -30,6 +57,29 @@ export function assertContentId(value: string, fieldPath: string): void {
 export function assertContentState(value: string, fieldPath: string): asserts value is ContentState {
 	if (!CONTENT_STATES.includes(value as ContentState)) {
 		throw new Error(`${fieldPath} has an unsupported content state: ${value}`);
+	}
+}
+
+export function assertContentStatesAllowed(
+	states: readonly ContentState[],
+	visibility: ContentVisibility = ACTIVE_CONTENT_VISIBILITY,
+	fieldPath = 'content states',
+): void {
+	assertContentVisibility(visibility);
+	const usedStates = new Set<ContentState>();
+
+	for (const state of states) {
+		assertContentState(state, fieldPath);
+
+		if (usedStates.has(state)) {
+			throw new Error(`${fieldPath} must not contain duplicate states: ${state}`);
+		}
+
+		if (visibility === 'public' && state !== 'published') {
+			throw new Error(`${fieldPath} cannot expose ${state} content in a public build.`);
+		}
+
+		usedStates.add(state);
 	}
 }
 
@@ -69,6 +119,7 @@ export function selectContentByState<T extends ContentRecord>(
 	records: readonly T[],
 	states: readonly ContentState[],
 ): readonly T[] {
+	assertContentStatesAllowed(states);
 	const allowedStates = new Set<ContentState>(states);
 
 	return Object.freeze(

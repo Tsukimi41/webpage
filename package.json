@@ -11,7 +11,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-		"test:content": "node --experimental-strip-types --test tests/*.test.mjs"
+		"test:content": "node --experimental-strip-types --test tests/*.test.mjs",
+		"report:publication": "node --experimental-strip-types scripts/report-publication.mjs"
   },
   "dependencies": {
     "astro": "^7.3.2"

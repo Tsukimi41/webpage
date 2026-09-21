@@ -10,7 +10,7 @@ const { post, tags } = view;
 const formatDate = (date: string): string => date.replaceAll('-', '.');
 ---
 
-<article class="blog-card">
+<article class="blog-card" data-content-state={post.state}>
 	<header class="blog-card__header">
 		<p class="blog-card__eyebrow">BLOG</p>
 		<h2 class="blog-card__title">
