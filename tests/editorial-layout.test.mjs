@@ -25,6 +25,14 @@ test('shared layout provides an editorial main column and reusable sidebar', asy
 	assert.match(sidebar, /getArticleTopics\(getArticleIndex\(\)\)/);
 	assert.match(sidebar, /data-content-state=\{article\.state\}/);
 	assert.match(sidebar, /<SocialLinks accessibleLabel="サイドバーの外部プロフィール" \/>/);
+	assert.match(sidebar, /class="site-sidebar__topic-marker" aria-hidden="true"/);
+	assert.match(sidebar, /class="site-sidebar__topic-label">\{topic\.label\}/);
+	assert.match(sidebar, /class="site-sidebar__topic-count" aria-label=\{`\$\{topic\.count\}件`\}/);
+	assert.match(sidebar, /\.site-sidebar__topics \{[\s\S]*?display: grid;[\s\S]*?list-style: none/);
+	assert.match(
+		sidebar,
+		/grid-template-columns: 0\.35rem minmax\(0, 1fr\) minmax\(2ch, auto\)/,
+	);
 });
 
 test('editorial theme stays local, responsive, and motion-aware', async () => {

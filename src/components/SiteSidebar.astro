@@ -44,7 +44,13 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 		{topics.length > 0 ? (
 			<ul class="site-sidebar__topics" role="list">
 				{topics.map((topic) => (
-					<li><a href={`/articles/?topic=${encodeURIComponent(topic.id)}`}>{topic.label} <span>{topic.count}</span></a></li>
+					<li>
+						<a href={`/articles/?topic=${encodeURIComponent(topic.id)}`}>
+							<span class="site-sidebar__topic-marker" aria-hidden="true"></span>
+							<span class="site-sidebar__topic-label">{topic.label}</span>
+							<span class="site-sidebar__topic-count" aria-label={`${topic.count}件`}>{topic.count}</span>
+						</a>
+					</li>
 				))}
 			</ul>
 		) : (
@@ -143,17 +149,47 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 	}
 
 	.site-sidebar__topics {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem 0.75rem;
+		display: grid;
+		gap: 0.2rem;
 		margin: var(--space-2) 0 0;
 		padding: 0;
+		list-style: none;
 	}
 
-	.site-sidebar__topics span {
+	.site-sidebar__topics li {
+		min-inline-size: 0;
+	}
+
+	.site-sidebar__topics a {
+		display: grid;
+		grid-template-columns: 0.35rem minmax(0, 1fr) minmax(2ch, auto);
+		align-items: baseline;
+		gap: 0.4rem;
+		inline-size: 100%;
+		min-inline-size: 0;
+		padding-block: 0.2rem;
+	}
+
+	.site-sidebar__topic-marker {
+		align-self: center;
+		inline-size: 0.3rem;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: var(--color-text);
+	}
+
+	.site-sidebar__topic-label {
+		min-inline-size: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.site-sidebar__topic-count {
+		justify-self: end;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
 		font-size: 0.65rem;
+		font-variant-numeric: tabular-nums;
+		text-align: end;
 	}
 
 	.site-sidebar a:focus-visible {

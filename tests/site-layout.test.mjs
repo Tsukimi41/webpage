@@ -60,9 +60,10 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	assert.match(socialLinks, /variant\?: 'default' \| 'footer'/);
 	assert.match(socialLinks, /'social-links--footer': variant === 'footer'/);
 	assert.match(
-		socialLinks,
-		/\.social-links--footer \.social-links__link \{[\s\S]*?block-size: var\(--site-footer-control-block-size, 2\.75rem\)/,
+		footer,
+		/:global\(\.social-links--footer \.social-links__link\) \{[\s\S]*?block-size: var\(--site-footer-control-block-size\)/,
 	);
+	assert.match(footer, /:global\(\.social-links--footer\) \{[\s\S]*?margin-block-start: 0;[\s\S]*?animation: none/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
 			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href="/">Home'),
