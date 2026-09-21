@@ -21,7 +21,6 @@ const validProject = Object.freeze({
 	title: 'Test project',
 	summary: 'Test summary',
 	period: '20XX',
-	role: 'Test role',
 	skillIds: ['typescript'],
 	featured: true,
 	links: [],

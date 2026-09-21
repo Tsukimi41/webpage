@@ -1,0 +1,28 @@
+---
+import ProfileIntroduction from '../components/ProfileIntroduction.astro';
+import { profile, profileDisplayName } from '../data/profile';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = `Profile | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}のプロフィール。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="profile-page">
+		<ProfileIntroduction headingId="profile-title" />
+	</div>
+</BaseLayout>
+
+<style>
+	.profile-page {
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.profile-page__eyebrow {
+		margin-block-end: var(--space-2);
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+	}
+</style>

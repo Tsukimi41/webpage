@@ -24,7 +24,6 @@ export interface ProjectDefinition extends ContentRecord {
 	readonly title: string;
 	readonly summary: string;
 	readonly period: string;
-	readonly role: string;
 	readonly skillIds: readonly string[];
 	readonly featured: boolean;
 	readonly links: readonly ProjectLinkDefinition[];
@@ -185,7 +184,6 @@ export function defineProjectCollection(
 				title: normalizeText(record.title, `${recordPath}.title`),
 				summary: normalizeText(record.summary, `${recordPath}.summary`),
 				period: normalizeText(record.period, `${recordPath}.period`),
-				role: normalizeText(record.role, `${recordPath}.role`),
 				skillIds: normalizeContentIdList(record.skillIds, `${recordPath}.skillIds`),
 				links: normalizeLinks(record.links, `${recordPath}.links`),
 				detailSections: normalizeDetailSections(

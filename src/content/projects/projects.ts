@@ -14,7 +14,6 @@ const projectDefinitions = [
 		title: '架空の学習ログ可視化ツール',
 		summary: '日々の学習記録を分野ごとに整理し、振り返りやすくする架空のWebツールです。',
 		period: '20XX年',
-		role: '要件整理、設計、フロントエンド実装',
 		skillIds: ['astro', 'typescript', 'css'],
 		featured: true,
 		links: [
@@ -57,7 +56,6 @@ const projectDefinitions = [
 		title: '架空のキャンパス生活を支える情報整理・共有プラットフォーム',
 		summary: '長い名称や複数の技術項目を含むカード表示を確認するための架空プロジェクトです。',
 		period: '20XX年4月〜20XX年9月',
-		role: '情報設計、アクセシビリティ設計、UI実装、品質確認',
 		skillIds: ['typescript', 'astro', 'css', 'markdown', 'github-actions'],
 		featured: true,
 		links: [
@@ -105,7 +103,6 @@ const projectDefinitions = [
 		title: '架空のコマンド備忘録',
 		summary: '任意の関連リンクがない場合を確認するための架空プロジェクトです。',
 		period: '20XX年',
-		role: '設計、実装',
 		skillIds: ['typescript'],
 		featured: false,
 		links: [],

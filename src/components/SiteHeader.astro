@@ -1,0 +1,197 @@
+---
+import { profileDisplayName } from '../data/profile';
+import ThemeSwitcher from './ThemeSwitcher.astro';
+
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
+const isProfile = currentPath.startsWith('/profile');
+const isBlog = currentPath.startsWith('/blog');
+---
+
+<header class="site-header">
+	<div class="site-header__inner">
+		<a class="site-header__brand" href="/" aria-label={`${profileDisplayName} ホーム`}>
+			<span class="site-header__brand-mark" aria-hidden="true">/</span>
+			<span>{profileDisplayName}</span>
+		</a>
+
+		<nav class="site-header__nav" aria-label="メインメニュー">
+			<ul role="list">
+				<li><a href="/" aria-current={isHome ? 'page' : undefined}>Home</a></li>
+				<li><a href="/profile/" aria-current={isProfile ? 'page' : undefined}>Profile</a></li>
+				<li><a href="/blog/" aria-current={isBlog ? 'page' : undefined}>Blog</a></li>
+			</ul>
+		</nav>
+
+		<ThemeSwitcher />
+	</div>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		z-index: 40;
+		inset-block-start: 0;
+		border-block-end: 1px solid var(--color-border);
+		background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+		backdrop-filter: blur(0.75rem);
+	}
+
+	.site-header__inner {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		inline-size: min(calc(100% - var(--space-4)), 72rem);
+		min-block-size: 4.5rem;
+		margin-inline: auto;
+	}
+
+	.site-header__brand {
+		display: inline-flex;
+		min-inline-size: 0;
+		align-items: center;
+		gap: 0.35rem;
+		color: var(--color-text);
+		font-size: 0.9rem;
+		font-weight: 800;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.site-header__brand:hover {
+		color: var(--color-accent);
+	}
+
+	.site-header__brand:focus-visible,
+	.site-header__nav a:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.site-header__brand-mark {
+		color: var(--color-accent);
+		font-size: 1.35rem;
+		font-weight: 300;
+	}
+
+	.site-header__nav ul {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.site-header__nav {
+		margin-inline-start: auto;
+	}
+
+	.site-header__nav li {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.site-header__nav li::before,
+	.site-header__nav li::after {
+		position: absolute;
+		inset-block: 0.75rem;
+		inline-size: 1px;
+		background: var(--color-accent);
+		content: '';
+		opacity: 0;
+		transform: scaleY(0.6);
+		transition:
+			opacity 160ms ease,
+			transform 160ms ease;
+		pointer-events: none;
+	}
+
+	.site-header__nav li::before {
+		inset-inline-start: 0;
+	}
+
+	.site-header__nav li::after {
+		inset-inline-end: 0;
+	}
+
+	.site-header__nav li:hover::before,
+	.site-header__nav li:hover::after,
+	.site-header__nav li:focus-within::before,
+	.site-header__nav li:focus-within::after {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+
+	.site-header__nav a {
+		display: inline-flex;
+		min-block-size: 2.75rem;
+		align-items: center;
+		padding-inline: 0.7rem;
+		border-block-end: 2px solid transparent;
+		color: var(--color-text-muted);
+		font-size: 0.875rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.site-header__nav a:hover,
+	.site-header__nav a[aria-current='page'] {
+		border-block-end-color: var(--color-accent);
+		color: var(--color-text);
+	}
+
+	.site-header .theme-switcher {
+		margin-inline-start: var(--space-1);
+	}
+
+	@media (max-width: 42rem) {
+		.site-header__inner {
+			flex-wrap: wrap;
+			padding-block: var(--space-1);
+		}
+
+		.site-header__nav {
+			order: 3;
+			inline-size: 100%;
+			margin-inline-start: 0;
+			padding-block-end: var(--space-1);
+		}
+
+		.site-header__nav ul {
+			justify-content: flex-start;
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.site-header__inner {
+			inline-size: min(calc(100% - var(--space-3)), 72rem);
+		}
+
+		.site-header__brand {
+			font-size: 0.8rem;
+		}
+
+		.site-header__nav a {
+			padding-inline: 0.5rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-header__nav a {
+			transition: none;
+		}
+
+		.site-header__nav li::before,
+		.site-header__nav li::after {
+			transition: none;
+		}
+	}
+</style>

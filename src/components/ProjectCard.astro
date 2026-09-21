@@ -25,11 +25,6 @@ const Heading = headingLevel;
 	<p class="project-card__summary">{project.summary}</p>
 
 	<div class="project-card__details">
-		<div>
-			<p class="project-card__label">担当</p>
-			<p class="project-card__role">{project.role}</p>
-		</div>
-
 		<SkillLabels skillIds={project.skillIds} />
 	</div>
 </article>
@@ -62,8 +57,7 @@ const Heading = headingLevel;
 		min-inline-size: 0;
 	}
 
-	.project-card__period,
-	.project-card__label {
+	.project-card__period {
 		margin: 0;
 		color: var(--color-accent);
 		font-size: 0.75rem;
@@ -118,8 +112,7 @@ const Heading = headingLevel;
 		transform: translate(0.15em, -0.15em);
 	}
 
-	.project-card__summary,
-	.project-card__role {
+	.project-card__summary {
 		overflow-wrap: anywhere;
 	}
 
@@ -128,15 +121,8 @@ const Heading = headingLevel;
 	}
 
 	.project-card__details {
-		display: grid;
-		gap: var(--space-3);
 		margin-block-start: auto;
 		padding-block-start: var(--space-4);
-	}
-
-	.project-card__role {
-		margin-block-start: var(--space-1);
-		color: var(--color-text);
 	}
 
 	@supports not (background: color-mix(in srgb, black, white)) {

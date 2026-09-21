@@ -6,7 +6,7 @@ import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const pageTitle = `プロジェクト | ${profileDisplayName}`;
-const pageDescription = `${profileDisplayName}のプロジェクト一覧。制作物の概要、担当範囲、使用技術を掲載しています。`;
+const pageDescription = `${profileDisplayName}のプロジェクト一覧。制作物の概要、使用技術を掲載しています。`;
 const projects = getProjects();
 const includesMockData = projects.some((project) => project.state === 'mock');
 ---
