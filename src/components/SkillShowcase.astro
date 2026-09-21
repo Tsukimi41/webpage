@@ -321,14 +321,39 @@ const skillObjects = skills.map((skill) => {
 	}
 
 	.skill-object--marble .skill-object__surface {
-		border: 0.125rem solid color-mix(in srgb, var(--color-border) 75%, white);
+		border: 0.0625rem solid color-mix(in srgb, var(--color-marble-rim) 78%, var(--color-border));
 		background:
-			radial-gradient(circle at 32% 25%, rgb(255 255 255 / 72%) 0 5%, transparent 14%),
-			radial-gradient(circle at 43% 38%, var(--color-accent-strong), var(--color-accent) 31%, var(--color-surface-raised) 72%);
+			radial-gradient(
+				circle at 29% 22%,
+				var(--color-marble-highlight) 0 3%,
+				color-mix(in srgb, var(--color-marble-highlight) 34%, transparent) 4% 7%,
+				transparent 13%
+			),
+			radial-gradient(
+				ellipse at 70% 76%,
+				color-mix(in srgb, var(--color-marble-rim) 26%, transparent) 0 14%,
+				transparent 46%
+			),
+			conic-gradient(
+				from 214deg at 51% 49%,
+				transparent 0 13%,
+				color-mix(in srgb, var(--color-marble-vein) 74%, transparent) 17% 22%,
+				transparent 28% 61%,
+				color-mix(in srgb, var(--color-marble-vein) 48%, transparent) 66% 71%,
+				transparent 77%
+			),
+			radial-gradient(
+				circle at 40% 34%,
+				var(--color-marble-core) 0 12%,
+				var(--color-marble-mid) 48%,
+				var(--color-marble-edge) 100%
+			);
 		box-shadow:
-			inset -0.8rem -1rem 1.4rem rgb(0 0 0 / 30%),
-			inset 0.3rem 0.35rem 0.7rem rgb(255 255 255 / 20%),
-			0 0 1.2rem var(--color-backdrop-glow);
+			inset 0.32rem 0.38rem 0.72rem color-mix(in srgb, var(--color-marble-highlight) 22%, transparent),
+			inset -0.82rem -0.96rem 1.3rem color-mix(in srgb, var(--color-marble-shadow) 76%, transparent),
+			inset 0 0 0 0.0625rem color-mix(in srgb, var(--color-marble-rim) 40%, transparent),
+			0 0.38rem 1rem color-mix(in srgb, var(--color-marble-shadow) 42%, transparent),
+			0 0 1.1rem var(--color-marble-glow);
 		transition: filter 160ms ease;
 		transform: rotate(var(--rotation));
 	}
@@ -340,7 +365,7 @@ const skillObjects = skills.map((skill) => {
 		inset-inline: 12%;
 		block-size: 0.45rem;
 		border-radius: 50%;
-		background: rgb(0 0 0 / 68%);
+		background: var(--color-marble-shadow);
 		content: '';
 		filter: blur(var(--shadow-blur));
 		opacity: var(--shadow-opacity);
@@ -357,6 +382,13 @@ const skillObjects = skills.map((skill) => {
 		aspect-ratio: 1;
 		filter: drop-shadow(0 0.12rem 0.2rem rgb(0 0 0 / 28%));
 		transition: transform 180ms ease;
+	}
+
+	.skill-object--marble .skill-object__symbol {
+		color: var(--color-marble-symbol);
+		filter: drop-shadow(
+			0 0.1rem 0.14rem color-mix(in srgb, var(--color-marble-highlight) 38%, transparent)
+		);
 	}
 
 	.skill-object__label {

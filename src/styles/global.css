@@ -12,6 +12,15 @@
 	--color-grid: transparent;
 	--color-shadow: rgb(0 0 0 / 18%);
 	--color-backdrop-glow: rgb(216 232 106 / 9%);
+	--color-marble-highlight: #f8ffe9;
+	--color-marble-core: #d8e8c4;
+	--color-marble-mid: #74967c;
+	--color-marble-edge: #294038;
+	--color-marble-vein: #aed6a2;
+	--color-marble-rim: #d8f0c3;
+	--color-marble-symbol: #17251f;
+	--color-marble-shadow: rgb(5 13 9 / 62%);
+	--color-marble-glow: rgb(168 237 159 / 25%);
 	color-scheme: dark;
 
 	--font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", sans-serif;
@@ -41,6 +50,15 @@
 	--color-grid: transparent;
 	--color-shadow: rgb(45 42 46 / 10%);
 	--color-backdrop-glow: rgb(103 84 0 / 8%);
+	--color-marble-highlight: #ffffff;
+	--color-marble-core: #d7ecee;
+	--color-marble-mid: #7fa7ac;
+	--color-marble-edge: #31545b;
+	--color-marble-vein: #a8cdd0;
+	--color-marble-rim: #edfafa;
+	--color-marble-symbol: #18383e;
+	--color-marble-shadow: rgb(45 42 46 / 28%);
+	--color-marble-glow: rgb(53 107 115 / 20%);
 	color-scheme: light;
 }
 
@@ -57,6 +75,15 @@
 	--color-grid: transparent;
 	--color-shadow: rgb(0 0 0 / 22%);
 	--color-backdrop-glow: rgb(255 216 102 / 8%);
+	--color-marble-highlight: #fff9e6;
+	--color-marble-core: #c6e7eb;
+	--color-marble-mid: #668fa8;
+	--color-marble-edge: #303b5b;
+	--color-marble-vein: #95cbd5;
+	--color-marble-rim: #d8f7f8;
+	--color-marble-symbol: #181b31;
+	--color-marble-shadow: rgb(12 13 27 / 66%);
+	--color-marble-glow: rgb(120 220 232 / 24%);
 	color-scheme: dark;
 }
 
