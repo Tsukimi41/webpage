@@ -20,7 +20,15 @@ test('shared layout provides an editorial main column and reusable sidebar', asy
 
 	assert.match(layout, /import SiteSidebar from/);
 	assert.match(layout, /showSidebar\?: boolean/);
-	assert.match(layout, /grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 17rem\)/);
+	assert.match(layout, /--site-sidebar-min-inline-size: 11\.25rem/);
+	assert.match(layout, /--site-sidebar-max-inline-size: 13\.5rem/);
+	assert.match(layout, /--site-shell-column-gap: clamp\(var\(--space-3\), 3vw, var\(--space-4\)\)/);
+	assert.match(
+		layout,
+		/grid-template-columns:\s*minmax\(0, 1fr\)\s*minmax\(var\(--site-sidebar-min-inline-size\), var\(--site-sidebar-max-inline-size\)\)/,
+	);
+	assert.doesNotMatch(layout, /minmax\(14rem, 17rem\)/);
+	assert.match(layout, /\.page-content \{[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: 100%/);
 	assert.match(sidebar, /getArticleFeed\(\{ limit: 5 \}\)/);
 	assert.match(sidebar, /getArticleTopics\(getArticleIndex\(\)\)/);
 	assert.match(sidebar, /data-content-state=\{article\.state\}/);
@@ -33,6 +41,15 @@ test('shared layout provides an editorial main column and reusable sidebar', asy
 		sidebar,
 		/grid-template-columns: 0\.35rem minmax\(0, 1fr\) minmax\(2ch, auto\)/,
 	);
+	assert.match(sidebar, /container: site-sidebar \/ inline-size/);
+	assert.match(
+		sidebar,
+		/\.site-sidebar \{[\s\S]*?inline-size: 100%;[\s\S]*?min-inline-size: 0;[\s\S]*?max-inline-size: 100%/,
+	);
+	assert.match(sidebar, /@container site-sidebar \(max-width: 12rem\)/);
+	assert.match(sidebar, /grid-template-columns: 3\.5rem minmax\(0, 1fr\)/);
+	assert.match(sidebar, /\.site-sidebar__profile > div \{\s*min-inline-size: 0/);
+	assert.match(sidebar, /\.site-sidebar__recent time \{[\s\S]*?overflow-wrap: anywhere/);
 });
 
 test('editorial theme stays local, responsive, and motion-aware', async () => {

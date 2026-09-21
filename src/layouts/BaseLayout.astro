@@ -102,10 +102,16 @@ const structuredData = serializeJsonLd({
 
 <style>
 	.site-shell {
+		--site-sidebar-min-inline-size: 11.25rem;
+		--site-sidebar-max-inline-size: 13.5rem;
+		--site-shell-column-gap: clamp(var(--space-3), 3vw, var(--space-4));
+
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+		grid-template-columns:
+			minmax(0, 1fr)
+			minmax(var(--site-sidebar-min-inline-size), var(--site-sidebar-max-inline-size));
 		align-items: start;
-		gap: clamp(var(--space-3), 4vw, var(--space-5));
+		gap: var(--site-shell-column-gap);
 	}
 
 	.site-shell--single {
@@ -113,7 +119,9 @@ const structuredData = serializeJsonLd({
 	}
 
 	.page-content {
+		inline-size: 100%;
 		min-inline-size: 0;
+		max-inline-size: 100%;
 	}
 
 	.page-content:focus {

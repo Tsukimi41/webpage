@@ -65,12 +65,18 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 		inset-block-start: calc(3.25rem + var(--space-3));
 		display: grid;
 		gap: var(--space-4);
+		container: site-sidebar / inline-size;
+		inline-size: 100%;
 		min-inline-size: 0;
+		max-inline-size: 100%;
 		padding-block-end: var(--space-5);
 	}
 
 	.site-sidebar__profile,
 	.site-sidebar__section {
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		padding-block-end: var(--space-3);
 		border-block-end: 1px solid var(--color-border);
 	}
@@ -80,6 +86,10 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 		grid-template-columns: 4.25rem minmax(0, 1fr);
 		align-items: center;
 		gap: var(--space-2);
+	}
+
+	.site-sidebar__profile > div {
+		min-inline-size: 0;
 	}
 
 	.site-sidebar__profile img {
@@ -107,7 +117,12 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 
 	.site-sidebar__profile :global(.social-links) {
 		grid-column: 1 / -1;
+		max-inline-size: 100%;
 		margin-block-start: 0;
+	}
+
+	.site-sidebar__profile :global(.social-links__list) {
+		max-inline-size: 100%;
 	}
 
 	.site-sidebar__recent {
@@ -120,6 +135,7 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 
 	.site-sidebar__recent li {
 		display: grid;
+		min-inline-size: 0;
 		gap: 0.15rem;
 		padding-block: 0.65rem;
 		border-block-end: 1px dotted var(--color-border);
@@ -127,6 +143,8 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 
 	.site-sidebar__recent a,
 	.site-sidebar__topics a {
+		min-inline-size: 0;
+		max-inline-size: 100%;
 		color: var(--color-text);
 		font-size: 0.76rem;
 		font-weight: 700;
@@ -143,9 +161,11 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 	}
 
 	.site-sidebar__recent time {
+		min-inline-size: 0;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
 		font-size: 0.65rem;
+		overflow-wrap: anywhere;
 	}
 
 	.site-sidebar__topics {
@@ -195,6 +215,18 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 	.site-sidebar a:focus-visible {
 		outline: 0.1875rem solid var(--color-accent);
 		outline-offset: 0.1875rem;
+	}
+
+	@container site-sidebar (max-width: 12rem) {
+		.site-sidebar__profile {
+			grid-template-columns: 3.5rem minmax(0, 1fr);
+			gap: 0.75rem;
+		}
+
+		.site-sidebar__profile img {
+			inline-size: 3.5rem;
+			block-size: 3.5rem;
+		}
 	}
 
 	@media (max-width: 52rem) {
