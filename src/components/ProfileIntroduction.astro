@@ -195,18 +195,22 @@ const { headingId = 'introduction-title' } = Astro.props;
 
 	@media (max-width: 30rem) {
 		.introduction {
-			grid-template-columns: 1fr;
-			gap: var(--space-4);
+			grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 6rem);
+			gap: var(--space-2);
 			min-block-size: 70svh;
 		}
 
 		.introduction__visual {
-			inline-size: min(10rem, 52vw);
-			justify-self: start;
+			inline-size: min(6rem, 100%);
+			justify-self: end;
 		}
 
 		.introduction__name {
-			font-size: clamp(1.65rem, 8vw, 2rem);
+			font-size: clamp(1.4rem, 7vw, 1.8rem);
+			inline-size: auto;
+			white-space: normal;
+			word-break: normal;
+			flex-wrap: wrap;
 		}
 	}
 </style>

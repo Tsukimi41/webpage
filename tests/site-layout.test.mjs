@@ -59,7 +59,8 @@ test('profile introduction places the favicon icon beside readable profile conte
 	assert.match(source, /class="introduction__icon"[\s\S]*src="\/favicon\.ico"/);
 	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);
 	assert.match(source, /grid-template-columns: minmax\(0, 1fr\) minmax\(8rem, 12rem\)/);
-	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr/);
+	assert.match(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(4\.5rem, 6rem\)/);
+	assert.doesNotMatch(source, /@media \(max-width: 30rem\)[\s\S]*grid-template-columns: 1fr;/);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {
