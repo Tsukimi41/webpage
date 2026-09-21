@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img">
+	<title>Mixamo</title>
+	<metadata>Project-local service-specific mark; not an official vendor asset</metadata>
+	<rect width="128" height="128" rx="26" fill="#ea5b24"/>
+	<path d="M31 94V34h13l20 25 20-25h13v60H81V58L64 79 47 58v36z" fill="#fff"/>
+	<circle cx="64" cy="64" r="47" fill="none" stroke="#fff" stroke-width="5" opacity=".36"/>
+</svg>

@@ -3,35 +3,14 @@ import type { SkillDefinition } from '../content/skills';
 import ContentStateNotice from './ContentStateNotice.astro';
 import SectionHeading from './SectionHeading.astro';
 import SkillVisual from './SkillVisual.astro';
+import { createSkillObjectPlacement } from '../scripts/skill-layout';
 
 interface Props {
 	skills: readonly Readonly<SkillDefinition>[];
 }
 
-interface ObjectPlacement {
-	readonly x: number;
-	readonly y: number;
-	readonly size: number;
-	readonly delay: number;
-}
-
 const { skills } = Astro.props;
 const includesMockData = skills.some((skill) => skill.state === 'mock');
-
-const bubblePlacements: readonly ObjectPlacement[] = [
-	{ x: 18, y: 26, size: 6.75, delay: -1.2 },
-	{ x: 49, y: 14, size: 5.75, delay: -3.8 },
-	{ x: 77, y: 34, size: 7.25, delay: -2.4 },
-	{ x: 35, y: 48, size: 5.25, delay: -4.7 },
-	{ x: 66, y: 54, size: 6.25, delay: -0.6 },
-] as const;
-
-const marblePlacements: readonly ObjectPlacement[] = [
-	{ x: 42, y: 7, size: 7.5, delay: -0.4 },
-	{ x: 58, y: 6, size: 6.75, delay: -1.1 },
-	{ x: 30, y: 5, size: 5.75, delay: -1.8 },
-	{ x: 70, y: 5, size: 5.25, delay: -2.5 },
-] as const;
 
 const decorativeBubbles = Array.from({ length: 6 }, (_, index) => ({
 	x: (index * 29 + 9) % 92,
@@ -42,11 +21,16 @@ const decorativeBubbles = Array.from({ length: 6 }, (_, index) => ({
 
 let bubbleIndex = 0;
 let marbleIndex = 0;
+const bubbleCount = skills.filter((skill) => skill.presentation === 'bubble').length;
+const marbleCount = skills.length - bubbleCount;
 
 const skillObjects = skills.map((skill) => {
-	const placements = skill.presentation === 'bubble' ? bubblePlacements : marblePlacements;
 	const placementIndex = skill.presentation === 'bubble' ? bubbleIndex++ : marbleIndex++;
-	const placement = placements[placementIndex % placements.length] ?? placements[0];
+	const placement = createSkillObjectPlacement(
+		placementIndex,
+		skill.presentation === 'bubble' ? bubbleCount : marbleCount,
+		skill.presentation,
+	);
 
 	return { skill, placement };
 });
@@ -102,7 +86,7 @@ const skillObjects = skills.map((skill) => {
 						>
 							<span class="skill-object__surface" aria-hidden="true">
 								<span class="skill-object__symbol">
-									<SkillVisual visual={skill.visual} />
+									<SkillVisual visual={skill.visual} label={skill.label} />
 								</span>
 							</span>
 							<span class="skill-object__label">{skill.label}</span>
@@ -147,6 +131,8 @@ const skillObjects = skills.map((skill) => {
 	}
 
 	.skill-box {
+		inline-size: min(94%, 43rem);
+		margin-inline: auto;
 		overflow: hidden;
 		border: 1px solid var(--color-border);
 		border-radius: 0;
@@ -168,7 +154,7 @@ const skillObjects = skills.map((skill) => {
 		position: relative;
 		isolation: isolate;
 		overflow: hidden;
-		min-block-size: clamp(25rem, 58vw, 35rem);
+		min-block-size: clamp(30rem, 62vw, 42rem);
 		background:
 			linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 7%, transparent), transparent 55%),
 			radial-gradient(circle at 50% 115%, var(--color-backdrop-glow), transparent 55%),
@@ -368,13 +354,14 @@ const skillObjects = skills.map((skill) => {
 		z-index: 2;
 		display: grid;
 		place-items: center;
-		inline-size: 42%;
+		inline-size: 48%;
 		aspect-ratio: 1;
 		filter: drop-shadow(0 0.12rem 0.2rem rgb(0 0 0 / 28%));
 		transition: transform 180ms ease;
 	}
 
 	.skill-object--marble .skill-object__symbol {
+		inline-size: 52%;
 		color: var(--color-marble-symbol);
 		filter: drop-shadow(
 			0 0.1rem 0.14rem color-mix(in srgb, var(--color-marble-highlight) 38%, transparent)
@@ -386,7 +373,8 @@ const skillObjects = skills.map((skill) => {
 		z-index: 4;
 		inset-block-end: 0.35rem;
 		inset-inline-start: 50%;
-		max-inline-size: 90%;
+		inline-size: max-content;
+		max-inline-size: min(12rem, 70vw);
 		padding: 0.12rem 0.38rem;
 		border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
 		border-radius: 999px;
@@ -524,8 +512,8 @@ const skillObjects = skills.map((skill) => {
 
 	@media (max-width: 30rem) {
 		.skill-showcase__header { align-items: flex-start; flex-direction: column; }
-		.skill-field { min-block-size: 28rem; }
-		.skill-object { --object-size: min(var(--object-size), 6rem); }
+		.skill-field { min-block-size: 48rem; }
+		.skill-object { --object-size: min(var(--object-size), 4.75rem); }
 	}
 
 	@media (prefers-reduced-motion: reduce) {

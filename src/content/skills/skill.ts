@@ -5,7 +5,20 @@ import {
 	type ContentRecord,
 } from '../core/content.ts';
 
-export const SKILL_CATEGORIES = ['language', 'framework', 'styling', 'tool'] as const;
+export const SKILL_CATEGORIES = [
+	'language',
+	'framework',
+	'library',
+	'runtime',
+	'markup',
+	'styling',
+	'operating-system',
+	'platform',
+	'infrastructure',
+	'hardware',
+	'design',
+	'tool',
+] as const;
 
 export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
 
@@ -16,6 +29,7 @@ export type SkillIconName = `${string}:${string}`;
 export interface SkillIconVisualDefinition {
 	readonly kind: 'icon';
 	readonly name: SkillIconName;
+	readonly fallbackText?: string;
 }
 
 export interface SkillImageVisualDefinition {
@@ -27,11 +41,13 @@ export interface SkillImageVisualDefinition {
 	readonly sourceName?: string;
 	readonly sourceUrl?: `https://${string}`;
 	readonly license?: string;
+	readonly fallbackText?: string;
 }
 
 export interface SkillTextVisualDefinition {
 	readonly kind: 'text';
 	readonly text: string;
+	readonly fallbackText?: string;
 }
 
 export type SkillVisualDefinition =
@@ -90,9 +106,19 @@ function normalizeImageSource(value: string, fieldPath: string): SkillImageSourc
 }
 
 function assertImageDimension(value: number, fieldPath: string): void {
-	if (!Number.isSafeInteger(value) || value <= 0) {
-		throw new Error(`${fieldPath} must be a positive safe integer: ${value}`);
+	if (!Number.isSafeInteger(value) || value <= 0 || value > 8_192) {
+		throw new Error(`${fieldPath} must be a positive safe integer up to 8192: ${value}`);
 	}
+}
+
+function normalizeShortText(value: string, fieldPath: string): string {
+	const normalized = normalizeText(value, fieldPath);
+
+	if (Array.from(normalized).length > 24) {
+		throw new Error(`${fieldPath} must contain no more than 24 characters.`);
+	}
+
+	return normalized;
 }
 
 function normalizeVisual(
@@ -105,7 +131,12 @@ function normalizeVisual(
 				throw new Error(`${fieldPath}.name must use the icon-set:icon-name format.`);
 			}
 
-			return Object.freeze({ ...visual });
+			return Object.freeze({
+				...visual,
+				fallbackText: visual.fallbackText
+					? normalizeShortText(visual.fallbackText, `${fieldPath}.fallbackText`)
+					: undefined,
+			});
 
 		case 'image': {
 			assertImageDimension(visual.width, `${fieldPath}.width`);
@@ -122,23 +153,36 @@ function normalizeVisual(
 				throw new Error(`${fieldPath} must provide sourceName and sourceUrl together.`);
 			}
 
+			const src = normalizeImageSource(visual.src, `${fieldPath}.src`);
+			if (src.startsWith('https://') && sourceName === undefined) {
+				throw new Error(`${fieldPath} must attribute remote images with sourceName and sourceUrl.`);
+			}
+
 			return Object.freeze({
 				...visual,
-				src: normalizeImageSource(visual.src, `${fieldPath}.src`),
+				src,
 				alt: normalizeText(visual.alt, `${fieldPath}.alt`),
 				sourceName,
 				sourceUrl,
 				license: visual.license
 					? normalizeText(visual.license, `${fieldPath}.license`)
 					: undefined,
+				fallbackText: visual.fallbackText
+					? normalizeShortText(visual.fallbackText, `${fieldPath}.fallbackText`)
+					: undefined,
 			});
 		}
 
-		case 'text':
+		case 'text': {
+			const text = normalizeShortText(visual.text, `${fieldPath}.text`);
 			return Object.freeze({
 				...visual,
-				text: normalizeText(visual.text, `${fieldPath}.text`),
+				text,
+				fallbackText: visual.fallbackText
+					? normalizeShortText(visual.fallbackText, `${fieldPath}.fallbackText`)
+					: text,
 			});
+		}
 
 		default: {
 			const exhaustiveVisual: never = visual;

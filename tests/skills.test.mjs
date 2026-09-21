@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { projects } from '../src/content/projects/index.ts';
@@ -28,8 +29,43 @@ test('skill data is frozen and returned in deterministic order', () => {
 	assert.equal(skills.every((skill) => Object.isFrozen(skill.visual)), true);
 	assert.deepEqual(
 		getSkills().map((skill) => skill.id),
-		['typescript', 'astro', 'css', 'markdown', 'github-actions'],
+		[
+			'ros-2',
+			'arch-linux',
+			'github',
+			'python',
+			'node-js',
+			'c',
+			'cpp',
+			'aruco-marker',
+			'docker',
+			'latex',
+			'vite',
+			'typescript',
+			'html',
+			'css',
+			'font-awesome',
+			'opencv',
+			'mixamo',
+			'wsl-2',
+			'amt-viewpoint',
+			'voicevox',
+			'ubuntu',
+			'xampp-control-panel',
+			'solidworks',
+			'matlab',
+			'raspberry-pi-pico-2-w',
+			'godot',
+			'lapis-lexide',
+			'vroid-studio-2-8-0',
+			'n1mm-logger-plus',
+			'astro',
+			'markdown',
+			'github-actions',
+		],
 	);
+	assert.equal(skills.length, 32);
+	assert.equal(skills.every((skill) => skill.visual.kind === 'image'), true);
 	assert.equal(Object.isFrozen(getSkills()), true);
 });
 
@@ -79,9 +115,23 @@ test('skill validation rejects empty, duplicate, and unsupported values', () => 
 		},
 		{
 			...validSkill,
+			visual: { kind: 'image', src: '/icons/test.svg', alt: 'Test', width: 8_193, height: 32 },
+		},
+		{
+			...validSkill,
 			visual: {
 				kind: 'image',
 				src: 'http://example.com/icon.svg',
+				alt: 'Test',
+				width: 32,
+				height: 32,
+			},
+		},
+		{
+			...validSkill,
+			visual: {
+				kind: 'image',
+				src: 'https://cdn.example.com/icon.svg',
 				alt: 'Test',
 				width: 32,
 				height: 32,
@@ -98,6 +148,7 @@ test('skill validation rejects empty, duplicate, and unsupported values', () => 
 				sourceName: 'Icon source',
 			},
 		},
+		{ ...validSkill, visual: { kind: 'text', text: '1234567890123456789012345' } },
 	];
 
 	for (const skill of invalidSkills) {
@@ -121,13 +172,14 @@ test('skill visuals accept icon, image, and text sources', () => {
 			label: 'Image',
 			visual: {
 				kind: 'image',
-				src: '/icons/custom.webp',
+				src: 'https://cdn.example.com/icons/custom.webp',
 				alt: 'Custom tool icon',
 				width: 96,
 				height: 96,
 				sourceName: 'Example Icons',
 				sourceUrl: 'https://example.com/icons',
 				license: 'Example free license',
+				fallbackText: 'IMG',
 			},
 		},
 		{ ...validSkill, id: 'text-skill', label: 'Text', visual: { kind: 'text', text: 'TXT' } },
@@ -135,6 +187,22 @@ test('skill visuals accept icon, image, and text sources', () => {
 
 	assert.deepEqual(records.map((skill) => skill.visual.kind), ['icon', 'image', 'text']);
 	assert.equal(records[1].visual.sourceUrl, 'https://example.com/icons');
+	assert.equal(records[1].visual.fallbackText, 'IMG');
+	assert.equal(records[2].visual.fallbackText, 'TXT');
+});
+
+test('every skill image is local, titled, explicitly colored, and has text fallback', async () => {
+	for (const skill of skills) {
+		assert.equal(skill.visual.kind, 'image');
+		assert.match(skill.visual.src, /^\/icons\/skills\/[a-z0-9-]+\.svg$/);
+		assert.ok(skill.visual.fallbackText);
+
+		const assetUrl = new URL(`../public${skill.visual.src}`, import.meta.url);
+		const svg = await readFile(assetUrl, 'utf8');
+		assert.match(svg, new RegExp(`<title>${skill.label.replaceAll('+', '\\+')}</title>`));
+		assert.match(svg, /<metadata>[^<]+<\/metadata>/);
+		assert.doesNotMatch(svg, /currentColor/);
+	}
 });
 
 test('project evidence is resolved from skill ids without duplicating relationships', () => {

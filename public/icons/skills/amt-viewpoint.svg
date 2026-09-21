@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img">
+	<title>AMT Viewpoint</title>
+	<metadata>Project-local service-specific mark; not an official vendor asset</metadata>
+	<rect width="128" height="128" rx="26" fill="#006f84"/>
+	<circle cx="64" cy="64" r="43" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="9 6"/>
+	<circle cx="64" cy="64" r="25" fill="none" stroke="#fff" stroke-width="6"/>
+	<path d="M64 64 88 43" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+	<circle cx="64" cy="64" r="7" fill="#fff"/>
+</svg>
