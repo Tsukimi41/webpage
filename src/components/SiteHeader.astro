@@ -142,8 +142,13 @@ const isBlog = currentPath.startsWith('/blog');
 			color 160ms ease;
 	}
 
-	.site-header__nav a:hover,
-	.site-header__nav a[aria-current='page'] {
+	.site-header__nav a:hover {
+		border-block-end-color: color-mix(in srgb, var(--color-accent) 52%, transparent);
+		color: var(--color-text);
+	}
+
+	.site-header__nav a[aria-current='page'],
+	.site-header__nav a[aria-current='page']:hover {
 		border-block-end-color: var(--color-accent);
 		color: var(--color-text);
 	}

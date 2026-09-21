@@ -32,13 +32,18 @@ test('shared navigation exposes home, profile, blog, theme, and back-to-top link
 	assert.match(header, /\.site-header__nav \{[\s\S]*margin-inline-start: auto/);
 	assert.match(header, /\.site-header__nav li::before/);
 	assert.match(header, /opacity: 0/);
+	assert.match(header, /\.site-header__nav a:hover \{[\s\S]*color-mix\(in srgb, var\(--color-accent\) 52%, transparent\)/);
+	assert.match(header, /\.site-header__nav a\[aria-current='page'\],[\s\S]*border-block-end-color: var\(--color-accent\)/);
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
+	assert.match(footer, /class="site-footer__top-icon" aria-hidden="true">↑<\/span>/);
+	assert.match(footer, /class="site-footer__site-nav"/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
 			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href="/">Home'),
 	);
-	assert.match(footer, /href="#site-top"[^>]*>一番上へ/);
+	assert.match(footer, /href="#site-top"/);
+	assert.match(footer, /<span>一番上へ<\/span>/);
 });
 
 test('project activity no longer exposes role metadata or project list CTA', async () => {

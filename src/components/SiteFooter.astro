@@ -6,14 +6,19 @@ import SocialLinks from './SocialLinks.astro';
 <footer class="site-footer">
 	<div class="site-footer__inner">
 		<div class="site-footer__main">
-			<SocialLinks accessibleLabel="外部プロフィール" />
-			<span class="site-footer__divider" aria-hidden="true"></span>
-			<nav class="site-footer__nav" aria-label="フッターメニュー">
-				<a href="/">Home</a>
-				<a href="/profile/">Profile</a>
-				<a href="/blog/">Blog</a>
-			</nav>
-			<a class="site-footer__top" href="#site-top">一番上へ <span aria-hidden="true">↑</span></a>
+			<div class="site-footer__site-nav">
+				<SocialLinks accessibleLabel="外部プロフィール" />
+				<span class="site-footer__divider" aria-hidden="true"></span>
+				<nav class="site-footer__nav" aria-label="フッターメニュー">
+					<a href="/">Home</a>
+					<a href="/profile/">Profile</a>
+					<a href="/blog/">Blog</a>
+				</nav>
+			</div>
+			<a class="site-footer__top" href="#site-top">
+				<span class="site-footer__top-icon" aria-hidden="true">↑</span>
+				<span>一番上へ</span>
+			</a>
 		</div>
 
 		<div class="site-footer__meta">
@@ -35,13 +40,20 @@ import SocialLinks from './SocialLinks.astro';
 	}
 
 	.site-footer__main {
-		display: flex;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
 		align-items: center;
-		flex-wrap: wrap;
 		gap: var(--space-2) var(--space-3);
 	}
 
-	.site-footer__main .social-links {
+	.site-footer__site-nav {
+		display: flex;
+		min-inline-size: 0;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.site-footer__site-nav .social-links {
 		margin-block-start: 0;
 	}
 
@@ -69,7 +81,13 @@ import SocialLinks from './SocialLinks.astro';
 	}
 
 	.site-footer__top {
-		margin-inline-start: auto;
+		justify-self: end;
+		gap: 0.4rem;
+		padding-inline: 0.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface-raised);
+		text-decoration: none;
 	}
 
 	.site-footer__nav a:hover,
@@ -105,11 +123,12 @@ import SocialLinks from './SocialLinks.astro';
 		}
 
 		.site-footer__main {
-			align-items: flex-start;
+			grid-template-columns: 1fr;
+			align-items: center;
 		}
 
 		.site-footer__top {
-			margin-inline-start: 0;
+			justify-self: end;
 		}
 	}
 </style>
