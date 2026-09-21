@@ -42,8 +42,9 @@ export function createSkillObjectPlacement(
 	const horizontalJitter = ((index * 37) % 11) - 5;
 	const verticalJitter = ((index * 23) % 9) - 4;
 	const baseSize = clamp(6.6 - Math.max(count - 5, 0) * 0.22, 3.15, 6.6);
-	const materialScale = presentation === 'marble' ? 1.22 : 1;
-	const size = baseSize * (0.9 + (index % 4) * 0.035) * materialScale;
+	const materialScale = presentation === 'marble' ? 1.42 : 1;
+	const sizeVariation = 0.9 + ((index * 0.618_033_988_75) % 1) * 0.15;
+	const size = baseSize * sizeVariation * materialScale;
 	const x = 8 + ((column + 0.5) / columns) * 84 + horizontalJitter * 0.35;
 	const rowRatio = (row + 0.5) / rows;
 	const y = presentation === 'bubble'

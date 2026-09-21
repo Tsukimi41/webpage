@@ -69,8 +69,11 @@ test('skill showcase derives starting positions from the collection size', async
 	assert.match(source, /const marbleCount = skills\.length - bubbleCount/);
 	assert.doesNotMatch(source, /const bubblePlacements/);
 	assert.doesNotMatch(source, /const marblePlacements/);
-	assert.match(source, /inline-size: min\(94%, 43rem\)/);
-	assert.match(source, /min-block-size: clamp\(30rem, 62vw, 42rem\)/);
+	assert.match(source, /inline-size: min\(90%, 39rem\)/);
+	assert.match(source, /min-block-size: clamp\(21rem, 44vw, 28rem\)/);
+	assert.match(source, /\.skill-field \{ min-block-size: 32rem; \}/);
+	assert.match(source, /\.skill-object--bubble \{ --object-size: min\(var\(--object-base-size\), 3rem\); \}/);
+	assert.match(source, /\.skill-object--marble \{ --object-size: min\(var\(--object-base-size\), 4\.25rem\); \}/);
 	assert.match(source, /\.skill-object--marble \.skill-object__symbol\s*{[^}]*inline-size:\s*52%/s);
 });
 
@@ -89,7 +92,10 @@ test('skill placement stays deterministic, bounded, and distinct as counts grow'
 				placements.every(({ y }) => y >= 4 && y <= (presentation === 'bubble' ? 82 : 56)),
 				true,
 			);
-			assert.equal(placements.every(({ size }) => size >= 2.8 && size <= 8.2), true);
+			assert.equal(placements.every(({ size }) => size >= 2.8 && size <= 9.5), true);
+			if (count > 1) {
+				assert.equal(new Set(placements.map(({ size }) => size)).size, count);
+			}
 			assert.deepEqual(
 				placements,
 				Array.from({ length: count }, (_, index) =>
@@ -101,7 +107,7 @@ test('skill placement stays deterministic, bounded, and distinct as counts grow'
 
 	assert.ok(
 		createSkillObjectPlacement(0, 32, 'marble').size >
-			createSkillObjectPlacement(0, 32, 'bubble').size * 1.2,
+			createSkillObjectPlacement(0, 32, 'bubble').size * 1.4,
 	);
 });
 
