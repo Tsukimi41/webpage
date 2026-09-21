@@ -19,7 +19,9 @@ import {
 	createPublicationReport,
 } from '../src/content/core/publication.ts';
 import {
+	assertNotFoundOutput,
 	assertPublicationOutput,
+	findNotFoundOutputIssues,
 	findPrivateContentMarkers,
 } from '../src/integrations/publication-guard.mjs';
 
@@ -145,6 +147,40 @@ test('publication output guard scans nested output and fails on private content'
 		'<article data-content-state="draft">Private</article>',
 	);
 	await assert.rejects(() => assertPublicationOutput(directoryUrl), /nested.*draft/s);
+});
+
+test('404 output contract rejects indexable or incomplete error pages', () => {
+	const valid = '<meta name="robots" content="noindex, nofollow"><h1 id="not-found-title">Not found</h1>';
+	assert.deepEqual(findNotFoundOutputIssues(valid), []);
+	assert.deepEqual(
+		findNotFoundOutputIssues(
+			'<meta content="index, follow" name="robots"><link href="/404" rel="canonical"><meta content="/404" property="og:url">',
+		),
+		[
+			'robots must be noindex, nofollow',
+			'canonical must be omitted',
+			'og:url must be omitted',
+			'custom 404 heading is missing',
+		],
+	);
+});
+
+test('404 output guard requires a valid generated 404 document', async (context) => {
+	const outputDirectory = await mkdtemp(path.join(tmpdir(), 'not-found-guard-'));
+	context.after(() => rm(outputDirectory, { recursive: true, force: true }));
+	const directoryUrl = pathToFileURL(`${outputDirectory}${path.sep}`);
+
+	await assert.rejects(() => assertNotFoundOutput(directoryUrl), /404\.html is missing/);
+	await writeFile(
+		path.join(outputDirectory, '404.html'),
+		'<meta content="noindex, nofollow" name="robots"><h1 class="error" id="not-found-title">Not found</h1>',
+	);
+	await assert.doesNotReject(() => assertNotFoundOutput(directoryUrl));
+	await writeFile(
+		path.join(outputDirectory, '404.html'),
+		'<meta name="robots" content="index, follow"><h1 id="not-found-title">Not found</h1>',
+	);
+	await assert.rejects(() => assertNotFoundOutput(directoryUrl), /robots must be noindex/);
 });
 
 test('every content-rendering component exposes its state to the output guard', async () => {
