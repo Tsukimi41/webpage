@@ -32,7 +32,13 @@ const Content = entry.Content;
 const pageTitle = `${post.title} | ${profileDisplayName}`;
 ---
 
-<BaseLayout title={pageTitle} description={post.description}>
+<BaseLayout
+	title={pageTitle}
+	description={post.description}
+	pageType="article"
+	publishedAt={post.publishedAt}
+	updatedAt={post.updatedAt}
+>
 	<BlogArticle view={view} headings={headings} relatedPosts={relatedPosts}>
 		<Content />
 	</BlogArticle>
