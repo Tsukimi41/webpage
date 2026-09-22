@@ -26,9 +26,11 @@ const projectHref = createSitePath(import.meta.env.BASE_URL, `/projects/${projec
 
 	<p class="project-card__summary">{project.summary}</p>
 
-	<div class="project-card__details">
-		<SkillLabels skillIds={project.skillIds} />
-	</div>
+	{project.skillIds.length > 0 && (
+		<div class="project-card__details">
+			<SkillLabels skillIds={project.skillIds} />
+		</div>
+	)}
 </article>
 
 <style>

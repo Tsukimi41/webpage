@@ -280,11 +280,17 @@ test('every configured skill uses a concrete local image without a fallback', as
 test('project evidence is resolved from skill ids without duplicating relationships', () => {
 	assert.deepEqual(
 		selectProjectsForSkill(projects, 'markdown').map((project) => project.id),
-		['mock-campus-guide'],
+		['personal-web-development'],
 	);
 	assert.deepEqual(
 		selectProjectsForSkill(projects, 'typescript').map((project) => project.id),
-		['mock-learning-log', 'mock-campus-guide', 'mock-command-notes'],
+		[
+			'team411-upoc',
+			'voice-comic-hackathon',
+			'personal-web-development',
+			'meguru-route-optimization',
+			'smart-beekeeping',
+		],
 	);
 	assert.equal(Object.isFrozen(selectProjectsForSkill(projects, 'css')), true);
 });

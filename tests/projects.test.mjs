@@ -50,11 +50,23 @@ test('project data is deeply frozen at its collection boundaries', () => {
 test('featured query filters and orders projects before applying its limit', () => {
 	assert.deepEqual(
 		getFeaturedProjects().map((project) => project.id),
-		['mock-learning-log', 'mock-campus-guide'],
+		[
+			'robomech-f3rc',
+			'yorumot',
+			'team411-upoc',
+			'voice-comic-hackathon',
+			'personal-web-development',
+			'meguru-route-optimization',
+			'miaou-robot',
+			'drone-programming',
+			'uec-osint-club',
+			'smart-beekeeping',
+			'toward-space',
+		],
 	);
 	assert.deepEqual(
 		getFeaturedProjects({ limit: 1 }).map((project) => project.id),
-		['mock-learning-log'],
+		['robomech-f3rc'],
 	);
 	assert.deepEqual(getFeaturedProjects({ limit: 0 }), []);
 });
@@ -64,12 +76,32 @@ test('project query returns featured and non-featured records in deterministic o
 
 	assert.deepEqual(
 		selectedProjects.map((project) => project.id),
-		['mock-learning-log', 'mock-campus-guide', 'mock-command-notes'],
+		[
+			'scratch-first-programming',
+			'international-life',
+			'ultimate-fruit-catch',
+			'debate-and-model-un',
+			'robomech-f3rc',
+			'yorumot',
+			'embedded-system-practice',
+			'team411-upoc',
+			'voice-comic-hackathon',
+			'personal-web-development',
+			'meguru-route-optimization',
+			'miaou-robot',
+			'drone-programming',
+			'data-science-optimization',
+			'uec-osint-club',
+			'smart-beekeeping',
+			'amateur-radio',
+			'tourism-crossover-contest',
+			'toward-space',
+		],
 	);
 	assert.equal(Object.isFrozen(selectedProjects), true);
 	assert.deepEqual(
 		getProjects({ limit: 2 }).map((project) => project.id),
-		['mock-learning-log', 'mock-campus-guide'],
+		['scratch-first-programming', 'international-life'],
 	);
 	assert.deepEqual(getProjects({ limit: 0 }), []);
 });
@@ -103,7 +135,7 @@ test('project slug query respects content state visibility', () => {
 		findProjectBySlug(records, 'archived-project', { states: ['archived'] })?.id,
 		'archived-project',
 	);
-	assert.equal(getProjectBySlug('learning-log')?.id, 'mock-learning-log');
+	assert.equal(getProjectBySlug('meguru-route-optimization')?.id, 'meguru-route-optimization');
 });
 
 test('project slug query rejects malformed slugs', () => {
@@ -122,7 +154,6 @@ test('featured query rejects invalid limits', () => {
 test('project validation rejects malformed nested data', () => {
 	const invalidProjects = [
 		{ ...validProject, title: ' ' },
-		{ ...validProject, skillIds: [] },
 		{ ...validProject, skillIds: ['css', 'css'] },
 		{ ...validProject, skillIds: ['Type Script'] },
 		{
@@ -174,4 +205,10 @@ test('project skill references reject missing evidence and unsafe public project
 		/non-published skill/,
 	);
 	assert.doesNotThrow(() => assertProjectSkillReferences([validProject], [publishedSkill]));
+});
+
+test('timeline milestones may omit skill labels', () => {
+	const [project] = defineProjectCollection([{ ...validProject, skillIds: [] }]);
+	assert.deepEqual(project.skillIds, []);
+	assert.equal(Object.isFrozen(project.skillIds), true);
 });

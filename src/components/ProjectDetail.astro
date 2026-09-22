@@ -36,18 +36,21 @@ const hasMockData = project.state === 'mock';
 			))}
 		</div>
 
-		<aside class="project-detail__metadata" aria-label="プロジェクト情報">
-			<dl>
-				<div>
-					<dt>使用技術</dt>
-					<dd>
-						<SkillLabels skillIds={project.skillIds} />
-					</dd>
-				</div>
-			</dl>
+		{(project.skillIds.length > 0 || project.links.length > 0) && (
+			<aside class="project-detail__metadata" aria-label="プロジェクト情報">
+				{project.skillIds.length > 0 && (
+					<dl>
+						<div>
+							<dt>使用技術</dt>
+							<dd>
+								<SkillLabels skillIds={project.skillIds} />
+							</dd>
+						</div>
+					</dl>
+				)}
 
-			{project.links.length > 0 && (
-				<nav aria-label="プロジェクト関連リンク">
+				{project.links.length > 0 && (
+					<nav aria-label="プロジェクト関連リンク">
 					<p class="project-detail__link-label">関連リンク</p>
 					<ul role="list">
 						{project.links.map((link) => {
@@ -67,9 +70,10 @@ const hasMockData = project.state === 'mock';
 							);
 						})}
 					</ul>
-				</nav>
-			)}
-		</aside>
+					</nav>
+				)}
+			</aside>
+		)}
 	</div>
 </article>
 

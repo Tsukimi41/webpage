@@ -139,7 +139,7 @@ test('blog query supports state filtering, limits, and slug lookup', () => {
 		findBlogPostBySlug(records, 'archived-post', { states: ['archived'] })?.id,
 		'archived-post',
 	);
-	assert.equal(getBlogPostBySlug('astro-foundation-notes')?.id, 'mock-astro-foundation-notes');
+	assert.equal(getBlogPostBySlug('astro-foundation-notes')?.id, 'astro-foundation-notes');
 });
 
 test('blog query rejects malformed slugs and limits', () => {
@@ -204,11 +204,11 @@ test('blog tag relations reject broken references, state mismatches, and unused 
 test('tag and related-post queries remain deterministic', () => {
 	assert.deepEqual(
 		getBlogPostsForTag('astro').map((post) => post.id),
-		['mock-astro-foundation-notes'],
+		['astro-foundation-notes'],
 	);
 	assert.deepEqual(
 		getRelatedBlogPosts('mock-accessible-motion-notes').map((post) => post.id),
-		['mock-astro-foundation-notes'],
+		['astro-foundation-notes'],
 	);
 	assert.equal(Object.isFrozen(getRelatedBlogPosts('mock-accessible-motion-notes')), true);
 	assert.throws(() => getRelatedBlogPosts('missing-post'), /No blog post found/);

@@ -14,11 +14,9 @@ import {
 test('article feed combines project details and blog posts without duplicating their source data', () => {
 	const items = getArticleFeed();
 
-	assert.equal(items.length, 6);
-	assert.deepEqual(
-		items.map((item) => item.sourceKind),
-		['project', 'project', 'project', 'blog', 'blog', 'blog'],
-	);
+	assert.equal(items.length, 24);
+	assert.equal(items.filter((item) => item.sourceKind === 'project').length, 19);
+	assert.equal(items.filter((item) => item.sourceKind === 'blog').length, 5);
 	assert.equal(items.every((item) => item.href), true);
 	assert.equal(
 		items.filter((item) => item.sourceKind === 'blog').every((item) => item.href?.startsWith('/articles/')),
@@ -29,13 +27,10 @@ test('article feed combines project details and blog posts without duplicating t
 });
 
 test('article feed supports state filtering and a deterministic limit', () => {
-	assert.deepEqual(
-		getArticleFeed({ states: ['published'] }),
-		[],
-	);
+	assert.equal(getArticleFeed({ states: ['published'] }).length, 19);
 	assert.deepEqual(
 		getArticleFeed({ limit: 2 }).map((item) => item.id),
-		['project-mock-learning-log', 'project-mock-campus-guide'],
+		['project-scratch-first-programming', 'project-international-life'],
 	);
 	assert.deepEqual(getArticleFeed({ limit: 0 }), []);
 	assert.throws(() => getArticleFeed({ limit: -1 }), /non-negative safe integer/);
@@ -45,16 +40,14 @@ test('article feed supports state filtering and a deterministic limit', () => {
 test('article index carries normalized searchable topics without copying source content', () => {
 	const items = getArticleIndex();
 
-	assert.equal(items.length, 6);
+	assert.equal(items.length, 24);
 	assert.deepEqual(
-		items.map((item) => item.id),
+		items.slice(0, 4).map((item) => item.id),
 		[
-			'project-mock-learning-log',
-			'project-mock-campus-guide',
-			'project-mock-command-notes',
-			'blog-mock-command-notes',
-			'blog-mock-accessible-motion-notes',
-			'blog-mock-astro-foundation-notes',
+			'project-scratch-first-programming',
+			'project-international-life',
+			'project-ultimate-fruit-catch',
+			'project-debate-and-model-un',
 		],
 	);
 	assert.equal(items.every(Object.isFrozen), true);
@@ -93,20 +86,27 @@ test('article search normalizes text and combines query, kind, and topic filters
 	assert.equal(normalizeArticleSearchText('  ＡＳＴＲＯ   TypeScript  '), 'astro typescript');
 	assert.equal(parseArticleSearchKind('project'), 'project');
 	assert.equal(parseArticleSearchKind('unsupported'), 'all');
-	assert.equal(filterArticleSearch(items).length, 6);
+	assert.equal(filterArticleSearch(items).length, 24);
 	assert.deepEqual(
 		filterArticleSearch(items, { query: 'Astro TypeScript' }).map((item) => item.id),
-		['project-mock-learning-log', 'project-mock-campus-guide', 'blog-mock-astro-foundation-notes'],
+		['project-personal-web-development', 'project-smart-beekeeping', 'blog-astro-foundation-notes'],
 	);
 	assert.deepEqual(
 		filterArticleSearch(items, { kind: 'blog' }).map((item) => item.id),
-		['blog-mock-command-notes', 'blog-mock-accessible-motion-notes', 'blog-mock-astro-foundation-notes'],
+		[
+			'blog-arch1',
+			'blog-my-first-post',
+			'blog-mock-command-notes',
+			'blog-mock-accessible-motion-notes',
+			'blog-astro-foundation-notes',
+		],
 	);
 	assert.deepEqual(
 		filterArticleSearch(items, { kind: 'project', topicId: 'markdown' }).map((item) => item.id),
-		['project-mock-campus-guide'],
+		['project-personal-web-development'],
 	);
 	assert.deepEqual(filterArticleSearch(items, { query: '存在しない検索語' }), []);
 	assert.equal(Object.isFrozen(filterArticleSearch(items)), true);
-	assert.equal(matchesArticleSearch(items[0], { query: '学習', topicId: 'astro' }), true);
+	const portfolio = items.find((item) => item.id === 'project-personal-web-development');
+	assert.equal(matchesArticleSearch(portfolio, { query: 'ポートフォリオ', topicId: 'astro' }), true);
 });

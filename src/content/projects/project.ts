@@ -58,10 +58,6 @@ function normalizeTextList(values: readonly string[], fieldPath: string): readon
 }
 
 function normalizeContentIdList(values: readonly string[], fieldPath: string): readonly string[] {
-	if (values.length === 0) {
-		throw new Error(`${fieldPath} must contain at least one item.`);
-	}
-
 	const usedIds = new Set<string>();
 
 	return Object.freeze(
