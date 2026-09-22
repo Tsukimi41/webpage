@@ -1,3 +1,7 @@
+---
+sourceId: arch2
+---
+
 ## Arch Linuxを入れようとしたら、家にあるUSBメモリが古かった
 
 前回、Arch Linuxを本格的に使ってみることにした。秋葉原で中古のDell Latitude 7420を買って、こいつをArch Linux専用機にする。

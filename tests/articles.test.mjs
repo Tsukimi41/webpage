@@ -14,9 +14,9 @@ import {
 test('article feed combines project details and blog posts without duplicating their source data', () => {
 	const items = getArticleFeed();
 
-	assert.equal(items.length, 24);
+	assert.equal(items.length, 25);
 	assert.equal(items.filter((item) => item.sourceKind === 'project').length, 19);
-	assert.equal(items.filter((item) => item.sourceKind === 'blog').length, 5);
+	assert.equal(items.filter((item) => item.sourceKind === 'blog').length, 6);
 	assert.equal(items.every((item) => item.href), true);
 	assert.equal(
 		items.filter((item) => item.sourceKind === 'blog').every((item) => item.href?.startsWith('/articles/')),
@@ -27,7 +27,7 @@ test('article feed combines project details and blog posts without duplicating t
 });
 
 test('article feed supports state filtering and a deterministic limit', () => {
-	assert.equal(getArticleFeed({ states: ['published'] }).length, 19);
+	assert.equal(getArticleFeed({ states: ['published'] }).length, 22);
 	assert.deepEqual(
 		getArticleFeed({ limit: 2 }).map((item) => item.id),
 		['project-scratch-first-programming', 'project-international-life'],
@@ -40,7 +40,7 @@ test('article feed supports state filtering and a deterministic limit', () => {
 test('article index carries normalized searchable topics without copying source content', () => {
 	const items = getArticleIndex();
 
-	assert.equal(items.length, 24);
+	assert.equal(items.length, 25);
 	assert.deepEqual(
 		items.slice(0, 4).map((item) => item.id),
 		[
@@ -86,7 +86,7 @@ test('article search normalizes text and combines query, kind, and topic filters
 	assert.equal(normalizeArticleSearchText('  ＡＳＴＲＯ   TypeScript  '), 'astro typescript');
 	assert.equal(parseArticleSearchKind('project'), 'project');
 	assert.equal(parseArticleSearchKind('unsupported'), 'all');
-	assert.equal(filterArticleSearch(items).length, 24);
+	assert.equal(filterArticleSearch(items).length, 25);
 	assert.deepEqual(
 		filterArticleSearch(items, { query: 'Astro TypeScript' }).map((item) => item.id),
 		['project-personal-web-development', 'project-smart-beekeeping', 'blog-astro-foundation-notes'],
@@ -94,6 +94,7 @@ test('article search normalizes text and combines query, kind, and topic filters
 	assert.deepEqual(
 		filterArticleSearch(items, { kind: 'blog' }).map((item) => item.id),
 		[
+			'blog-arch2',
 			'blog-arch1',
 			'blog-my-first-post',
 			'blog-mock-command-notes',

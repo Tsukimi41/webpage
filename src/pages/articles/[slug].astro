@@ -3,6 +3,7 @@ import BlogArticle from '../../components/BlogArticle.astro';
 import {
 	createBlogPostView,
 	createBlogPostViews,
+	blogPosts,
 	getBlogPosts,
 	getRelatedBlogPosts,
 	type BlogPostDefinition,
@@ -23,8 +24,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const posts = getBlogPosts();
-const entry = getBlogEntry(post, posts);
+const entry = getBlogEntry(post, blogPosts);
 const headings = await entry.getHeadings();
 const relatedPosts = createBlogPostViews(getRelatedBlogPosts(post.id));
 const view = createBlogPostView(post);
