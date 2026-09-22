@@ -224,6 +224,13 @@ test('every configured skill uses a concrete local image without a fallback', as
 			'xampp-control-panel': '/icons/skills/xampp-control-panel.svg',
 		},
 	);
+
+	const rosIcon = await readFile(new URL('../public/icons/skills/ros-2.svg', import.meta.url), 'utf8');
+	const pythonIcon = await readFile(new URL('../public/icons/skills/python.svg', import.meta.url), 'utf8');
+	assert.match(rosIcon, /viewBox="0 0 24 24"/);
+	assert.match(pythonIcon, /viewBox="0 0 128 128"/);
+	assert.doesNotMatch(rosIcon, /<rect[^>]+fill="#f8fafc"/);
+	assert.doesNotMatch(pythonIcon, /<rect[^>]+fill="#f8fafc"/);
 });
 
 test('project evidence is resolved from skill ids without duplicating relationships', () => {

@@ -74,7 +74,8 @@ test('skill showcase derives starting positions from the collection size', async
 	assert.match(source, /\.skill-field \{ min-block-size: 32rem; \}/);
 	assert.match(source, /\.skill-object--bubble \{ --object-size: min\(var\(--object-base-size\), 3rem\); \}/);
 	assert.match(source, /\.skill-object--marble \{ --object-size: min\(var\(--object-base-size\), 4\.25rem\); \}/);
-	assert.match(source, /\.skill-object--marble \.skill-object__symbol\s*{[^}]*inline-size:\s*52%/s);
+	assert.match(source, /\.skill-object__symbol\s*{[^}]*inline-size:\s*72%/s);
+	assert.match(source, /\.skill-object--marble \.skill-object__symbol\s*{[^}]*inline-size:\s*76%/s);
 });
 
 test('skill placement stays deterministic, bounded, and distinct as counts grow', () => {

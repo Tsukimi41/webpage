@@ -73,11 +73,12 @@ function createCollectionIcon(title, iconSet, iconName, color, provenance) {
 	const icon = iconSet.icons[iconName];
 	if (!icon) throw new Error(`Missing icon glyph: ${iconName}`);
 	const body = color ? icon.body.replaceAll('currentColor', color) : icon.body;
+	const iconWidth = icon.width ?? iconSet.width ?? 24;
+	const iconHeight = icon.height ?? iconSet.height ?? iconWidth;
 
 	return svgDocument(
 		title,
-		`<rect width="128" height="128" rx="26" fill="#f8fafc"/>
-	<svg x="18" y="18" width="92" height="92" viewBox="0 0 128 128" preserveAspectRatio="xMidYMid meet">${body}</svg>`,
+		`<svg x="2" y="2" width="124" height="124" viewBox="0 0 ${iconWidth} ${iconHeight}" preserveAspectRatio="xMidYMid meet">${body}</svg>`,
 		provenance,
 	);
 }
