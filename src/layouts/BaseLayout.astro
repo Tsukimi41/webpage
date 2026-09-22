@@ -6,6 +6,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteSidebar from '../components/SiteSidebar.astro';
 import {
 	createCanonicalUrl,
+	createSitePath,
 	defineSiteUrl,
 	serializeJsonLd,
 	siteMetadata,
@@ -35,11 +36,12 @@ const {
 	showSidebar = true,
 } = Astro.props;
 const siteUrl = defineSiteUrl(import.meta.env.PUBLIC_SITE_URL);
-const siteHref = Astro.site?.href ?? siteUrl.href;
+const siteHref = siteUrl.href;
 const canonicalUrl = createCanonicalUrl(siteHref, Astro.url.pathname);
 const isIndexable = indexing === 'auto' && siteUrl.isPublic;
 const robotsContent = isIndexable ? 'index, follow' : 'noindex, nofollow';
-const rssUrl = new URL('/rss.xml', siteHref).href;
+const rssUrl = createCanonicalUrl(siteHref, '/rss.xml');
+const faviconPath = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 const structuredData = serializeJsonLd({
 	'@context': 'https://schema.org',
 	'@type': 'WebSite',
@@ -57,7 +59,7 @@ const structuredData = serializeJsonLd({
 <!doctype html>
 <html lang={lang}>
 	<head>
-		<link rel="icon" href={profile.icon.src} />
+		<link rel="icon" href={faviconPath} />
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const sourceUrl = (path) => new URL(`../${path}`, import.meta.url);
@@ -27,28 +27,29 @@ test('long-form posts are published as Articles and retain topic and related lin
 	assert.match(queries, /href: `\/articles\/\$\{post\.slug\}\//);
 	assert.match(articlePage, /getBlogEntry/);
 	assert.match(articlePage, /getRelatedBlogPosts/);
-	assert.match(articleBody, /href="\/articles\/">記事一覧へ戻る/);
-	assert.match(articleBody, /href=\{`\/articles\/\?topic=\$\{encodeURIComponent\(tag\.id\)\}`\}/);
-	assert.match(articleBody, /href=\{`\/articles\/\$\{relatedPost\.slug\}\//);
+	assert.match(articleBody, /const articlesHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/articles\/'\)/);
+	assert.match(articleBody, /href=\{articlesHref\}>記事一覧へ戻る/);
+	assert.match(articleBody, /createSitePath\(import\.meta\.env\.BASE_URL, `\/articles\/\?topic=\$\{encodeURIComponent\(tag\.id\)\}`\)/);
+	assert.match(articleBody, /createSitePath\(import\.meta\.env\.BASE_URL, `\/articles\/\$\{relatedPost\.slug\}\//);
 	assert.doesNotMatch(articleBody, /href=\{?`?\/blog\//);
 });
 
-test('legacy Blog pages are removed and covered by configured redirects', async () => {
-	const config = await readFile(sourceUrl('astro.config.mjs'), 'utf8');
-	const removedPages = [
-		'src/pages/blog/index.astro',
-		'src/pages/blog/[slug].astro',
-		'src/pages/blog/tags/index.astro',
-		'src/pages/blog/tags/[tag].astro',
-	];
+test('legacy Blog pages redirect safely under the configured deployment base', async () => {
+	const [redirectComponent, blogIndex, blogPost, tagIndex, tagPage] = await Promise.all([
+		readFile(sourceUrl('src/components/LegacyRedirect.astro'), 'utf8'),
+		readFile(sourceUrl('src/pages/blog/index.astro'), 'utf8'),
+		readFile(sourceUrl('src/pages/blog/[slug].astro'), 'utf8'),
+		readFile(sourceUrl('src/pages/blog/tags/index.astro'), 'utf8'),
+		readFile(sourceUrl('src/pages/blog/tags/[tag].astro'), 'utf8'),
+	]);
 
-	assert.match(config, /'\/blog': '\/articles'/);
-	assert.match(config, /'\/blog\/tags': '\/articles'/);
-	assert.match(config, /'\/blog\/\[slug\]': '\/articles\/\[slug\]'/);
-
-	for (const page of removedPages) {
-		await assert.rejects(() => access(sourceUrl(page)));
-	}
+	assert.match(redirectComponent, /createSitePath\(import\.meta\.env\.BASE_URL, target\)/);
+	assert.match(redirectComponent, /http-equiv="refresh" content=\{`0;url=\$\{destination\}`\}/);
+	assert.match(redirectComponent, /name="robots" content="noindex, follow"/);
+	assert.match(blogIndex, /target="\/articles\/"/);
+	assert.match(blogPost, /target=\{`\/articles\/\$\{post\.slug\}\//);
+	assert.match(tagIndex, /target="\/articles\/"/);
+	assert.match(tagPage, /target=\{`\/articles\/\?topic=\$\{encodeURIComponent\(tag\.id\)\}`\}/);
 });
 
 test('RSS and sitemap publish only canonical Article URLs', async () => {

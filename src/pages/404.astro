@@ -1,5 +1,6 @@
 ---
 import SectionHeading from '../components/SectionHeading.astro';
+import { createSitePath } from '../config/site';
 import { profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
@@ -12,6 +13,7 @@ const destinations = [
 	{ href: '/articles/', label: 'Articles', description: 'すべての記事を探す' },
 	{ href: '/profile/', label: 'Profile', description: 'プロフィールを見る' },
 ] as const;
+const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription} indexing="disabled" showSidebar={false}>
@@ -23,7 +25,7 @@ const destinations = [
 			</p>
 		</header>
 
-		<form class="not-found__search" action="/articles/" method="get" role="search">
+		<form class="not-found__search" action={articlesHref} method="get" role="search">
 			<label for="not-found-search">記事を検索</label>
 			<div class="not-found__search-controls">
 				<input
@@ -42,7 +44,7 @@ const destinations = [
 			<ul role="list">
 				{destinations.map((destination) => (
 					<li>
-						<a href={destination.href}>
+						<a href={createSitePath(import.meta.env.BASE_URL, destination.href)}>
 							<span>{destination.label}</span>
 							<small>{destination.description}</small>
 						</a>

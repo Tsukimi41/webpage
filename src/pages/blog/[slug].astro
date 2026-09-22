@@ -1,0 +1,19 @@
+---
+import LegacyRedirect from '../../components/LegacyRedirect.astro';
+import { getBlogPosts, type BlogPostDefinition } from '../../content/blog';
+
+export function getStaticPaths() {
+	return getBlogPosts().map((post) => ({
+		params: { slug: post.slug },
+		props: { post },
+	}));
+}
+
+interface Props {
+	post: BlogPostDefinition;
+}
+
+const { post } = Astro.props;
+---
+
+<LegacyRedirect target={`/articles/${post.slug}/`} />

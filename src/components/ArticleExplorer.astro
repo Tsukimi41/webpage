@@ -1,4 +1,5 @@
 ---
+import { createSitePath } from '../config/site';
 import type { ArticleIndexItem, ArticleTopicFacet } from '../content/articles';
 import ArticleIndexCard from './ArticleIndexCard.astro';
 import SectionHeading from './SectionHeading.astro';
@@ -9,10 +10,11 @@ interface Props {
 }
 
 const { items, topics } = Astro.props;
+const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 ---
 
 <section class="article-explorer" data-article-explorer data-enhanced="false" aria-labelledby="article-results-title">
-	<form class="article-explorer__controls" data-search-form action="/articles/" method="get" role="search">
+	<form class="article-explorer__controls" data-search-form action={articlesHref} method="get" role="search">
 		<div class="article-explorer__search-field">
 			<label for="article-search">記事を検索</label>
 			<input

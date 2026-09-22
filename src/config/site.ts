@@ -34,9 +34,15 @@ function parsePublicSiteUrl(value: string): URL {
 		throw new Error(`${SITE_URL_ENV_NAME} must not contain credentials.`);
 	}
 
-	if (url.pathname !== '/' || url.search || url.hash) {
-		throw new Error(`${SITE_URL_ENV_NAME} must be an origin without a path, query, or hash.`);
+	if (url.search || url.hash) {
+		throw new Error(`${SITE_URL_ENV_NAME} must not contain a query or hash.`);
 	}
+
+	if (url.pathname.includes('\\') || /\s/.test(url.pathname)) {
+		throw new Error(`${SITE_URL_ENV_NAME} must contain a clean deployment path.`);
+	}
+
+	if (!url.pathname.endsWith('/')) url.pathname += '/';
 
 	return url;
 }
@@ -60,15 +66,33 @@ export function createCanonicalUrl(siteHref: string, pathname: string): string {
 		throw new Error(`Canonical site URL must use HTTPS or the local fallback: ${siteHref}`);
 	}
 
-	if (site.pathname !== '/' || site.search || site.hash) {
-		throw new Error(`Canonical site URL must be an origin: ${siteHref}`);
+	if (!site.pathname.endsWith('/') || site.search || site.hash) {
+		throw new Error(`Canonical site URL must be a normalized site root: ${siteHref}`);
 	}
 
 	if (!pathname.startsWith('/') || pathname.startsWith('//') || /[\s?#]/.test(pathname)) {
 		throw new Error(`Canonical pathname must be a clean site-relative path: ${pathname}`);
 	}
 
-	return new URL(pathname, site).href;
+	const siteBasePath = site.pathname === '/' ? '' : site.pathname.slice(0, -1);
+	const routePath = siteBasePath !== '' && (pathname === siteBasePath || pathname.startsWith(`${siteBasePath}/`))
+		? pathname.slice(siteBasePath.length) || '/'
+		: pathname;
+
+	return new URL(routePath.slice(1), site).href;
+}
+
+export function createSitePath(basePath: string, pathname: string): `/${string}` {
+	if (!basePath.startsWith('/') || basePath.startsWith('//') || /[\s?#]/.test(basePath)) {
+		throw new Error(`Base path must be a clean site-relative path: ${basePath}`);
+	}
+
+	if (!pathname.startsWith('/') || pathname.startsWith('//') || /\s/.test(pathname)) {
+		throw new Error(`Pathname must be a site-relative path: ${pathname}`);
+	}
+
+	const normalizedBase = basePath === '/' ? '' : `/${basePath.split('/').filter(Boolean).join('/')}`;
+	return `${normalizedBase}${pathname}` as `/${string}`;
 }
 
 export function serializeJsonLd(value: unknown): string {

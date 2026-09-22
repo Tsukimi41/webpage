@@ -5,13 +5,11 @@ import { defineSiteUrl } from './src/config/site.ts';
 import publicationGuard from './src/integrations/publication-guard.mjs';
 
 const siteUrl = defineSiteUrl(process.env.PUBLIC_SITE_URL);
+const deploymentUrl = new URL(siteUrl.href);
+const base = deploymentUrl.pathname === '/' ? '/' : deploymentUrl.pathname.slice(0, -1);
 
 export default defineConfig({
-	site: siteUrl.href,
+	site: deploymentUrl.origin,
+	base,
 	integrations: [icon(), publicationGuard()],
-	redirects: {
-		'/blog': '/articles',
-		'/blog/tags': '/articles',
-		'/blog/[slug]': '/articles/[slug]',
-	},
 });

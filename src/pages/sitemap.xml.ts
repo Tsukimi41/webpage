@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
+import { defineSiteUrl } from '../config/site.ts';
 import { getBlogPosts } from '../content/blog/index.ts';
 import { getProjects } from '../content/projects/index.ts';
 import { createSitemapDocument } from '../publication/documents.ts';
 
-export const GET = (({ site }) => {
-	if (!site) throw new Error('Astro site URL is required to generate a sitemap.');
+export const GET = (() => {
+	const siteUrl = defineSiteUrl(import.meta.env.PUBLIC_SITE_URL);
 
 	const posts = getBlogPosts();
 	const entries = [
@@ -19,7 +20,7 @@ export const GET = (({ site }) => {
 		})),
 	];
 
-	return new Response(createSitemapDocument(site.href, entries), {
+	return new Response(createSitemapDocument(siteUrl.href, entries), {
 		headers: { 'Content-Type': 'application/xml; charset=utf-8' },
 	});
 }) satisfies APIRoute;

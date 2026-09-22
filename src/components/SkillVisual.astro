@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { createSitePath } from '../config/site';
 import type { SkillVisualDefinition } from '../content/skills';
 
 interface Props {
@@ -7,6 +8,9 @@ interface Props {
 }
 
 const { visual } = Astro.props;
+const visualSrc = visual.kind === 'image' && !visual.src.startsWith('https://')
+	? createSitePath(import.meta.env.BASE_URL, visual.src)
+	: visual.kind === 'image' ? visual.src : undefined;
 ---
 
 <span
@@ -20,7 +24,7 @@ const { visual } = Astro.props;
 			<img
 				class="skill-visual__image"
 				data-skill-visual-image
-				src={visual.src}
+				src={visualSrc}
 				alt={visual.alt}
 				width={visual.width}
 				height={visual.height}

@@ -44,7 +44,8 @@ test('base layout includes shared header, main content, and footer', async () =>
 	assert.match(source, /<main>/);
 	assert.match(source, /<SiteFooter \/>/);
 	assert.match(source, /<body id="site-top">/);
-	assert.match(source, /href=\{profile\.icon\.src\}/);
+	assert.match(source, /const faviconPath = createSitePath\(import\.meta\.env\.BASE_URL, profile\.icon\.src\)/);
+	assert.match(source, /href=\{faviconPath\}/);
 });
 
 test('shared navigation exposes home, profile, articles, theme, and back-to-top links', async () => {
@@ -55,9 +56,10 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 		readFile(backToTopUrl, 'utf8'),
 	]);
 
-	assert.match(header, /href="\/"[^>]*>Home</);
-	assert.match(header, /href="\/profile\/"[^>]*>Profile</);
-	assert.match(header, /href="\/articles\/"[^>]*>Articles</);
+	assert.match(header, /const homeHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/'\)/);
+	assert.match(header, /href=\{homeHref\}[^>]*>Home</);
+	assert.match(header, /href=\{profileHref\}[^>]*>Profile</);
+	assert.match(header, /href=\{articlesHref\}[^>]*>Articles</);
 	assert.doesNotMatch(header, /href="\/blog\/"|>Blog</);
 	assert.match(header, /<ThemeSwitcher \/>/);
 	assert.match(header, /\.site-header__nav \{[\s\S]*margin-inline-start: auto/);
@@ -68,7 +70,7 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" variant="footer" \/>/);
 	assert.match(footer, /<BackToTopLink \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
-	assert.match(footer, /href="\/articles\/">Articles</);
+	assert.match(footer, /href=\{articlesHref\}>Articles</);
 	assert.doesNotMatch(footer, /href="\/blog\/"|>Blog</);
 	assert.doesNotMatch(footer, /site-footer__top|site-footer__top-icon/);
 	assert.match(footer, /class="site-footer__site-nav"/);
@@ -87,7 +89,7 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	assert.match(footer, /:global\(\.social-links--footer\) \{[\s\S]*?margin-block-start: 0;[\s\S]*?animation: none/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
-			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href="/">Home'),
+			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href={homeHref}>Home'),
 	);
 	assert.match(backToTop, /href = '#site-top'/);
 	assert.match(backToTop, /label = '一番上へ戻る'/);
@@ -104,7 +106,8 @@ test('profile introduction places the favicon icon beside readable profile conte
 
 	assert.match(source, /class="introduction__content"/);
 	assert.match(source, /class="introduction__visual"/);
-	assert.match(source, /class="introduction__icon"[\s\S]*src=\{profile\.icon\.src\}/);
+	assert.match(source, /const iconSrc = createSitePath\(import\.meta\.env\.BASE_URL, profile\.icon\.src\)/);
+	assert.match(source, /class="introduction__icon"[\s\S]*src=\{iconSrc\}/);
 	assert.match(source, /width=\{profile\.icon\.width\}/);
 	assert.match(source, /height=\{profile\.icon\.height\}/);
 	assert.match(source, /alt=\{`\$\{profile\.handle\} \/ \$\{profile\.penName\} のアイコン`\}/);

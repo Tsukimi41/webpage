@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
 	LOCAL_SITE_URL,
 	createCanonicalUrl,
+	createSitePath,
 	defineSiteUrl,
 	serializeJsonLd,
 	siteMetadata,
@@ -27,6 +28,10 @@ test('site URL configuration is safe by default and normalizes a public HTTPS or
 		href: 'https://portfolio.example/',
 		isPublic: true,
 	});
+	assert.deepEqual(defineSiteUrl(' https://portfolio.example/site '), {
+		href: 'https://portfolio.example/site/',
+		isPublic: true,
+	});
 	assert.ok(Object.isFrozen(siteMetadata));
 });
 
@@ -35,7 +40,6 @@ test('site URL configuration rejects unsafe, partial, and non-origin values', ()
 		'portfolio.example',
 		'http://portfolio.example',
 		'https://user:secret@portfolio.example',
-		'https://portfolio.example/path',
 		'https://portfolio.example/?query=yes',
 		'https://portfolio.example/#section',
 	]) {
@@ -49,13 +53,39 @@ test('canonical URLs accept clean paths and reject ambiguous inputs', () => {
 		'https://portfolio.example/blog/post/',
 	);
 	assert.equal(createCanonicalUrl(LOCAL_SITE_URL, '/'), LOCAL_SITE_URL);
+	assert.equal(
+		createCanonicalUrl('https://portfolio.example/site/', '/articles/post/'),
+		'https://portfolio.example/site/articles/post/',
+	);
+	assert.equal(
+		createCanonicalUrl('https://portfolio.example/site/', '/site/articles/post/'),
+		'https://portfolio.example/site/articles/post/',
+	);
 
 	for (const pathname of ['blog/', '//outside.example/', '/blog/?page=1', '/blog/#top', '/bad path/']) {
 		assert.throws(() => createCanonicalUrl('https://portfolio.example/', pathname));
 	}
 
 	assert.throws(() => createCanonicalUrl('http://portfolio.example/', '/'));
-	assert.throws(() => createCanonicalUrl('https://portfolio.example/base/', '/'));
+	assert.throws(() => createCanonicalUrl('https://portfolio.example/base', '/'));
+});
+
+test('site paths include the configured deployment base exactly once', () => {
+	assert.equal(createSitePath('/', '/articles/'), '/articles/');
+	assert.equal(createSitePath('/webpage', '/articles/'), '/webpage/articles/');
+	assert.equal(
+		createSitePath('/webpage/', '/articles/?topic=astro'),
+		'/webpage/articles/?topic=astro',
+	);
+
+	for (const [basePath, pathname] of [
+		['webpage', '/articles/'],
+		['//outside.example', '/articles/'],
+		['/webpage', 'articles/'],
+		['/webpage', '//outside.example/'],
+	]) {
+		assert.throws(() => createSitePath(basePath, pathname));
+	}
 });
 
 test('JSON-LD and XML serializers neutralize markup characters', () => {
@@ -173,7 +203,8 @@ test('base layout exposes canonical, robots, sharing, RSS, and JSON-LD metadata'
 	assert.match(layout, /name="twitter:card"/);
 	assert.match(layout, /application\/ld\+json/);
 	assert.match(layout, /application\/rss\+xml/);
-	assert.match(footer, /href="\/rss\.xml">RSS</);
+	assert.match(footer, /const rssHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/rss\.xml'\)/);
+	assert.match(footer, /href=\{rssHref\}>RSS</);
 	assert.match(blogPage, /pageType="article"/);
 	assert.match(blogPage, /publishedAt=\{post\.publishedAt\}/);
 	assert.match(

@@ -1,5 +1,6 @@
 ---
 import ProjectDetail from '../../components/ProjectDetail.astro';
+import { createSitePath } from '../../config/site';
 import { getProjects, type ProjectDefinition } from '../../content/projects';
 import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -18,10 +19,11 @@ interface Props {
 const { project } = Astro.props;
 const pageTitle = `${project.title} | ${profileDisplayName}`;
 const pageDescription = project.summary;
+const projectsHref = createSitePath(import.meta.env.BASE_URL, '/projects/');
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
-	<a class="project-page__back" href="/projects/">プロジェクト一覧へ戻る</a>
+	<a class="project-page__back" href={projectsHref}>プロジェクト一覧へ戻る</a>
 	<ProjectDetail project={project} />
 </BaseLayout>
 

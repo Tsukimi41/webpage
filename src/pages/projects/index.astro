@@ -2,6 +2,7 @@
 import ContentStateNotice from '../../components/ContentStateNotice.astro';
 import ProjectGrid from '../../components/ProjectGrid.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
+import { createSitePath } from '../../config/site';
 import { getProjects } from '../../content/projects';
 import { profileDisplayName } from '../../data/profile';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -10,11 +11,12 @@ const pageTitle = `プロジェクト | ${profileDisplayName}`;
 const pageDescription = `${profileDisplayName}のプロジェクト一覧。制作物の概要、使用技術を掲載しています。`;
 const projects = getProjects();
 const includesMockData = projects.some((project) => project.state === 'mock');
+const homeHref = createSitePath(import.meta.env.BASE_URL, '/');
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<div class="projects-page">
-		<a class="projects-page__back" href="/">ホームへ戻る</a>
+		<a class="projects-page__back" href={homeHref}>ホームへ戻る</a>
 
 		<header class="projects-page__header">
 			<div>

@@ -1,7 +1,13 @@
 ---
+import { createSitePath } from '../config/site';
 import { profileDisplayName } from '../data/profile';
 import BackToTopLink from './BackToTopLink.astro';
 import SocialLinks from './SocialLinks.astro';
+
+const homeHref = createSitePath(import.meta.env.BASE_URL, '/');
+const profileHref = createSitePath(import.meta.env.BASE_URL, '/profile/');
+const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
+const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 ---
 
 <footer class="site-footer">
@@ -11,10 +17,10 @@ import SocialLinks from './SocialLinks.astro';
 				<SocialLinks accessibleLabel="外部プロフィール" variant="footer" />
 				<span class="site-footer__divider" aria-hidden="true"></span>
 				<nav class="site-footer__nav" aria-label="フッターメニュー">
-					<a href="/">Home</a>
-					<a href="/profile/">Profile</a>
-					<a href="/articles/">Articles</a>
-					<a href="/rss.xml">RSS</a>
+					<a href={homeHref}>Home</a>
+					<a href={profileHref}>Profile</a>
+					<a href={articlesHref}>Articles</a>
+					<a href={rssHref}>RSS</a>
 				</nav>
 			</div>
 			<BackToTopLink />

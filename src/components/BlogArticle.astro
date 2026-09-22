@@ -1,4 +1,5 @@
 ---
+import { createSitePath } from '../config/site';
 import type { BlogPostView } from '../content/blog';
 import ContentStateNotice from './ContentStateNotice.astro';
 import SectionHeading from './SectionHeading.astro';
@@ -19,10 +20,11 @@ const { view, headings, relatedPosts = [] } = Astro.props;
 const { post, tags } = view;
 const tableOfContents = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const formatDate = (date: string): string => date.replaceAll('-', '.');
+const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 ---
 
 <article class="blog-article" data-content-state={post.state}>
-	<a class="blog-article__back" href="/articles/">記事一覧へ戻る</a>
+	<a class="blog-article__back" href={articlesHref}>記事一覧へ戻る</a>
 
 	<header class="blog-article__header">
 		<div class="blog-article__heading">
@@ -41,7 +43,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 		{tags.length > 0 && (
 			<ul class="blog-article__tags" aria-label="タグ" role="list">
 				{tags.map((tag) => (
-					<li><a href={`/articles/?topic=${encodeURIComponent(tag.id)}`}>{tag.label}</a></li>
+					<li><a href={createSitePath(import.meta.env.BASE_URL, `/articles/?topic=${encodeURIComponent(tag.id)}`)}>{tag.label}</a></li>
 				))}
 			</ul>
 		)}
@@ -74,7 +76,7 @@ const formatDate = (date: string): string => date.replaceAll('-', '.');
 			<ul role="list">
 				{relatedPosts.map(({ post: relatedPost }) => (
 					<li>
-						<a href={`/articles/${relatedPost.slug}/`}>
+						<a href={createSitePath(import.meta.env.BASE_URL, `/articles/${relatedPost.slug}/`)}>
 							<span>{relatedPost.title}</span>
 							<time datetime={relatedPost.publishedAt}>{formatDate(relatedPost.publishedAt)}</time>
 						</a>

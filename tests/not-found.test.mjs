@@ -27,7 +27,9 @@ test('404 page is explicitly non-indexable and never reflects the missing URL', 
 test('404 page offers bounded article search and all primary recovery links', async () => {
 	const source = await readFile(notFoundUrl, 'utf8');
 
-	assert.match(source, /action="\/articles\/" method="get" role="search"/);
+	assert.match(source, /const articlesHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/articles\/'\)/);
+	assert.match(source, /action=\{articlesHref\} method="get" role="search"/);
+	assert.match(source, /href=\{createSitePath\(import\.meta\.env\.BASE_URL, destination\.href\)\}/);
 	assert.match(source, /name="q"[\s\S]*type="search"[\s\S]*maxlength="80"/);
 	assert.match(source, /aria-label="主要ページへ移動"/);
 

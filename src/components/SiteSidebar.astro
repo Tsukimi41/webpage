@@ -1,17 +1,19 @@
 ---
+import { createSitePath } from '../config/site';
 import { getArticleFeed, getArticleIndex, getArticleTopics } from '../content/articles';
 import { profile, profileDisplayName } from '../data/profile';
 import SocialLinks from './SocialLinks.astro';
 
 const recentArticles = getArticleFeed({ limit: 5 });
 const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
+const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 ---
 
 <aside class="site-sidebar" aria-label="サイト情報">
 	<section class="site-sidebar__profile" aria-labelledby="sidebar-profile-title">
 		<span class="site-sidebar__profile-icon">
 			<img
-				src={profile.icon.src}
+				src={iconSrc}
 				alt=""
 				width={profile.icon.width}
 				height={profile.icon.height}
@@ -31,7 +33,7 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 			<ol class="site-sidebar__recent">
 				{recentArticles.map((article) => (
 					<li data-content-state={article.state}>
-						<a href={article.href}>{article.title}</a>
+						<a href={createSitePath(import.meta.env.BASE_URL, article.href)}>{article.title}</a>
 						<time>{article.dateLabel}</time>
 					</li>
 				))}
@@ -47,7 +49,7 @@ const topics = getArticleTopics(getArticleIndex()).slice(0, 10);
 			<ul class="site-sidebar__topics" role="list">
 				{topics.map((topic) => (
 					<li>
-						<a href={`/articles/?topic=${encodeURIComponent(topic.id)}`}>
+						<a href={createSitePath(import.meta.env.BASE_URL, `/articles/?topic=${encodeURIComponent(topic.id)}`)}>
 							<span class="site-sidebar__topic-marker" aria-hidden="true"></span>
 							<span class="site-sidebar__topic-label">{topic.label}</span>
 							<span class="site-sidebar__topic-count" aria-label={`${topic.count}件`}>{topic.count}</span>
