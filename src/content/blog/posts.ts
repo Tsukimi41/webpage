@@ -17,7 +17,7 @@ const blogPostDefinitions = [
 	},
 	{
 		id: 'arch1',
-		state: 'mock',
+		state: 'draft',
 		order: 200,
 		slug: 'arch1',
 		title: 'Arch Linux、始めました',
@@ -27,6 +27,19 @@ const blogPostDefinitions = [
 		updatedAt: '2026-09-12',
 		tagIds: [],
 		readingTimeMinutes: 7,
+	},
+	{
+		id: 'arch2',
+		state: 'draft',
+		order: 300,
+		slug: 'arch2',
+		title: 'インストールUSBを作ろうとしたら手元のUSBメモリが古かった',
+		description:
+			'おまけ：USB 3.xをゆっくり挿すとUSB 2.0として認識されるらしい',
+		publishedAt: '2026-09-12',
+		updatedAt: '2026-09-13',
+		tagIds: [],
+		readingTimeMinutes: 5,
 	},
 	{
 		id: 'astro-foundation-notes',
