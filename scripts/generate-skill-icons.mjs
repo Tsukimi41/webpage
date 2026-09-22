@@ -33,6 +33,7 @@ const simpleIconSpecs = [
 	['latex', 'LaTeX', 'latex', '#008080'],
 	['ubuntu', 'Ubuntu', 'ubuntu', '#e95420'],
 	['github-actions', 'GitHub Actions', 'githubactions', '#2088ff'],
+	['vercel', 'Vercel', 'vercel', '#000000'],
 ];
 
 const customIconSpecs = [

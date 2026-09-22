@@ -84,6 +84,7 @@ const projectDefinitions = [
 			'astro',
 			'markdown',
 			'github-actions',
+			'vercel',
 		],
 		featured: true,
 		links: [

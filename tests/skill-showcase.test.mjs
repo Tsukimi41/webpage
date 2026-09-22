@@ -80,7 +80,7 @@ test('skill showcase derives starting positions from the collection size', async
 
 test('skill placement stays deterministic, bounded, and distinct as counts grow', () => {
 	for (const presentation of ['bubble', 'marble']) {
-		for (const count of [1, 16, 31, 128]) {
+		for (const count of [1, 16, 32, 128]) {
 			const placements = Array.from({ length: count }, (_, index) =>
 				createSkillObjectPlacement(index, count, presentation),
 			);
@@ -107,8 +107,8 @@ test('skill placement stays deterministic, bounded, and distinct as counts grow'
 	}
 
 	assert.ok(
-		createSkillObjectPlacement(0, 31, 'marble').size >
-			createSkillObjectPlacement(0, 31, 'bubble').size * 1.4,
+		createSkillObjectPlacement(0, 32, 'marble').size >
+			createSkillObjectPlacement(0, 32, 'bubble').size * 1.4,
 	);
 });
 

@@ -61,9 +61,10 @@ test('skill data is frozen and returned in deterministic order', () => {
 			'astro',
 			'markdown',
 			'github-actions',
+			'vercel',
 		],
 	);
-	assert.equal(skills.length, 31);
+	assert.equal(skills.length, 32);
 	assert.equal(skills.every((skill) => skill.visual.kind === 'image'), true);
 	assert.equal(Object.isFrozen(getSkills()), true);
 });

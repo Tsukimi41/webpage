@@ -218,6 +218,12 @@ const skillDefinitions = [
 		presentation: 'marble',
 		visual: skillImage('github-actions', 'GitHub Actions'),
 	},
+	{
+		id: 'vercel', state: 'mock', order: 320, label: 'Vercel', category: 'platform',
+		summary: 'フロントエンドを継続的にデプロイし、プレビューと本番公開を管理します。',
+		presentation: 'marble',
+		visual: skillImage('vercel', 'Vercel'),
+	},
 ] as const satisfies readonly SkillDefinition[];
 
 export const skills = defineSkillCollection(skillDefinitions);
