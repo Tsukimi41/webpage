@@ -1,0 +1,24 @@
+---
+import ProfileIntroduction from '../components/ProfileIntroduction.astro';
+import ProfileDetails from '../components/ProfileDetails.astro';
+import { getProfileDetail } from '../content/profile';
+import { profile, profileDisplayName } from '../data/profile';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = `Profile | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}のプロフィール。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
+const detail = getProfileDetail();
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="profile-page">
+		<ProfileIntroduction headingId="profile-title" />
+		<ProfileDetails detail={detail} />
+	</div>
+</BaseLayout>
+
+<style>
+	.profile-page {
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+</style>

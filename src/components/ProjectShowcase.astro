@@ -1,0 +1,99 @@
+---
+import type { ProjectDefinition } from '../content/projects';
+import ContentStateNotice from './ContentStateNotice.astro';
+import SectionHeading from './SectionHeading.astro';
+import ProjectGrid from './ProjectGrid.astro';
+
+interface Props {
+	projects: readonly Readonly<ProjectDefinition>[];
+	headingId?: string;
+}
+
+const { projects, headingId = 'featured-projects-title' } = Astro.props;
+const includesMockData = projects.some((project) => project.state === 'mock');
+---
+
+{
+	projects.length > 0 && (
+		<section class="project-showcase" aria-labelledby={headingId}>
+			<header class="project-showcase__header">
+				<div>
+					<SectionHeading id={headingId} label="TIMELINE" />
+				</div>
+				<div class="project-showcase__actions">
+					<ContentStateNotice hasMockData={includesMockData} />
+				</div>
+			</header>
+
+			<ProjectGrid projects={projects} cardHeadingLevel="h3" />
+		</section>
+	)
+}
+
+<style>
+	.project-showcase {
+		container: project-showcase / inline-size;
+		padding-block: clamp(var(--space-5), 10vw, 7rem);
+	}
+
+	.project-showcase__header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: var(--space-2);
+		margin-block-end: var(--space-3);
+		padding-block-end: var(--space-2);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.project-showcase__actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.project-showcase__actions a {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 2.75rem;
+		padding-inline: var(--space-2);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			background-color 160ms ease,
+			border-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.project-showcase__actions a:hover {
+		border-color: var(--color-accent);
+		background: var(--color-surface-raised);
+		color: var(--color-accent);
+	}
+
+	.project-showcase__actions a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	@media (max-width: 30rem) {
+		.project-showcase__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+
+		.project-showcase__actions {
+			inline-size: 100%;
+			justify-content: space-between;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.project-showcase__actions a {
+			transition: none;
+		}
+	}
+</style>

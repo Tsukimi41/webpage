@@ -1,0 +1,191 @@
+---
+import SectionHeading from '../components/SectionHeading.astro';
+import { createSitePath } from '../config/site';
+import { profileDisplayName } from '../data/profile';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = `ページが見つかりません | ${profileDisplayName}`;
+const pageDescription = '指定されたページは見つかりませんでした。記事検索または主要ページから目的の情報を探せます。';
+
+const destinations = [
+	{ href: '/', label: 'Home', description: 'トップページへ戻る' },
+	{ href: '/projects/', label: 'Projects', description: '制作実績を見る' },
+	{ href: '/articles/', label: 'Articles', description: 'すべての記事を探す' },
+	{ href: '/profile/', label: 'Profile', description: 'プロフィールを見る' },
+] as const;
+const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
+---
+
+<BaseLayout title={pageTitle} description={pageDescription} indexing="disabled" showSidebar={false}>
+	<section class="not-found" aria-labelledby="not-found-title">
+		<header class="not-found__header">
+			<SectionHeading id="not-found-title" label="ページが見つかりません" level="h1" />
+			<p class="not-found__lead">
+				URLが変更または削除されたか、入力したURLが正しくない可能性があります。検索または下のリンクをご利用ください。
+			</p>
+		</header>
+
+		<form class="not-found__search" action={articlesHref} method="get" role="search">
+			<label for="not-found-search">記事を検索</label>
+			<div class="not-found__search-controls">
+				<input
+					id="not-found-search"
+					name="q"
+					type="search"
+					maxlength="80"
+					placeholder=""
+					autocomplete="off"
+				/>
+				<button type="submit">検索する</button>
+			</div>
+		</form>
+
+		<nav class="not-found__navigation" aria-label="主要ページへ移動">
+			<ul role="list">
+				{destinations.map((destination) => (
+					<li>
+						<a href={createSitePath(import.meta.env.BASE_URL, destination.href)}>
+							<span>{destination.label}</span>
+							<small>{destination.description}</small>
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+	</section>
+</BaseLayout>
+
+<style>
+	.not-found {
+		container: not-found / inline-size;
+		display: grid;
+		align-content: center;
+		gap: clamp(var(--space-4), 7vw, var(--space-5));
+		max-inline-size: 58rem;
+		min-block-size: min(42rem, 72svh);
+		margin-inline: auto;
+	}
+
+	.not-found__header {
+		max-inline-size: 48rem;
+	}
+
+	.not-found__lead {
+		max-inline-size: 42rem;
+	}
+
+	.not-found__search {
+		display: grid;
+		gap: 0.35rem;
+		max-inline-size: 42rem;
+	}
+
+	.not-found__search label {
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+	}
+
+	.not-found__search-controls {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: var(--space-1);
+	}
+
+	.not-found__search input,
+	.not-found__search button {
+		min-block-size: 2.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		font: inherit;
+	}
+
+	.not-found__search input {
+		min-inline-size: 0;
+		padding-inline: 0.75rem;
+		background: var(--color-canvas);
+		color: var(--color-text);
+	}
+
+	.not-found__search input::placeholder {
+		color: var(--color-text-muted);
+		opacity: 0.8;
+	}
+
+	.not-found__search button {
+		padding-inline: var(--space-2);
+		background: var(--color-surface-raised);
+		color: var(--color-text);
+		font-weight: 800;
+		cursor: pointer;
+	}
+
+	.not-found__navigation ul {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: var(--space-2);
+		margin: 0;
+		padding: 0;
+	}
+
+	.not-found__navigation a {
+		display: grid;
+		align-content: center;
+		min-block-size: 5.5rem;
+		padding: var(--space-2);
+		border: 1px solid var(--color-border);
+		background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+		color: var(--color-text);
+		text-decoration: none;
+		overflow-wrap: anywhere;
+	}
+
+	.not-found__navigation span {
+		font-weight: 800;
+	}
+
+	.not-found__navigation small {
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+	}
+
+	.not-found__navigation a:hover {
+		border-color: var(--color-accent);
+		background: var(--color-surface-raised);
+	}
+
+	.not-found__search input:focus-visible,
+	.not-found__search button:focus-visible,
+	.not-found__navigation a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	@supports not (background: color-mix(in srgb, black, white)) {
+		.not-found__navigation a {
+			background: var(--color-surface);
+		}
+	}
+
+	@media (max-width: 54rem) {
+		.not-found__navigation ul {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 30rem) {
+		.not-found {
+			min-block-size: auto;
+		}
+
+		.not-found__search-controls,
+		.not-found__navigation ul {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.not-found__search button {
+			inline-size: 100%;
+		}
+	}
+</style>

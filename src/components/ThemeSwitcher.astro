@@ -1,0 +1,369 @@
+---
+import {
+	DEFAULT_THEME_ID,
+	THEME_STORAGE_KEY,
+	themeIds,
+	type ThemeId,
+} from '../data/themes';
+
+const menuId = 'color-theme-menu';
+
+const accessibleThemeNames: Readonly<Record<ThemeId, string>> = {
+	'light-blue': 'ライト配色',
+	'dark-blue': 'ダーク配色',
+	'dark-green': 'グリーン配色',
+};
+---
+
+<div
+	class="theme-switcher"
+	data-theme-switcher
+	data-storage-key={THEME_STORAGE_KEY}
+>
+	<button
+		class="theme-switcher__trigger"
+		type="button"
+		data-theme-trigger
+		aria-label="配色を変更（現在：グリーン配色）"
+		aria-haspopup="menu"
+		aria-expanded="false"
+		aria-controls={menuId}
+	>
+		<svg
+			class="theme-switcher__trigger-icon"
+			width="22"
+			height="22"
+			viewBox="0 0 24 24"
+			fill="none"
+			aria-hidden="true"
+		>
+			<path d="M12 3a9 9 0 1 0 0 18V3Z" fill="currentColor"></path>
+			<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+		</svg>
+	</button>
+
+	<div
+		class="theme-switcher__menu"
+		id={menuId}
+		data-theme-menu
+		role="menu"
+		aria-label="配色"
+		hidden
+	>
+		{
+			themeIds.map((themeId) => (
+				<button
+					class="theme-switcher__option"
+					type="button"
+					data-theme-id={themeId}
+					data-theme-accessible-name={accessibleThemeNames[themeId]}
+					role="menuitemradio"
+					aria-label={accessibleThemeNames[themeId]}
+					aria-checked={themeId === DEFAULT_THEME_ID ? 'true' : 'false'}
+				>
+					<span class={`theme-switcher__swatch theme-switcher__swatch--${themeId}`} aria-hidden="true">
+						<span />
+						<span />
+						<span />
+					</span>
+				</button>
+			))
+		}
+	</div>
+</div>
+
+<script>
+	const switchers = document.querySelectorAll<HTMLElement>('[data-theme-switcher]');
+
+	function applyTheme(themeId: string): void {
+		document.documentElement.dataset.theme = themeId;
+		document.documentElement.style.colorScheme = themeId === 'light-blue' ? 'light' : 'dark';
+
+		switchers.forEach((switcher) => {
+			const trigger = switcher.querySelector<HTMLButtonElement>('[data-theme-trigger]');
+			const options = switcher.querySelectorAll<HTMLButtonElement>('[data-theme-id]');
+			let selectedThemeAccessibleName = '';
+
+			options.forEach((option) => {
+				const isSelected = option.dataset.themeId === themeId;
+				option.setAttribute('aria-checked', String(isSelected));
+
+				if (isSelected) {
+					selectedThemeAccessibleName = option.dataset.themeAccessibleName ?? '';
+				}
+			});
+
+			if (trigger && selectedThemeAccessibleName) {
+				trigger.setAttribute('aria-label', `配色を変更（現在：${selectedThemeAccessibleName}）`);
+			}
+		});
+	}
+
+	switchers.forEach((switcher) => {
+		const storageKey = switcher.dataset.storageKey;
+		const trigger = switcher.querySelector<HTMLButtonElement>('[data-theme-trigger]');
+		const menu = switcher.querySelector<HTMLElement>('[data-theme-menu]');
+		const options = Array.from(
+			switcher.querySelectorAll<HTMLButtonElement>('[data-theme-id]'),
+		);
+
+		if (!trigger || !menu || options.length === 0) {
+			return;
+		}
+
+		function setMenuOpen(isOpen: boolean): void {
+			trigger.setAttribute('aria-expanded', String(isOpen));
+			menu.hidden = !isOpen;
+		}
+
+		function focusSelectedOption(fallbackIndex = 0): void {
+			const selectedOption = options.find((option) => option.getAttribute('aria-checked') === 'true');
+			(selectedOption ?? options[fallbackIndex])?.focus();
+		}
+
+		trigger.addEventListener('click', () => {
+			const isOpening = trigger.getAttribute('aria-expanded') !== 'true';
+			setMenuOpen(isOpening);
+
+			if (isOpening) {
+				focusSelectedOption();
+			}
+		});
+
+		trigger.addEventListener('keydown', (event) => {
+			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+				return;
+			}
+
+			event.preventDefault();
+			setMenuOpen(true);
+			focusSelectedOption(event.key === 'ArrowUp' ? options.length - 1 : 0);
+		});
+
+		menu.addEventListener('click', (event) => {
+			const clickedElement = event.target;
+
+			if (!(clickedElement instanceof Element)) {
+				return;
+			}
+
+			const button = clickedElement.closest<HTMLButtonElement>('[data-theme-id]');
+			const themeId = button?.dataset.themeId;
+
+			if (!button || !themeId || !menu.contains(button)) {
+				return;
+			}
+
+			applyTheme(themeId);
+
+			if (storageKey) {
+				try {
+					localStorage.setItem(storageKey, themeId);
+				} catch {
+					// 保存できなくても、現在のページでは選択したテーマを使用する。
+				}
+			}
+
+			setMenuOpen(false);
+			trigger.focus();
+		});
+
+		menu.addEventListener('keydown', (event) => {
+			const currentIndex = options.indexOf(document.activeElement as HTMLButtonElement);
+
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				setMenuOpen(false);
+				trigger.focus();
+				return;
+			}
+
+			const destinationIndex = {
+				ArrowDown: currentIndex < options.length - 1 ? currentIndex + 1 : 0,
+				ArrowUp: currentIndex > 0 ? currentIndex - 1 : options.length - 1,
+				Home: 0,
+				End: options.length - 1,
+			}[event.key];
+
+			if (destinationIndex === undefined) {
+				return;
+			}
+
+			event.preventDefault();
+			options[destinationIndex]?.focus();
+		});
+
+		document.addEventListener('click', (event) => {
+			if (event.target instanceof Node && !switcher.contains(event.target)) {
+				setMenuOpen(false);
+			}
+		});
+	});
+
+	applyTheme(document.documentElement.dataset.theme ?? 'dark-green');
+</script>
+
+<style>
+	.theme-switcher {
+		position: relative;
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.theme-switcher__trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface);
+		color: var(--color-text-muted);
+		cursor: pointer;
+		transition:
+			background-color 160ms ease,
+			border-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.theme-switcher__trigger:hover,
+	.theme-switcher__trigger[aria-expanded='true'] {
+		border-color: var(--color-accent);
+		background: var(--color-surface-raised);
+		color: var(--color-accent);
+	}
+
+	.theme-switcher__trigger-icon {
+		flex: none;
+	}
+
+	.theme-switcher__menu {
+		position: absolute;
+		z-index: 10;
+		inset-block-start: calc(100% + var(--space-1));
+		inset-inline-end: 0;
+		display: grid;
+		grid-template-columns: repeat(3, 2.75rem);
+		gap: var(--space-1);
+		padding: var(--space-1);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		background: var(--color-surface);
+		box-shadow: 0 1rem 2.5rem var(--color-shadow);
+		animation: theme-menu-enter 140ms ease-out both;
+	}
+
+	.theme-switcher__menu[hidden] {
+		display: none;
+	}
+
+	.theme-switcher__option {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		padding: 0;
+		border: 1px solid transparent;
+		border-radius: var(--radius-small);
+		background: transparent;
+		color: var(--color-text-muted);
+		cursor: pointer;
+	}
+
+	.theme-switcher__option:hover,
+	.theme-switcher__option[aria-checked='true'] {
+		border-color: var(--color-border);
+		background: var(--color-surface-raised);
+		color: var(--color-text);
+	}
+
+	.theme-switcher__option[aria-checked='true'] {
+		border-color: var(--color-accent);
+		box-shadow: inset 0 0 0 1px var(--color-accent);
+	}
+
+	.theme-switcher__option::after {
+		position: absolute;
+		inset-block-start: 0.25rem;
+		inset-inline-end: 0.25rem;
+		inline-size: 0.375rem;
+		block-size: 0.375rem;
+		background: var(--color-accent);
+		content: '';
+		opacity: 0;
+	}
+
+	.theme-switcher__option[aria-checked='true']::after {
+		opacity: 1;
+	}
+
+	.theme-switcher__trigger:focus-visible,
+	.theme-switcher__option:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.theme-switcher__swatch {
+		display: grid;
+		grid-template-columns: repeat(3, 0.5rem);
+		overflow: hidden;
+		block-size: 1.5rem;
+		border: 1px solid currentColor;
+		border-radius: var(--radius-small);
+	}
+
+	.theme-switcher__swatch > span:nth-child(1) {
+		background: var(--swatch-1);
+	}
+
+	.theme-switcher__swatch > span:nth-child(2) {
+		background: var(--swatch-2);
+	}
+
+	.theme-switcher__swatch > span:nth-child(3) {
+		background: var(--swatch-3);
+	}
+
+	.theme-switcher__swatch--light-blue {
+		--swatch-1: #f6f5f0;
+		--swatch-2: #675400;
+		--swatch-3: #a72f58;
+	}
+
+	.theme-switcher__swatch--dark-blue {
+		--swatch-1: #2d2a2e;
+		--swatch-2: #ffd866;
+		--swatch-3: #ff6188;
+	}
+
+	.theme-switcher__swatch--dark-green {
+		--swatch-1: #242625;
+		--swatch-2: #d8e86a;
+		--swatch-3: #ff7ca5;
+	}
+
+	@keyframes theme-menu-enter {
+		from {
+			opacity: 0;
+			transform: translateY(-0.25rem);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.theme-switcher__trigger {
+			transition: none;
+		}
+
+		.theme-switcher__menu {
+			animation: none;
+		}
+	}
+</style>

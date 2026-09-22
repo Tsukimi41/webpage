@@ -9,13 +9,25 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:release": "npm run test:content && npm run check:release && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:content": "node --experimental-strip-types --test tests/*.test.mjs",
+    "report:publication": "node --experimental-strip-types scripts/report-publication.mjs",
+    "check:site-url": "node --experimental-strip-types scripts/check-site-url.mjs",
+    "check:release": "node --experimental-strip-types scripts/check-release-readiness.mjs",
+    "generate:skill-icons": "node scripts/generate-skill-icons.mjs",
+    "audit:dependencies": "npm audit --audit-level=moderate"
   },
   "dependencies": {
     "astro": "^7.3.2"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@iconify-json/devicon": "^1.2.66",
+    "@iconify-json/simple-icons": "^1.2.96",
+    "astro-icon": "^1.2.0"
   }
 }

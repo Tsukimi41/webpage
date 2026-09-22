@@ -1,0 +1,149 @@
+---
+import { createSitePath } from '../config/site';
+import type { ArticleIndexItem } from '../content/articles';
+
+interface Props {
+	item: Readonly<ArticleIndexItem>;
+}
+
+const { item } = Astro.props;
+const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
+---
+
+<article
+	class="article-index-card"
+	data-kind={item.sourceKind}
+	data-content-state={item.state}
+>
+	<div class="article-index-card__accent" aria-hidden="true">
+		<span>{item.sourceKind === 'project' ? 'PROJECT' : 'ARTICLE'}</span>
+		<span>{item.sourceKind === 'project' ? '↗' : '✦'}</span>
+	</div>
+
+	<div class="article-index-card__body">
+		<div class="article-index-card__meta">
+			<span>{item.sourceLabel}</span>
+			<time>{item.dateLabel}</time>
+		</div>
+
+		<h2><a href={itemHref}>{item.title}</a></h2>
+		<p>{item.summary}</p>
+
+		{item.topicLabels.length > 0 && (
+			<ul class="article-index-card__topics" aria-label="関連技術とタグ" role="list">
+				{item.topicLabels.map((label) => <li>{label}</li>)}
+			</ul>
+		)}
+	</div>
+</article>
+
+<style>
+	.article-index-card {
+		display: grid;
+		grid-template-columns: clamp(3.5rem, 16%, 7rem) minmax(0, 1fr);
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+		min-block-size: 100%;
+		overflow: hidden;
+		border-block-end: 1px solid var(--color-border);
+		background: transparent;
+	}
+
+	.article-index-card:focus-within,
+	.article-index-card:hover {
+		background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+	}
+
+	.article-index-card__accent {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-2) var(--space-1);
+		border-inline-end: 1px solid var(--color-border);
+		background: var(--color-surface-raised);
+		color: var(--color-accent);
+	}
+
+	.article-index-card[data-kind='blog'] .article-index-card__accent {
+		background: color-mix(in srgb, var(--color-surface-raised) 82%, var(--color-accent-alt));
+	}
+
+	.article-index-card__accent span:first-child {
+		font-size: 0.65rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-orientation: mixed;
+		writing-mode: vertical-rl;
+	}
+
+	.article-index-card__accent span:last-child {
+		font-size: 1.75rem;
+	}
+
+	.article-index-card__body {
+		display: flex;
+		min-inline-size: 0;
+		flex-direction: column;
+		padding: clamp(var(--space-2), 4vw, var(--space-3));
+	}
+
+	.article-index-card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: var(--space-1) var(--space-2);
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+	}
+
+	.article-index-card h2 {
+		margin-block: var(--space-1) 0;
+		font-size: clamp(1.15rem, 3vw, 1.5rem);
+		line-height: 1.45;
+		overflow-wrap: anywhere;
+	}
+
+	.article-index-card h2 a {
+		color: var(--color-accent);
+		font-family: var(--font-mono);
+		text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+		text-decoration-thickness: 0.1em;
+		text-underline-offset: 0.22em;
+	}
+
+	.article-index-card h2 a:hover {
+		color: var(--color-accent-alt);
+	}
+
+	.article-index-card h2 a:focus-visible {
+		border-radius: var(--radius-small);
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.article-index-card p {
+		margin-block-start: var(--space-2);
+		overflow-wrap: anywhere;
+	}
+
+	.article-index-card__topics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin: auto 0 0;
+		padding: var(--space-3) 0 0;
+		list-style: none;
+	}
+
+	.article-index-card__topics li {
+		padding: 0.2rem 0.5rem;
+		border: 1px solid var(--color-border);
+		color: var(--color-text-muted);
+		font-size: 0.72rem;
+		font-weight: 700;
+	}
+</style>

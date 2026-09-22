@@ -1,0 +1,60 @@
+---
+import ArticleExplorer from '../../components/ArticleExplorer.astro';
+import ContentStateNotice from '../../components/ContentStateNotice.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { getArticleIndex, getArticleTopics } from '../../content/articles';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const items = getArticleIndex();
+const topics = getArticleTopics(items);
+const includesMockData = items.some((item) => item.state === 'mock');
+const pageTitle = `記事 | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}のプロジェクト詳細と長文記事を横断して検索できます。`;
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="articles-page">
+		<header class="articles-page__header">
+			<div>
+				<SectionHeading id="articles-page-title" label="記事" level="h1" />
+			</div>
+			<ContentStateNotice hasMockData={includesMockData} />
+		</header>
+
+		<ArticleExplorer items={items} topics={topics} />
+	</div>
+</BaseLayout>
+
+<style>
+	.articles-page {
+		container: articles-page / inline-size;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.articles-page__header {
+		display: flex;
+		min-inline-size: 0;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block-end: var(--space-4);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.articles-page__lead {
+		max-inline-size: 42rem;
+	}
+
+	@media (max-width: 30rem) {
+		.articles-page__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

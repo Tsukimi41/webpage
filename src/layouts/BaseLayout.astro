@@ -1,0 +1,138 @@
+---
+import ThemeInitializer from '../components/ThemeInitializer.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteSidebar from '../components/SiteSidebar.astro';
+import {
+	createCanonicalUrl,
+	createSitePath,
+	defineSiteUrl,
+	serializeJsonLd,
+	siteMetadata,
+} from '../config/site';
+import { profile } from '../data/profile';
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description: string;
+	lang?: string;
+	pageType?: 'website' | 'article';
+	publishedAt?: string;
+	updatedAt?: string;
+	indexing?: 'auto' | 'disabled';
+	showSidebar?: boolean;
+}
+
+const {
+	title,
+	description,
+	lang = siteMetadata.language,
+	pageType = 'website',
+	publishedAt,
+	updatedAt,
+	indexing = 'auto',
+	showSidebar = true,
+} = Astro.props;
+const siteUrl = defineSiteUrl(import.meta.env.PUBLIC_SITE_URL);
+const siteHref = siteUrl.href;
+const canonicalUrl = createCanonicalUrl(siteHref, Astro.url.pathname);
+const isIndexable = indexing === 'auto' && siteUrl.isPublic;
+const robotsContent = isIndexable ? 'index, follow' : 'noindex, nofollow';
+const rssUrl = createCanonicalUrl(siteHref, '/rss.xml');
+const faviconPath = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
+const structuredData = serializeJsonLd({
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	name: siteMetadata.name,
+	url: siteHref,
+	inLanguage: lang,
+	author: {
+		'@type': 'Person',
+		name: siteMetadata.authorName,
+		alternateName: siteMetadata.authorHandle,
+	},
+});
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<link rel="icon" href={faviconPath} />
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<ThemeInitializer />
+		<meta name="description" content={description} />
+		<meta name="robots" content={robotsContent} />
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
+		{indexing === 'auto' && <link rel="canonical" href={canonicalUrl} />}
+		<link rel="alternate" type="application/rss+xml" title={`${siteMetadata.name} RSS`} href={rssUrl} />
+		<meta property="og:type" content={pageType} />
+		<meta property="og:site_name" content={siteMetadata.name} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		{indexing === 'auto' && <meta property="og:url" content={canonicalUrl} />}
+		<meta property="og:locale" content={siteMetadata.locale} />
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		{pageType === 'article' && publishedAt && (
+			<meta property="article:published_time" content={`${publishedAt}T00:00:00.000Z`} />
+		)}
+		{pageType === 'article' && updatedAt && (
+			<meta property="article:modified_time" content={`${updatedAt}T00:00:00.000Z`} />
+		)}
+		<script is:inline type="application/ld+json" set:html={structuredData}></script>
+		<title>{title}</title>
+	</head>
+	<body id="site-top">
+		<SkipLink />
+		<SiteHeader />
+		<main>
+			<div class:list={['site-shell', { 'site-shell--single': !showSidebar }]}>
+				<div id="main-content" class="page-content" tabindex="-1">
+					<slot />
+				</div>
+				{showSidebar && <SiteSidebar />}
+			</div>
+		</main>
+		<SiteFooter />
+	</body>
+</html>
+
+<style>
+	.site-shell {
+		--site-sidebar-min-inline-size: 11.25rem;
+		--site-sidebar-max-inline-size: 13.5rem;
+		--site-shell-column-gap: clamp(var(--space-3), 3vw, var(--space-4));
+
+		display: grid;
+		grid-template-columns:
+			minmax(0, 1fr)
+			minmax(var(--site-sidebar-min-inline-size), var(--site-sidebar-max-inline-size));
+		align-items: start;
+		gap: var(--site-shell-column-gap);
+	}
+
+	.site-shell--single {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.page-content {
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+	}
+
+	.page-content:focus {
+		outline: none;
+	}
+
+	@media (max-width: 52rem) {
+		.site-shell {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

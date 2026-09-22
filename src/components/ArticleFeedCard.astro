@@ -1,0 +1,150 @@
+---
+import { createSitePath } from '../config/site';
+import type { ArticleFeedItem } from '../content/articles';
+
+interface Props {
+	item: ArticleFeedItem;
+	duplicate?: boolean;
+}
+
+const { item, duplicate = false } = Astro.props;
+const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
+---
+
+<article
+	class:list={['article-feed-card', { 'article-feed-card--duplicate': duplicate }]}
+	data-feed-kind={item.sourceKind}
+	data-content-state={item.state}
+>
+	<div class="article-feed-card__cover" aria-hidden="true">
+		<span class="article-feed-card__cover-label">{item.sourceLabel}</span>
+		<span class="article-feed-card__cover-mark">{item.sourceKind === 'project' ? '↗' : '¶'}</span>
+	</div>
+	<div class="article-feed-card__body">
+		<p class="article-feed-card__source">{item.sourceLabel}</p>
+		<h3>{item.title}</h3>
+		<p class="article-feed-card__summary">{item.summary}</p>
+		<div class="article-feed-card__footer">
+			<time>{item.dateLabel}</time>
+			{item.href && !duplicate && (
+				<a href={itemHref}>詳しく見る<span aria-hidden="true"> ↗</span></a>
+			)}
+		</div>
+	</div>
+</article>
+
+<style>
+	.article-feed-card {
+		display: grid;
+		grid-template-rows: auto 1fr;
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+		min-block-size: 22rem;
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface);
+		box-shadow: 0.35rem 0.35rem 0 var(--color-shadow);
+	}
+
+	.article-feed-card__cover {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		min-block-size: 10rem;
+		align-items: flex-end;
+		justify-content: space-between;
+		overflow: hidden;
+		padding: var(--space-2);
+		border-block-end: 1px solid var(--color-border);
+		background:
+			linear-gradient(135deg, rgb(255 255 255 / 15%) 1px, transparent 1px) 0 0 / 1.2rem 1.2rem,
+			radial-gradient(circle at 75% 18%, var(--color-accent-strong), transparent 35%),
+			var(--color-surface-raised);
+	}
+
+	.article-feed-card[data-feed-kind='blog'] .article-feed-card__cover {
+		background:
+			linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 14%) 36% 38%, transparent 39%) 0 0 / 4rem 4rem,
+			radial-gradient(circle at 25% 80%, var(--color-accent), transparent 42%),
+			var(--color-surface-raised);
+	}
+
+	.article-feed-card__cover::after {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border: 1px solid rgb(255 255 255 / 15%);
+		content: '';
+		transform: translate(0.5rem, 0.5rem);
+	}
+
+	.article-feed-card__cover-label {
+		color: var(--color-text);
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.article-feed-card__cover-mark {
+		color: var(--color-accent-strong);
+		font-size: clamp(2.5rem, 7vw, 4.5rem);
+		line-height: 0.8;
+	}
+
+	.article-feed-card__body {
+		display: flex;
+		min-inline-size: 0;
+		flex-direction: column;
+		padding: var(--space-3);
+	}
+
+	.article-feed-card__source {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+	}
+
+	.article-feed-card h3 {
+		margin-block-start: var(--space-1);
+		font-size: clamp(1.1rem, 3vw, 1.4rem);
+		line-height: 1.45;
+		overflow-wrap: anywhere;
+		font-family: var(--font-mono);
+	}
+
+	.article-feed-card__summary {
+		margin-block-start: var(--space-2);
+		overflow-wrap: anywhere;
+	}
+
+	.article-feed-card__footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-2);
+		margin-block-start: auto;
+		padding-block-start: var(--space-3);
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	.article-feed-card__footer a {
+		color: var(--color-accent);
+		text-underline-offset: 0.2em;
+	}
+
+	.article-feed-card__footer a:hover {
+		color: var(--color-accent-alt);
+	}
+
+	.article-feed-card a:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+</style>

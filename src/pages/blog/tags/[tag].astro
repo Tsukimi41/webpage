@@ -1,0 +1,19 @@
+---
+import LegacyRedirect from '../../../components/LegacyRedirect.astro';
+import { getBlogTags, type BlogTagDefinition } from '../../../content/blog';
+
+export function getStaticPaths() {
+	return getBlogTags().map((tag) => ({
+		params: { tag: tag.id },
+		props: { tag },
+	}));
+}
+
+interface Props {
+	tag: BlogTagDefinition;
+}
+
+const { tag } = Astro.props;
+---
+
+<LegacyRedirect target={`/articles/?topic=${encodeURIComponent(tag.id)}`} canonicalTarget="/articles/" />

@@ -1,0 +1,28 @@
+---
+import { createCanonicalUrl, createSitePath, defineSiteUrl } from '../config/site';
+
+interface Props {
+	target: `/${string}`;
+	canonicalTarget?: `/${string}`;
+}
+
+const { target, canonicalTarget = target } = Astro.props;
+const destination = createSitePath(import.meta.env.BASE_URL, target);
+const siteUrl = defineSiteUrl(import.meta.env.PUBLIC_SITE_URL);
+const canonicalUrl = createCanonicalUrl(siteUrl.href, canonicalTarget);
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta http-equiv="refresh" content={`0;url=${destination}`} />
+		<meta name="robots" content="noindex, follow" />
+		<link rel="canonical" href={canonicalUrl} />
+		<title>ページを移動しました</title>
+	</head>
+	<body>
+		<p>ページを移動しました。<a href={destination}>新しいページへ移動</a></p>
+	</body>
+</html>

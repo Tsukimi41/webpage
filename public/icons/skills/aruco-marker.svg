@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img">
+	<title>ArUco Marker</title>
+	<metadata>Project-local service-specific mark; not an official vendor asset</metadata>
+	<rect width="128" height="128" rx="26" fill="#111827"/>
+	<rect x="24" y="24" width="80" height="80" rx="4" fill="#fff" stroke="#111827" stroke-width="8"/>
+	<path fill="#111827" d="M32 32h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 48h16v16H48zM32 64h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 80h16v16H48z"/>
+</svg>

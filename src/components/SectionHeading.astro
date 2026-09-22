@@ -1,0 +1,84 @@
+---
+interface Props {
+	id: string;
+	label: string;
+	level?: 'h1' | 'h2';
+	size?: 'display' | 'section';
+}
+
+const {
+	id,
+	label,
+	level = 'h2',
+	size = 'display',
+} = Astro.props;
+const HeadingTag = level;
+---
+
+<HeadingTag
+	id={id}
+	class:list={[
+		'section-heading',
+		`section-heading--${size}`,
+	]}
+>
+	{label}
+</HeadingTag>
+
+<style>
+	.section-heading {
+		position: relative;
+		display: inline-flex;
+		box-sizing: border-box;
+		max-inline-size: 100%;
+		margin: 0;
+		padding-block-end: 0.16em;
+		padding-inline-end: 0.12em;
+		color: var(--color-text);
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-kerning: normal;
+		line-height: 0.9;
+		letter-spacing: -0.075em;
+		overflow-wrap: anywhere;
+		text-rendering: geometricPrecision;
+		text-shadow: 0.045em 0.045em 0 var(--color-shadow);
+		text-wrap: balance;
+	}
+
+	.section-heading--display {
+		font-size: clamp(2.25rem, 10cqi, 4.75rem);
+	}
+
+	.section-heading--section {
+		font-size: clamp(1.4rem, 5cqi, 2.25rem);
+		letter-spacing: -0.055em;
+	}
+
+	.section-heading::after {
+		position: absolute;
+		inset-block-end: 0;
+		inset-inline: 0 0.12em;
+		block-size: 0.09em;
+		background: linear-gradient(
+			90deg,
+			var(--color-accent) 0 72%,
+			var(--color-accent-alt) 72% 88%,
+			transparent 88%
+		);
+		content: '';
+		transform: skewX(-18deg);
+		transform-origin: left;
+	}
+
+	@container (max-width: 24rem) {
+		.section-heading--display {
+			font-size: clamp(2rem, 11cqi, 3rem);
+		}
+
+		.section-heading--section {
+			font-size: clamp(1.3rem, 7cqi, 1.8rem);
+		}
+	}
+</style>

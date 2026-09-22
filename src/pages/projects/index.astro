@@ -1,0 +1,72 @@
+---
+import ContentStateNotice from '../../components/ContentStateNotice.astro';
+import ProjectGrid from '../../components/ProjectGrid.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { createSitePath } from '../../config/site';
+import { getProjects } from '../../content/projects';
+import { profileDisplayName } from '../../data/profile';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = `プロジェクト | ${profileDisplayName}`;
+const pageDescription = `${profileDisplayName}のプロジェクト一覧。制作物の概要、使用技術を掲載しています。`;
+const projects = getProjects();
+const includesMockData = projects.some((project) => project.state === 'mock');
+const homeHref = createSitePath(import.meta.env.BASE_URL, '/');
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<div class="projects-page">
+		<a class="projects-page__back" href={homeHref}>ホームへ戻る</a>
+
+		<header class="projects-page__header">
+			<div>
+				<SectionHeading id="projects-page-title" label="プロジェクト" level="h1" />
+			</div>
+			<ContentStateNotice hasMockData={includesMockData} />
+		</header>
+
+		<ProjectGrid projects={projects} />
+	</div>
+</BaseLayout>
+
+<style>
+	.projects-page {
+		container: projects-page / inline-size;
+		padding-block: clamp(var(--space-3), 6vw, var(--space-5));
+	}
+
+	.projects-page__back {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 2.75rem;
+		color: var(--color-text-muted);
+		font-weight: 700;
+		text-underline-offset: 0.25em;
+	}
+
+	.projects-page__back:hover {
+		color: var(--color-accent);
+	}
+
+	.projects-page__back:focus-visible {
+		outline: 0.1875rem solid var(--color-accent);
+		outline-offset: 0.1875rem;
+	}
+
+	.projects-page__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-block: var(--space-4);
+		padding-block-end: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	@media (max-width: 30rem) {
+		.projects-page__header {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+</style>

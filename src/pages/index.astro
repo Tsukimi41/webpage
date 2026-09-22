@@ -1,19 +1,24 @@
 ---
-import '../styles/global.css';
+import ProfileIntroduction from '../components/ProfileIntroduction.astro';
+import ArticleShowcase from '../components/ArticleShowcase.astro';
+import ProjectShowcase from '../components/ProjectShowcase.astro';
+import SkillShowcase from '../components/SkillShowcase.astro';
+import { getArticleFeed } from '../content/articles';
+import { getProjects } from '../content/projects';
+import { getSkills } from '../content/skills';
+import { profile, profileDisplayName } from '../data/profile';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = `${profileDisplayName} | ポートフォリオ`;
+const pageDescription = `${profileDisplayName}のポートフォリオ。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
+const projects = getProjects();
+const skills = getSkills();
+const articleFeed = getArticleFeed();
 ---
 
-<!doctype html>
-<html lang="ja">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>ポートフォリオ（準備中）</title>
-	</head>
-	<body>
-		<main>
-			<h1>ポートフォリオ基盤</h1>
-			<p>掲載内容は、次の開発ステップから追加します。</p>
-		</main>
-	</body>
-</html>
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<ProfileIntroduction />
+	<SkillShowcase skills={skills} />
+	<ArticleShowcase items={articleFeed} />
+	<ProjectShowcase projects={projects} />
+</BaseLayout>
