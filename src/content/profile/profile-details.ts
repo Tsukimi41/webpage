@@ -141,7 +141,14 @@ const profileDetailDefinitions = [
 		],
 		interests: [],
 		principles: [],
+		contact: {
+			label: 'お問い合わせ',
+			email: 'skr.moyoyo@gmail.com',
+			note: 'ご連絡はこちらのメールアドレスへお願いします。',
+		},
 	},
+	
+
 ] as const satisfies readonly ProfileDetailDefinition[];
 
 export const profileDetails = defineProfileDetailCollection(profileDetailDefinitions);
