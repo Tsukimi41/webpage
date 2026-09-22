@@ -5,7 +5,7 @@ import { blogTags } from './tags.ts';
 const blogPostDefinitions = [
 		{
 		id: 'my-first-post',
-		state: 'draft',
+		state: 'published',
 		order: 100,
 		slug: 'my-first-post',
 		title: 'はじめてのブログ記事',
@@ -17,7 +17,7 @@ const blogPostDefinitions = [
 	},
 	{
 		id: 'arch1',
-		state: 'draft',
+		state: 'published',
 		order: 200,
 		slug: 'arch1',
 		title: 'Arch Linux、始めました',
@@ -30,7 +30,7 @@ const blogPostDefinitions = [
 	},
 	{
 		id: 'arch2',
-		state: 'draft',
+		state: 'published',
 		order: 300,
 		slug: 'arch2',
 		title: 'インストールUSBを作ろうとしたら手元のUSBメモリが古かった',
