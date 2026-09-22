@@ -72,8 +72,11 @@ test('skill showcase derives starting positions from the collection size', async
 	assert.match(source, /inline-size: min\(90%, 39rem\)/);
 	assert.match(source, /min-block-size: clamp\(21rem, 44vw, 28rem\)/);
 	assert.match(source, /\.skill-field \{ min-block-size: 32rem; \}/);
-	assert.match(source, /\.skill-object--bubble \{ --object-size: min\(var\(--object-base-size\), 3rem\); \}/);
-	assert.match(source, /\.skill-object--marble \{ --object-size: min\(var\(--object-base-size\), 4\.25rem\); \}/);
+	assert.match(source, /\.skill-object--small \{ --object-size: min\(var\(--object-base-size\), 2\.75rem\); \}/);
+	assert.match(source, /\.skill-object--medium \{ --object-size: min\(var\(--object-base-size\), 3\.4rem\); \}/);
+	assert.match(source, /\.skill-object--large \{ --object-size: min\(var\(--object-base-size\), 4\.25rem\); \}/);
+	assert.match(source, /data-skill-scale=\{skill\.scale\}/);
+	assert.match(source, /skill\.scale,\s*skills\.length,/);
 	assert.match(source, /\.skill-object__symbol\s*{[^}]*inline-size:\s*72%/s);
 	assert.match(source, /\.skill-object--marble \.skill-object__symbol\s*{[^}]*inline-size:\s*76%/s);
 });
@@ -106,9 +109,21 @@ test('skill placement stays deterministic, bounded, and distinct as counts grow'
 		}
 	}
 
-	assert.ok(
-		createSkillObjectPlacement(0, 32, 'marble').size >
-			createSkillObjectPlacement(0, 32, 'bubble').size * 1.4,
+	for (const presentation of ['bubble', 'marble']) {
+		const small = createSkillObjectPlacement(0, 32, presentation, 'small').size;
+		const medium = createSkillObjectPlacement(0, 32, presentation, 'medium').size;
+		const large = createSkillObjectPlacement(0, 32, presentation, 'large').size;
+
+		assert.ok(small < medium);
+		assert.ok(medium < large);
+	}
+	assert.equal(
+		createSkillObjectPlacement(0, 32, 'marble').size,
+		createSkillObjectPlacement(0, 32, 'bubble').size,
+	);
+	assert.equal(
+		createSkillObjectPlacement(0, 12, 'bubble', 'medium', 32).size,
+		createSkillObjectPlacement(0, 20, 'marble', 'medium', 32).size,
 	);
 });
 
@@ -119,6 +134,8 @@ test('skill placement rejects malformed collection coordinates', () => {
 		[0, 0, 'bubble'],
 		[0, 1.5, 'bubble'],
 		[0, 1, 'cloud'],
+		[0, 1, 'bubble', 'giant'],
+		[0, 2, 'bubble', 'medium', 1],
 	]) {
 		assert.throws(() => createSkillObjectPlacement(...input));
 	}

@@ -23,6 +23,8 @@ export const SKILL_CATEGORIES = [
 export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
 
 export type SkillPresentation = 'bubble' | 'marble';
+export const SKILL_SCALES = ['small', 'medium', 'large'] as const;
+export type SkillScale = (typeof SKILL_SCALES)[number];
 export type SkillImageSource = `/${string}` | `https://${string}`;
 export type SkillIconName = `${string}:${string}`;
 
@@ -60,6 +62,7 @@ export interface SkillDefinition extends ContentRecord {
 	readonly category: SkillCategory;
 	readonly summary: string;
 	readonly presentation: SkillPresentation;
+	readonly scale: SkillScale;
 	readonly visual: SkillVisualDefinition;
 }
 
@@ -215,6 +218,10 @@ export function defineSkillCollection(
 
 			if (record.presentation !== 'bubble' && record.presentation !== 'marble') {
 				throw new Error(`${recordPath}.presentation is unsupported: ${record.presentation}`);
+			}
+
+			if (!SKILL_SCALES.includes(record.scale)) {
+				throw new Error(`${recordPath}.scale is unsupported: ${record.scale}`);
 			}
 
 			const label = normalizeText(record.label, `${recordPath}.label`);

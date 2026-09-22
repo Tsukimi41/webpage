@@ -17,9 +17,18 @@ export interface ProfileContactDefinition {
 	readonly note?: string;
 }
 
+export interface ProfileSectionDefinition {
+	readonly id: string;
+	readonly title: string;
+	readonly paragraphs: readonly string[];
+	readonly quote?: string;
+	readonly items: readonly string[];
+}
+
 export interface ProfileDetailDefinition extends ContentRecord {
 	readonly summary: string;
 	readonly biography: readonly string[];
+	readonly sections?: readonly ProfileSectionDefinition[];
 	readonly interests: readonly ProfileDetailItemDefinition[];
 	readonly principles: readonly ProfileDetailItemDefinition[];
 	readonly contact?: ProfileContactDefinition;
@@ -38,6 +47,51 @@ function normalizeParagraphs(values: readonly string[], fieldPath: string): read
 	}
 
 	return Object.freeze(values.map((value, index) => normalizeText(value, `${fieldPath}[${index}]`)));
+}
+
+function normalizeTextList(values: readonly string[], fieldPath: string): readonly string[] {
+	return Object.freeze(
+		values.map((value, index) => normalizeText(value, `${fieldPath}[${index}]`)),
+	);
+}
+
+function normalizeSections(
+	sections: readonly ProfileSectionDefinition[] | undefined,
+	fieldPath: string,
+): readonly Readonly<ProfileSectionDefinition>[] | undefined {
+	if (sections === undefined) return undefined;
+
+	const usedIds = new Set<string>();
+
+	return Object.freeze(
+		sections.map((section, index) => {
+			const sectionPath = `${fieldPath}[${index}]`;
+			assertContentId(section.id, `${sectionPath}.id`);
+
+			if (usedIds.has(section.id)) {
+				throw new Error(`${fieldPath} contains a duplicate id: ${section.id}`);
+			}
+
+			usedIds.add(section.id);
+			const paragraphs = normalizeTextList(section.paragraphs, `${sectionPath}.paragraphs`);
+			const items = normalizeTextList(section.items, `${sectionPath}.items`);
+			const quote = section.quote === undefined
+				? undefined
+				: normalizeText(section.quote, `${sectionPath}.quote`);
+
+			if (paragraphs.length === 0 && items.length === 0 && quote === undefined) {
+				throw new Error(`${sectionPath} must contain a paragraph, quote, or list item.`);
+			}
+
+			return Object.freeze({
+				id: section.id,
+				title: normalizeText(section.title, `${sectionPath}.title`),
+				paragraphs,
+				quote,
+				items,
+			});
+		}),
+	);
 }
 
 function normalizeItems(
@@ -100,6 +154,7 @@ export function defineProfileDetailCollection(
 				...record,
 				summary: normalizeText(record.summary, `${recordPath}.summary`),
 				biography: normalizeParagraphs(record.biography, `${recordPath}.biography`),
+				sections: normalizeSections(record.sections, `${recordPath}.sections`),
 				interests: normalizeItems(record.interests, `${recordPath}.interests`),
 				principles: normalizeItems(record.principles, `${recordPath}.principles`),
 				contact: normalizeContact(record.contact, `${recordPath}.contact`),

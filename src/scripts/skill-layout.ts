@@ -1,4 +1,8 @@
-import type { SkillPresentation } from '../content/skills/skill.ts';
+import {
+	SKILL_SCALES,
+	type SkillPresentation,
+	type SkillScale,
+} from '../content/skills/skill.ts';
 
 export interface SkillObjectPlacement {
 	readonly x: number;
@@ -15,6 +19,8 @@ function assertPlacementInput(
 	index: number,
 	count: number,
 	presentation: SkillPresentation,
+	scale: SkillScale,
+	densityCount: number,
 ): void {
 	if (!Number.isSafeInteger(count) || count <= 0) {
 		throw new Error(`skill placement count must be a positive safe integer: ${count}`);
@@ -27,24 +33,39 @@ function assertPlacementInput(
 	if (presentation !== 'bubble' && presentation !== 'marble') {
 		throw new Error(`skill placement presentation is unsupported: ${presentation}`);
 	}
+
+	if (!SKILL_SCALES.includes(scale)) {
+		throw new Error(`skill placement scale is unsupported: ${scale}`);
+	}
+
+	if (!Number.isSafeInteger(densityCount) || densityCount < count) {
+		throw new Error(`skill placement density count must include the collection: ${densityCount}/${count}`);
+	}
 }
+
+const SCALE_MULTIPLIERS = Object.freeze({
+	small: 0.78,
+	medium: 1,
+	large: 1.24,
+} as const satisfies Readonly<Record<SkillScale, number>>);
 
 export function createSkillObjectPlacement(
 	index: number,
 	count: number,
 	presentation: SkillPresentation,
+	scale: SkillScale = 'medium',
+	densityCount: number = count,
 ): Readonly<SkillObjectPlacement> {
-	assertPlacementInput(index, count, presentation);
+	assertPlacementInput(index, count, presentation, scale, densityCount);
 	const columns = Math.max(1, Math.ceil(Math.sqrt(count * 1.45)));
 	const rows = Math.max(1, Math.ceil(count / columns));
 	const column = index % columns;
 	const row = Math.floor(index / columns);
 	const horizontalJitter = ((index * 37) % 11) - 5;
 	const verticalJitter = ((index * 23) % 9) - 4;
-	const baseSize = clamp(6.6 - Math.max(count - 5, 0) * 0.22, 3.15, 6.6);
-	const materialScale = presentation === 'marble' ? 1.42 : 1;
+	const baseSize = clamp(6.6 - Math.max(densityCount - 5, 0) * 0.22, 3.15, 6.6);
 	const sizeVariation = 0.9 + ((index * 0.618_033_988_75) % 1) * 0.15;
-	const size = baseSize * sizeVariation * materialScale;
+	const size = baseSize * sizeVariation * SCALE_MULTIPLIERS[scale];
 	const x = 8 + ((column + 0.5) / columns) * 84 + horizontalJitter * 0.35;
 	const rowRatio = (row + 0.5) / rows;
 	const y = presentation === 'bubble'

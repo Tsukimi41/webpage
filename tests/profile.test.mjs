@@ -28,11 +28,15 @@ test('profile details are deeply frozen after validation', () => {
 	assert.equal(profileDetails.length, 1);
 
 	const [detail] = profileDetails;
-	assert.equal(detail.id, 'mock-profile-details');
-	assert.equal(detail.state, 'mock');
+	assert.equal(detail.id, 'tsukimi41-profile');
+	assert.equal(detail.state, 'published');
 	assert.ok(Object.isFrozen(profileDetails));
 	assert.ok(Object.isFrozen(detail));
 	assert.ok(Object.isFrozen(detail.biography));
+	assert.ok(Object.isFrozen(detail.sections));
+	assert.ok(Object.isFrozen(detail.sections[0]));
+	assert.ok(Object.isFrozen(detail.sections[0].paragraphs));
+	assert.ok(Object.isFrozen(detail.sections[0].items));
 	assert.ok(Object.isFrozen(detail.interests));
 	assert.ok(Object.isFrozen(detail.interests[0]));
 	assert.ok(Object.isFrozen(detail.principles));
@@ -65,9 +69,9 @@ test('profile queries cover zero, one, multiple, state, and deterministic order'
 	assert.ok(Object.isFrozen(selectProfileDetails(collection)));
 
 	assert.equal(getProfileDetails().length, 1);
-	assert.equal(getProfileDetails({ states: ['published'] }).length, 0);
-	assert.equal(getProfileDetail()?.id, 'mock-profile-details');
-	assert.equal(getProfileDetail({ states: ['published'] }), undefined);
+	assert.equal(getProfileDetails({ states: ['published'] }).length, 1);
+	assert.equal(getProfileDetail()?.id, 'tsukimi41-profile');
+	assert.equal(getProfileDetail({ states: ['published'] })?.id, 'tsukimi41-profile');
 });
 
 test('profile queries reject invalid limits', () => {
@@ -99,6 +103,17 @@ test('profile detail validation rejects incomplete or unstable records', () => {
 		{
 			...validDetail,
 			interests: [{ id: 'Not Stable', title: 'Web', description: 'Description' }],
+		},
+		{
+			...validDetail,
+			sections: [{ id: 'empty-section', title: 'Empty', paragraphs: [], items: [] }],
+		},
+		{
+			...validDetail,
+			sections: [
+				{ id: 'duplicate', title: 'One', paragraphs: ['Text'], items: [] },
+				{ id: 'duplicate', title: 'Two', paragraphs: ['Text'], items: [] },
+			],
 		},
 		{
 			...validDetail,

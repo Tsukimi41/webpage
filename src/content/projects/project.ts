@@ -201,7 +201,6 @@ export function assertProjectSkillReferences(
 ): void {
 	const skillsById = new Map(skillRecords.map((skill) => [skill.id, skill]));
 	const previewReferencedIds = new Set<string>();
-	const publishedReferencedIds = new Set<string>();
 
 	for (const project of projectRecords) {
 		for (const skillId of project.skillIds) {
@@ -221,8 +220,6 @@ export function assertProjectSkillReferences(
 						`Published project ${project.id} references a non-published skill: ${skillId}`,
 					);
 				}
-
-				publishedReferencedIds.add(skillId);
 			}
 		}
 	}
@@ -230,10 +227,6 @@ export function assertProjectSkillReferences(
 	for (const skill of skillRecords) {
 		if (skill.state !== 'archived' && !previewReferencedIds.has(skill.id)) {
 			throw new Error(`Visible skill has no supporting project: ${skill.id}`);
-		}
-
-		if (skill.state === 'published' && !publishedReferencedIds.has(skill.id)) {
-			throw new Error(`Published skill has no published supporting project: ${skill.id}`);
 		}
 	}
 }

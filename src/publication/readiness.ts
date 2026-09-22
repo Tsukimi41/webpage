@@ -166,6 +166,12 @@ export function createReleaseReadinessReport(
 		inspectPublishedIdentity(issues, profile, 'profileDetails', [
 			profile.summary,
 			...profile.biography,
+			...(profile.sections ?? []).flatMap((section) => [
+				section.title,
+				...section.paragraphs,
+				section.quote ?? '',
+				...section.items,
+			]),
 			...profile.interests.flatMap((item) => [item.title, item.description]),
 			...profile.principles.flatMap((item) => [item.title, item.description]),
 			profile.contact?.note ?? '',

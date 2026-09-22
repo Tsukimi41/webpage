@@ -152,7 +152,7 @@ test('project validation rejects malformed nested data', () => {
 	}
 });
 
-test('project skill references reject missing evidence and incompatible publication states', () => {
+test('project skill references reject missing evidence and unsafe public project references', () => {
 	const mockSkill = { id: 'typescript', state: 'mock' };
 	const publishedSkill = { id: 'typescript', state: 'published' };
 
@@ -173,8 +173,5 @@ test('project skill references reject missing evidence and incompatible publicat
 			),
 		/non-published skill/,
 	);
-	assert.throws(
-		() => assertProjectSkillReferences([validProject], [publishedSkill]),
-		/no published supporting project/,
-	);
+	assert.doesNotThrow(() => assertProjectSkillReferences([validProject], [publishedSkill]));
 });

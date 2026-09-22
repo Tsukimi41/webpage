@@ -1,4 +1,4 @@
-export { defineSkillCollection, SKILL_CATEGORIES } from './skill.ts';
+export { defineSkillCollection, SKILL_CATEGORIES, SKILL_SCALES } from './skill.ts';
 export type {
 	SkillCategory,
 	SkillDefinition,
@@ -7,6 +7,7 @@ export type {
 	SkillImageVisualDefinition,
 	SkillImageSource,
 	SkillPresentation,
+	SkillScale,
 	SkillTextVisualDefinition,
 	SkillVisualDefinition,
 } from './skill.ts';

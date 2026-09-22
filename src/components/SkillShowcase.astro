@@ -30,6 +30,8 @@ const skillObjects = skills.map((skill) => {
 		placementIndex,
 		skill.presentation === 'bubble' ? bubbleCount : marbleCount,
 		skill.presentation,
+		skill.scale,
+		skills.length,
 	);
 
 	return { skill, placement };
@@ -68,8 +70,9 @@ const skillObjects = skills.map((skill) => {
 			<ul class="skill-objects" role="list">
 				{skillObjects.map(({ skill, placement }) => (
 					<li
-						class={`skill-object skill-object--${skill.presentation}`}
+						class={`skill-object skill-object--${skill.presentation} skill-object--${skill.scale}`}
 						data-content-state={skill.state}
+						data-skill-scale={skill.scale}
 						data-physics-object
 						data-physics-material={skill.presentation}
 						data-physics-role="skill"
@@ -514,8 +517,9 @@ const skillObjects = skills.map((skill) => {
 	@media (max-width: 30rem) {
 		.skill-showcase__header { align-items: flex-start; flex-direction: column; }
 		.skill-field { min-block-size: 32rem; }
-		.skill-object--bubble { --object-size: min(var(--object-base-size), 3rem); }
-		.skill-object--marble { --object-size: min(var(--object-base-size), 4.25rem); }
+		.skill-object--small { --object-size: min(var(--object-base-size), 2.75rem); }
+		.skill-object--medium { --object-size: min(var(--object-base-size), 3.4rem); }
+		.skill-object--large { --object-size: min(var(--object-base-size), 4.25rem); }
 	}
 
 	@media (prefers-reduced-motion: reduce) {

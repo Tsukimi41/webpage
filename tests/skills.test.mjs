@@ -20,6 +20,7 @@ const validSkill = Object.freeze({
 	category: 'tool',
 	summary: 'Test summary.',
 	presentation: 'bubble',
+	scale: 'medium',
 	visual: { kind: 'text', text: 'TS' },
 });
 
@@ -65,6 +66,47 @@ test('skill data is frozen and returned in deterministic order', () => {
 		],
 	);
 	assert.equal(skills.length, 32);
+	assert.equal(skills.every((skill) => skill.state === 'published'), true);
+	assert.deepEqual(new Set(skills.map((skill) => skill.scale)), new Set(['small', 'medium', 'large']));
+	assert.deepEqual(new Set(skills.map((skill) => skill.presentation)), new Set(['bubble', 'marble']));
+	assert.deepEqual(
+		Object.fromEntries(['large', 'medium', 'small'].map((scale) => [
+			scale,
+			skills.filter((skill) => skill.scale === scale).map((skill) => skill.id),
+		])),
+		{
+			large: [
+				'ros-2', 'arch-linux', 'github', 'python', 'node-js', 'c', 'cpp', 'docker',
+				'latex', 'typescript', 'opencv', 'ubuntu', 'raspberry-pi-pico-2-w',
+			],
+			medium: [
+				'aruco-marker', 'vite', 'html', 'css', 'mixamo', 'wsl-2', 'voicevox',
+				'vroid-studio-2-8-0', 'astro', 'markdown', 'github-actions', 'vercel',
+			],
+			small: [
+				'amt-viewpoint', 'xampp-control-panel', 'solidworks', 'matlab', 'godot',
+				'lapis-lexide', 'n1mm-logger-plus',
+			],
+		},
+	);
+	assert.deepEqual(
+		Object.fromEntries(['marble', 'bubble'].map((presentation) => [
+			presentation,
+			skills.filter((skill) => skill.presentation === presentation).map((skill) => skill.id),
+		])),
+		{
+			marble: [
+				'ros-2', 'arch-linux', 'github', 'python', 'node-js', 'c', 'cpp',
+				'aruco-marker', 'docker', 'opencv', 'wsl-2', 'amt-viewpoint', 'ubuntu',
+				'xampp-control-panel', 'solidworks', 'matlab', 'raspberry-pi-pico-2-w',
+				'lapis-lexide', 'n1mm-logger-plus', 'github-actions',
+			],
+			bubble: [
+				'latex', 'vite', 'typescript', 'html', 'css', 'mixamo', 'voicevox', 'godot',
+				'vroid-studio-2-8-0', 'astro', 'markdown', 'vercel',
+			],
+		},
+	);
 	assert.equal(skills.every((skill) => skill.visual.kind === 'image'), true);
 	assert.equal(Object.isFrozen(getSkills()), true);
 });
@@ -107,6 +149,7 @@ test('skill validation rejects empty, duplicate, and unsupported values', () => 
 		{ ...validSkill, summary: '' },
 		{ ...validSkill, category: 'database' },
 		{ ...validSkill, presentation: 'cloud' },
+		{ ...validSkill, scale: 'giant' },
 		{ ...validSkill, visual: { kind: 'icon', name: 'invalid icon' } },
 		{ ...validSkill, visual: { kind: 'text', text: ' ' } },
 		{
