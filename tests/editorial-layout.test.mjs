@@ -106,7 +106,7 @@ test('page and section titles share one responsive display system', async () => 
 	assert.match(heading, /font-size: clamp\(1\.4rem, 5cqi, 2\.25rem\)/);
 	assert.match(heading, /font-style: italic/);
 	assert.match(heading, /font-weight: 900/);
-	assert.match(heading, /letter-spacing: -0\.075em/);
+	assert.match(heading, /letter-spacing: -0\.025em/);
 	assert.match(heading, /\.section-heading::after/);
 	assert.match(heading, /@container \(max-width: 24rem\)/);
 

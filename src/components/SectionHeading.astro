@@ -39,8 +39,8 @@ const HeadingTag = level;
 		font-style: italic;
 		font-weight: 900;
 		font-kerning: normal;
-		line-height: 0.9;
-		letter-spacing: -0.075em;
+		line-height: 1.35;
+		letter-spacing: -0.025em;
 		overflow-wrap: anywhere;
 		text-rendering: geometricPrecision;
 		text-shadow: 0.045em 0.045em 0 var(--color-shadow);
@@ -48,12 +48,14 @@ const HeadingTag = level;
 	}
 
 	.section-heading--display {
+		font-size: 2.25rem;
 		font-size: clamp(2.25rem, 10cqi, 4.75rem);
 	}
 
 	.section-heading--section {
+		font-size: 1.4rem;
 		font-size: clamp(1.4rem, 5cqi, 2.25rem);
-		letter-spacing: -0.055em;
+		letter-spacing: -0.025em;
 	}
 
 	.section-heading::after {
