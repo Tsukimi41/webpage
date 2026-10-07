@@ -113,7 +113,7 @@ test('page and section titles share one responsive display system', async () => 
 	for (const [source, label] of [
 		[articles, '記事'],
 		[projects, 'TIMELINE'],
-		[skills, 'SKILLS'],
+		[skills, '技術'],
 	]) {
 		assert.match(source, /import SectionHeading from/);
 		assert.match(source, new RegExp(`<SectionHeading[^>]*label="${label}"`));

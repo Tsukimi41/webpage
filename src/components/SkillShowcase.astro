@@ -41,7 +41,7 @@ const skillObjects = skills.map((skill) => {
 <section class="skill-showcase" aria-labelledby="skill-showcase-title">
 	<header class="skill-showcase__header">
 		<div>
-			<SectionHeading id="skill-showcase-title" label="SKILLS" />
+			<SectionHeading id="skill-showcase-title" label="技術" />
 			<p class="skill-showcase__lead">今までに触れたことのある技術です。</p>
 		</div>
 		<ContentStateNotice hasMockData={includesMockData} />
@@ -49,6 +49,11 @@ const skillObjects = skills.map((skill) => {
 
 	{skills.length === 0 && <p class="skill-showcase__empty">表示できる技術はありません。</p>}
 
+	<ul class="skill-showcase__list" role="list" aria-label="技術一覧">
+		{skills.map((skill) => <li>{skill.label}</li>)}
+	</ul>
+	<details class="skill-showcase__interactive">
+		<summary>技術アイコンを動かして見る</summary>
 	<div class:list={['skill-box', { 'skill-box--empty': skills.length === 0 }]}>
 		<div class="skill-field" data-skill-field aria-label="技術アイコンのインタラクティブ表示">
 			<div class="skill-field__light" aria-hidden="true"></div>
@@ -99,21 +104,31 @@ const skillObjects = skills.map((skill) => {
 			</ul>
 		</div>
 	</div>
+	</details>
 </section>
 
 <script>
 	import { startSkillPhysics } from '../scripts/skill-physics';
 
 	const fields = document.querySelectorAll<HTMLElement>('[data-skill-field]');
-	const disposePhysics = Array.from(fields, startSkillPhysics);
-	const cleanupPhysics = (): void => {
-		disposePhysics.forEach((dispose) => dispose());
-	};
-
-	document.addEventListener('astro:before-swap', cleanupPhysics, { once: true });
+	const disposers = new Map<HTMLElement, () => void>();
+	fields.forEach((field) => {
+		field.closest('details')?.addEventListener('toggle', (event) => {
+			const details = event.currentTarget as HTMLDetailsElement;
+			disposers.get(field)?.();
+			disposers.delete(field);
+			if (details.open) disposers.set(field, startSkillPhysics(field));
+		});
+	});
+	document.addEventListener('astro:before-swap', () => {
+		disposers.forEach((dispose) => dispose());
+	}, { once: true });
 </script>
 
 <style>
+	.skill-showcase__list { display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 0; list-style: none; }
+	.skill-showcase__list li { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); }
+	.skill-showcase__interactive summary { min-block-size: 3rem; padding: 0.75rem; cursor: pointer; color: var(--color-accent); }
 	.skill-showcase {
 		container: skill-showcase / inline-size;
 		padding-block: clamp(var(--space-5), 10vw, 7rem);
@@ -383,7 +398,7 @@ const skillObjects = skills.map((skill) => {
 		border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
 		border-radius: 999px;
 		background: color-mix(in srgb, var(--color-canvas) 82%, transparent);
-		font-size: 0.7rem;
+		font-size: 0.875rem;
 		font-weight: 800;
 		line-height: 1.25;
 		box-shadow: 0 0.25rem 0.7rem var(--color-shadow);
