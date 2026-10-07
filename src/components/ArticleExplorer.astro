@@ -63,6 +63,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	<div class="article-explorer__summary" data-results-summary tabindex="-1">
 		<SectionHeading id="article-results-title" label="検索結果" size="section" />
 		<p data-result-count role="status" aria-live="polite" aria-atomic="true">全{items.length}件</p>
+		<p class="article-explorer__range" data-results-range hidden></p>
 	</div>
 
 	{items.length > 0 ? (
@@ -83,6 +84,11 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	)}
 
 	<p class="article-explorer__empty" data-no-results hidden>条件に一致する記事はありません。キーワードを短くするか、「条件をクリア」で一覧に戻れます。</p>
+	<nav class="article-explorer__pagination" data-pagination aria-label="検索結果のページ切り替え" hidden>
+		<p data-page-status role="status" aria-atomic="true"></p>
+		<button type="button" data-page-previous aria-controls="article-results">前のページ</button>
+		<button type="button" data-page-next aria-controls="article-results">次のページ</button>
+	</nav>
 </section>
 
 <script>
@@ -102,11 +108,19 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		const itemElements = [...root.querySelectorAll<HTMLElement>('[data-article-item]')];
 		const resultCount = root.querySelector<HTMLElement>('[data-result-count]');
 		const noResults = root.querySelector<HTMLElement>('[data-no-results]');
+		const pagination = root.querySelector<HTMLElement>('[data-pagination]');
+		const pageStatus = root.querySelector<HTMLElement>('[data-page-status]');
+		const pagePrevious = root.querySelector<HTMLButtonElement>('[data-page-previous]');
+		const pageNext = root.querySelector<HTMLButtonElement>('[data-page-next]');
+		const resultsRange = root.querySelector<HTMLElement>('[data-results-range]');
 
-		if (!form || !searchInput || !topicSelect || !resultCount || !noResults) return;
+		if (!form || !searchInput || !topicSelect || !resultCount || !noResults || !pagination || !pageStatus || !pagePrevious || !pageNext) return;
 
 		let selectedKind: ArticleSearchKind = 'all';
 		const url = new URL(window.location.href);
+		const pageSize = 6;
+		const requestedPage = Number(url.searchParams.get('page'));
+		let currentPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 		searchInput.value = url.searchParams.get('q')?.slice(0, 80) ?? '';
 		selectedKind = parseArticleSearchKind(url.searchParams.get('kind'));
 		const requestedTopic = url.searchParams.get('topic') ?? '';
@@ -120,10 +134,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 				kind: selectedKind,
 				topicId: topicSelect.value || undefined,
 			};
-			let visibleCount = 0;
-
-			for (const element of itemElements) {
-				const matches = matchesArticleSearch(
+			const matches = itemElements.filter((element) => matchesArticleSearch(
 					{
 						id: element.dataset.articleItem ?? '',
 						sourceKind: element.dataset.kind === 'project' ? 'project' : 'blog',
@@ -131,10 +142,20 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 						topicIds: (element.dataset.topics ?? '').split(' ').filter(Boolean),
 					},
 					criteria,
-				);
-
-				element.hidden = !matches;
-				if (matches) visibleCount += 1;
+				));
+			const visibleCount = matches.length;
+			const totalPages = Math.max(1, Math.ceil(visibleCount / pageSize));
+			currentPage = Math.min(currentPage, totalPages);
+			const start = (currentPage - 1) * pageSize;
+			const visibleItems = new Set(matches.slice(start, start + pageSize));
+			for (const element of itemElements) element.hidden = !visibleItems.has(element);
+			pagination.hidden = totalPages <= 1;
+			pagePrevious.disabled = currentPage === 1;
+			pageNext.disabled = currentPage === totalPages;
+			pageStatus.textContent = visibleCount === 0 ? '' : `${start + 1}〜${Math.min(start + pageSize, visibleCount)}件を表示（${currentPage} / ${totalPages}ページ）`;
+			if (resultsRange) {
+				resultsRange.hidden = totalPages <= 1;
+				resultsRange.textContent = pageStatus.textContent;
 			}
 
 			for (const button of kindButtons) {
@@ -155,33 +176,53 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 				topicSelect.value
 					? nextUrl.searchParams.set('topic', topicSelect.value)
 					: nextUrl.searchParams.delete('topic');
+				currentPage > 1 ? nextUrl.searchParams.set('page', String(currentPage)) : nextUrl.searchParams.delete('page');
 				window.history.replaceState(null, '', nextUrl);
 			}
+		};
+		const updateFilters = (): void => {
+			currentPage = 1;
+			update();
+		};
+		const focusResults = (): void => {
+			const summary = root.querySelector<HTMLElement>('[data-results-summary]');
+			summary?.focus();
+			summary?.scrollIntoView({ block: 'start', behavior: 'instant' });
 		};
 
 		form.addEventListener('submit', (event) => {
 			event.preventDefault();
-			update();
-			root.querySelector<HTMLElement>('[data-results-summary]')?.focus();
+			updateFilters();
+			focusResults();
 		});
 		searchInput.addEventListener('input', (event) => {
-			if (!(event instanceof InputEvent) || !event.isComposing) update();
+			if (!(event instanceof InputEvent) || !event.isComposing) updateFilters();
 		});
-		searchInput.addEventListener('compositionend', () => update());
-		topicSelect.addEventListener('change', () => update());
+		searchInput.addEventListener('compositionend', updateFilters);
+		topicSelect.addEventListener('change', updateFilters);
 		form.addEventListener('reset', () => {
 			window.setTimeout(() => {
 				selectedKind = 'all';
-				update();
+				updateFilters();
 			}, 0);
 		});
 
 		for (const button of kindButtons) {
 			button.addEventListener('click', () => {
 				selectedKind = parseArticleSearchKind(button.dataset.kind);
-				update();
+				updateFilters();
 			});
 		}
+		pagePrevious.addEventListener('click', () => {
+			currentPage = Math.max(1, currentPage - 1);
+			update();
+			focusResults();
+		});
+		pageNext.addEventListener('click', () => {
+			currentPage += 1;
+			update();
+			focusResults();
+		});
 
 		root.dataset.enhanced = 'true';
 		update(false);
@@ -318,6 +359,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		font-size: 0.875rem;
 		font-weight: 700;
 	}
+	.article-explorer__summary .article-explorer__range { flex-basis: 100%; font-size: 1rem; }
 
 	.article-explorer__list {
 		display: grid;
@@ -346,6 +388,15 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 
 	.article-explorer__help { margin: 0; font-size: 1rem; }
 	.article-explorer__submit { padding: 0.6rem 1rem; font-weight: 700; }
+	.article-explorer__pagination {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-2);
+		margin-block-start: var(--space-3);
+	}
+	.article-explorer__pagination p { grid-column: 1 / -1; margin: 0; }
+	.article-explorer__pagination button { padding: 0.5rem; }
+	.article-explorer__pagination button:disabled { color: var(--color-text-muted); border-style: dashed; cursor: default; }
 	@container article-explorer (min-width: 42rem) {
 		.article-explorer__controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 		.article-explorer__search-field, .article-explorer__help { grid-column: 1 / -1; }
