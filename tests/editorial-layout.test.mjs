@@ -111,7 +111,7 @@ test('page and section titles share one responsive display system', async () => 
 	assert.match(heading, /@container \(max-width: 24rem\)/);
 
 	for (const [source, label] of [
-		[articles, 'ARTICLES'],
+		[articles, '記事'],
 		[projects, 'TIMELINE'],
 		[skills, 'SKILLS'],
 	]) {
@@ -168,8 +168,9 @@ test('article layouts respond to their allocated column instead of the viewport'
 	assert.doesNotMatch(explorer, /@media \(max-width: (?:64|42)rem\)/);
 	assert.match(showcase, /container: article-showcase \/ inline-size/);
 	assert.match(showcase, /\.article-marquee \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?margin-inline: 0/);
-	assert.match(showcase, /inline-size: clamp\(17rem, 72cqi, 23rem\)/);
-	assert.match(showcase, /@container article-showcase \(max-width: 30rem\)/);
+	assert.match(showcase, /grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 18rem\), 1fr\)\)/);
+	assert.doesNotMatch(showcase, /animation: article-marquee|aria-hidden="true"/);
+
 	assert.doesNotMatch(showcase, /100vw|50vw|28vw|78vw/);
 	assert.match(feedCard, /\.article-feed-card \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%/);
 	assert.match(indexCard, /grid-template-columns: clamp\(3\.5rem, 16%, 7rem\) minmax\(0, 1fr\)/);
