@@ -726,6 +726,12 @@ const {
 		}
 	}
 
+	@media (max-width: 30rem) {
+		.project-timeline__item { grid-template-columns: minmax(0, 1fr); }
+		.project-timeline__card, .project-timeline__item:nth-child(even) .project-timeline__card { grid-column: 1; grid-row: auto; }
+		.project-timeline__node, .project-timeline::before, .project-timeline__card::before { display: none; }
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.project-timeline::before,
 		.project-timeline__node,

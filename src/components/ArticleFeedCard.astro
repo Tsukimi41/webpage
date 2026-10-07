@@ -27,7 +27,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		<div class="article-feed-card__footer">
 			<time>{item.dateLabel}</time>
 			{item.href && !duplicate && (
-				<a href={itemHref}>詳しく見る<span aria-hidden="true"> ↗</span></a>
+				<a href={itemHref} aria-label={`記事を読む：${item.title}`}>記事を読む<span aria-hidden="true"> ↗</span></a>
 			)}
 		</div>
 	</div>
@@ -52,7 +52,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		position: relative;
 		isolation: isolate;
 		display: flex;
-		min-block-size: 10rem;
+		min-block-size: 4rem;
 		align-items: flex-end;
 		justify-content: space-between;
 		overflow: hidden;
@@ -82,7 +82,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 
 	.article-feed-card__cover-label {
 		color: var(--color-text);
-		font-size: 0.72rem;
+		font-size: 0.875rem;
 		font-weight: 800;
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
@@ -104,7 +104,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 	.article-feed-card__source {
 		margin: 0;
 		color: var(--color-accent);
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 		letter-spacing: 0.05em;
 	}
@@ -123,6 +123,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 	}
 
 	.article-feed-card__footer {
+		flex-wrap: wrap;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -130,11 +131,14 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		margin-block-start: auto;
 		padding-block-start: var(--space-3);
 		color: var(--color-text-muted);
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 	}
 
 	.article-feed-card__footer a {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 3rem;
 		color: var(--color-accent);
 		text-underline-offset: 0.2em;
 	}

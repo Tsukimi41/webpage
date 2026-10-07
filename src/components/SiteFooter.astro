@@ -17,9 +17,9 @@ const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 				<SocialLinks accessibleLabel="外部プロフィール" variant="footer" />
 				<span class="site-footer__divider" aria-hidden="true"></span>
 				<nav class="site-footer__nav" aria-label="フッターメニュー">
-					<a href={homeHref}>Home</a>
-					<a href={profileHref}>Profile</a>
-					<a href={articlesHref}>Articles</a>
+					<a href={homeHref}>ホーム</a>
+					<a href={profileHref}>プロフィール</a>
+					<a href={articlesHref}>記事を探す</a>
 					<a href={rssHref}>RSS</a>
 				</nav>
 			</div>
@@ -52,6 +52,7 @@ const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 	}
 
 	.site-footer__site-nav {
+		flex-wrap: wrap;
 		--site-footer-control-block-size: 2.75rem;
 
 		display: flex;
@@ -78,7 +79,6 @@ const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 	}
 
 	.site-footer__site-nav :global(.social-links--footer .social-links__link) {
-		block-size: var(--site-footer-control-block-size);
 		min-block-size: var(--site-footer-control-block-size);
 	}
 
@@ -98,15 +98,16 @@ const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 
 	.site-footer__nav a {
 		display: inline-flex;
-		block-size: var(--site-footer-control-block-size);
+		min-block-size: var(--site-footer-control-block-size);
 		align-items: center;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 		line-height: 1;
 		text-decoration: none;
-		white-space: nowrap;
+		white-space: normal;
+		min-inline-size: 2.75rem;
 	}
 
 	.site-footer__nav a:hover {
@@ -127,7 +128,7 @@ const rssHref = createSitePath(import.meta.env.BASE_URL, '/rss.xml');
 
 	.site-footer__meta p {
 		margin: 0;
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 	}
 
 	@media (max-width: 30rem) {

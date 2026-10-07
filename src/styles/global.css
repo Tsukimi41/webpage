@@ -4,10 +4,11 @@
 	--color-surface: #2c2f2d;
 	--color-surface-raised: #373b38;
 	--color-text: #f4f5ef;
-	--color-text-muted: #b7bdb5;
+	--color-text-muted: #d0d5cc;
+	--color-control-border: #929a90;
 	--color-accent: #d8e86a;
 	--color-accent-strong: #a8ed9f;
-	--color-accent-alt: #ff7ca5;
+	--color-accent-alt: #ff9bbb;
 	--color-border: #50564f;
 	--color-grid: transparent;
 	--color-shadow: rgb(0 0 0 / 18%);
@@ -43,10 +44,11 @@
 	--color-surface: #fcfcfa;
 	--color-surface-raised: #ebeae4;
 	--color-text: #2d2a2e;
-	--color-text-muted: #666168;
-	--color-accent: #675400;
-	--color-accent-strong: #356b73;
-	--color-accent-alt: #a72f58;
+	--color-text-muted: #504b52;
+	--color-control-border: #79747b;
+	--color-accent: #594800;
+	--color-accent-strong: #24515a;
+	--color-accent-alt: #912248;
 	--color-border: #cfcdc5;
 	--color-grid: transparent;
 	--color-shadow: rgb(45 42 46 / 10%);
@@ -68,10 +70,11 @@
 	--color-surface: #363337;
 	--color-surface-raised: #403e41;
 	--color-text: #fcfcfa;
-	--color-text-muted: #c0bcc1;
+	--color-text-muted: #d7d2d8;
+	--color-control-border: #a49da6;
 	--color-accent: #ffd866;
 	--color-accent-strong: #78dce8;
-	--color-accent-alt: #ff6188;
+	--color-accent-alt: #ff9bb6;
 	--color-border: #59565a;
 	--color-grid: transparent;
 	--color-shadow: rgb(0 0 0 / 22%);
@@ -102,6 +105,8 @@ html {
 	font-family: var(--font-sans);
 	font-size: 100%;
 	line-height: 1.7;
+	overflow-wrap: anywhere;
+	-webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -116,6 +121,7 @@ body {
 main {
 	position: relative;
 	inline-size: min(calc(100% - var(--space-4)), var(--content-width));
+	min-block-size: calc(100vh - 3.25rem);
 	min-block-size: calc(100svh - 3.25rem);
 	margin-inline: auto;
 	padding-block: clamp(var(--space-4), 6vw, var(--space-5));
@@ -146,8 +152,33 @@ p {
 }
 
 a {
+	color: var(--color-accent);
 	text-decoration-thickness: 0.08em;
 	text-underline-offset: 0.2em;
+}
+
+/* Keep intrinsic media and long strings inside the reading column. */
+img, video, iframe, svg {
+	max-inline-size: 100%;
+}
+
+img, video { block-size: auto; }
+
+button, input, select, textarea { font: inherit; }
+button, select { cursor: pointer; }
+
+:focus-visible {
+	outline: 3px solid var(--color-accent);
+	outline-offset: 3px;
+}
+
+[hidden] { display: none !important; }
+
+@media (forced-colors: active) {
+	:focus-visible { outline-color: Highlight; }
+	button, input, select, textarea { border: 2px solid ButtonText; }
+	a { color: LinkText; }
+	button[aria-pressed='true'], [aria-current='page'] { outline: 2px solid Highlight; }
 }
 
 ::selection {

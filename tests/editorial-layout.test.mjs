@@ -106,14 +106,14 @@ test('page and section titles share one responsive display system', async () => 
 	assert.match(heading, /font-size: clamp\(1\.4rem, 5cqi, 2\.25rem\)/);
 	assert.match(heading, /font-style: italic/);
 	assert.match(heading, /font-weight: 900/);
-	assert.match(heading, /letter-spacing: -0\.075em/);
+	assert.match(heading, /letter-spacing: -0\.025em/);
 	assert.match(heading, /\.section-heading::after/);
 	assert.match(heading, /@container \(max-width: 24rem\)/);
 
 	for (const [source, label] of [
-		[articles, 'ARTICLES'],
+		[articles, '記事'],
 		[projects, 'TIMELINE'],
-		[skills, 'SKILLS'],
+		[skills, '技術'],
 	]) {
 		assert.match(source, /import SectionHeading from/);
 		assert.match(source, new RegExp(`<SectionHeading[^>]*label="${label}"`));
@@ -163,13 +163,14 @@ test('article layouts respond to their allocated column instead of the viewport'
 	]);
 
 	assert.match(explorer, /container: article-explorer \/ inline-size/);
-	assert.match(explorer, /@container article-explorer \(max-width: 64rem\)/);
-	assert.match(explorer, /@container article-explorer \(max-width: 42rem\)/);
+	assert.match(explorer, /@container article-explorer \(min-width: 42rem\)/);
+
 	assert.doesNotMatch(explorer, /@media \(max-width: (?:64|42)rem\)/);
 	assert.match(showcase, /container: article-showcase \/ inline-size/);
 	assert.match(showcase, /\.article-marquee \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?margin-inline: 0/);
-	assert.match(showcase, /inline-size: clamp\(17rem, 72cqi, 23rem\)/);
-	assert.match(showcase, /@container article-showcase \(max-width: 30rem\)/);
+	assert.match(showcase, /grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 18rem\), 1fr\)\)/);
+	assert.doesNotMatch(showcase, /animation: article-marquee|aria-hidden="true"/);
+
 	assert.doesNotMatch(showcase, /100vw|50vw|28vw|78vw/);
 	assert.match(feedCard, /\.article-feed-card \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%/);
 	assert.match(indexCard, /grid-template-columns: clamp\(3\.5rem, 16%, 7rem\) minmax\(0, 1fr\)/);

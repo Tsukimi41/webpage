@@ -57,9 +57,9 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	]);
 
 	assert.match(header, /const homeHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/'\)/);
-	assert.match(header, /href=\{homeHref\}[^>]*>Home</);
-	assert.match(header, /href=\{profileHref\}[^>]*>Profile</);
-	assert.match(header, /href=\{articlesHref\}[^>]*>Articles</);
+	assert.match(header, /href=\{homeHref\}[^>]*>ホーム</);
+	assert.match(header, /href=\{profileHref\}[^>]*>プロフィール</);
+	assert.match(header, /href=\{articlesHref\}[^>]*>記事を探す</);
 	assert.doesNotMatch(header, /href="\/blog\/"|>Blog</);
 	assert.match(header, /<ThemeSwitcher \/>/);
 	assert.match(header, /\.site-header__nav \{[\s\S]*margin-inline-start: auto/);
@@ -70,26 +70,26 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 	assert.match(footer, /<SocialLinks accessibleLabel="外部プロフィール" variant="footer" \/>/);
 	assert.match(footer, /<BackToTopLink \/>/);
 	assert.match(footer, /class="site-footer__divider"/);
-	assert.match(footer, /href=\{articlesHref\}>Articles</);
+	assert.match(footer, /href=\{articlesHref\}>記事を探す</);
 	assert.doesNotMatch(footer, /href="\/blog\/"|>Blog</);
 	assert.doesNotMatch(footer, /site-footer__top|site-footer__top-icon/);
 	assert.match(footer, /class="site-footer__site-nav"/);
 	assert.match(footer, /--site-footer-control-block-size: 2\.75rem/);
 	assert.match(
 		footer,
-		/\.site-footer__nav a \{[\s\S]*?block-size: var\(--site-footer-control-block-size\)[\s\S]*?align-items: center/,
+		/\.site-footer__nav a \{[\s\S]*?min-block-size: var\(--site-footer-control-block-size\)[\s\S]*?align-items: center/,
 	);
 	assert.doesNotMatch(footer, /\.site-footer__site-nav \.social-links/);
 	assert.match(socialLinks, /variant\?: 'default' \| 'footer'/);
 	assert.match(socialLinks, /'social-links--footer': variant === 'footer'/);
 	assert.match(
 		footer,
-		/:global\(\.social-links--footer \.social-links__link\) \{[\s\S]*?block-size: var\(--site-footer-control-block-size\)/,
+		/:global\(\.social-links--footer \.social-links__link\) \{[\s\S]*?min-block-size: var\(--site-footer-control-block-size\)/,
 	);
 	assert.match(footer, /:global\(\.social-links--footer\) \{[\s\S]*?margin-block-start: 0;[\s\S]*?animation: none/);
 	assert.ok(
 		footer.indexOf('<SocialLinks') < footer.indexOf('class="site-footer__divider"') &&
-			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href={homeHref}>Home'),
+			footer.indexOf('class="site-footer__divider"') < footer.indexOf('href={homeHref}>ホーム'),
 	);
 	assert.match(backToTop, /href = '#site-top'/);
 	assert.match(backToTop, /label = '一番上へ戻る'/);

@@ -28,7 +28,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 	</section>
 
 	<section class="site-sidebar__section" aria-labelledby="sidebar-recent-title">
-		<h2 id="sidebar-recent-title">Recent</h2>
+		<h2 id="sidebar-recent-title">最近の記事</h2>
 		{recentArticles.length > 0 ? (
 			<ol class="site-sidebar__recent">
 				{recentArticles.map((article) => (
@@ -44,7 +44,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 	</section>
 
 	<section class="site-sidebar__section" aria-labelledby="sidebar-topics-title">
-		<h2 id="sidebar-topics-title">Topics</h2>
+		<h2 id="sidebar-topics-title">技術・タグ</h2>
 		{topics.length > 0 ? (
 			<ul class="site-sidebar__topics" role="list">
 				{topics.map((topic) => (
@@ -65,7 +65,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 
 <style>
 	.site-sidebar {
-		position: sticky;
+		position: static;
 		inset-block-start: calc(3.25rem + var(--space-3));
 		display: grid;
 		gap: var(--space-4);
@@ -134,7 +134,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 	.site-sidebar__profile p,
 	.site-sidebar__empty {
 		margin-block-start: 0.35rem;
-		font-size: 0.72rem;
+		font-size: 0.875rem;
 		line-height: 1.55;
 	}
 
@@ -169,12 +169,15 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 		min-inline-size: 0;
 		max-inline-size: 100%;
 		color: var(--color-text);
-		font-size: 0.76rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 		line-height: 1.5;
 		text-decoration: none;
 		overflow-wrap: anywhere;
 	}
+
+	.site-sidebar__recent a { display: flex; align-items: center; min-block-size: 3rem; }
+	.site-sidebar__topics a { min-block-size: 3rem; align-items: center; }
 
 	.site-sidebar__recent a:hover,
 	.site-sidebar__topics a:hover {
@@ -187,7 +190,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 		min-inline-size: 0;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
-		font-size: 0.65rem;
+		font-size: 0.875rem;
 		overflow-wrap: anywhere;
 	}
 
@@ -230,7 +233,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 		justify-self: end;
 		color: var(--color-text-muted);
 		font-family: var(--font-mono);
-		font-size: 0.65rem;
+		font-size: 0.875rem;
 		font-variant-numeric: tabular-nums;
 		text-align: end;
 	}

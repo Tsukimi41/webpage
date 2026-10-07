@@ -45,7 +45,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		min-inline-size: 0;
 		max-inline-size: 100%;
 		min-block-size: 100%;
-		overflow: hidden;
+		overflow: visible;
 		border-block-end: 1px solid var(--color-border);
 		background: transparent;
 	}
@@ -71,7 +71,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 	}
 
 	.article-index-card__accent span:first-child {
-		font-size: 0.65rem;
+		font-size: 0.875rem;
 		font-weight: 800;
 		letter-spacing: 0.12em;
 		text-orientation: mixed;
@@ -95,7 +95,7 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		justify-content: space-between;
 		gap: var(--space-1) var(--space-2);
 		color: var(--color-text-muted);
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 		letter-spacing: 0.06em;
 	}
@@ -108,6 +108,9 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 	}
 
 	.article-index-card h2 a {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 3rem;
 		color: var(--color-accent);
 		font-family: var(--font-mono);
 		text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
@@ -143,7 +146,12 @@ const itemHref = createSitePath(import.meta.env.BASE_URL, item.href);
 		padding: 0.2rem 0.5rem;
 		border: 1px solid var(--color-border);
 		color: var(--color-text-muted);
-		font-size: 0.72rem;
+		font-size: 0.875rem;
 		font-weight: 700;
+	}
+	@media (max-width: 30rem) {
+		.article-index-card { grid-template-columns: minmax(0, 1fr); }
+		.article-index-card__accent { display: none; }
+		.article-index-card__body { padding-inline: 0; }
 	}
 </style>
