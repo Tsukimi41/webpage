@@ -17,7 +17,8 @@
     "check:site-url": "node --experimental-strip-types scripts/check-site-url.mjs",
     "check:release": "node --experimental-strip-types scripts/check-release-readiness.mjs",
     "generate:skill-icons": "node scripts/generate-skill-icons.mjs",
-    "audit:dependencies": "npm audit --audit-level=moderate"
+    "audit:dependencies": "npm audit --audit-level=moderate",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "astro": "^7.3.2"
@@ -26,8 +27,10 @@
     "esbuild": true
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@iconify-json/devicon": "^1.2.66",
     "@iconify-json/simple-icons": "^1.2.96",
+    "@playwright/test": "^1.63.0",
     "astro-icon": "^1.2.0"
   }
 }

@@ -21,3 +21,8 @@ docs/*
 # operating system and editor files
 .DS_Store
 .idea/
+
+# browser test artifacts
+test-results/
+playwright-report/
+.tmp/
