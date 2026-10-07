@@ -22,12 +22,17 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 				name="q"
 				type="search"
 				maxlength="80"
-				placeholder=""
+				placeholder="キーワードを入力"
+				enterkeyhint="search"
+				aria-describedby="article-search-help"
 				autocomplete="off"
 				aria-controls="article-results"
 				data-search-input
 			/>
 		</div>
+
+		<p id="article-search-help" class="article-explorer__help">タイトル・概要・技術・タグから検索できます。空白で区切ると、すべての言葉を含む記事を探します。</p>
+		<button class="article-explorer__submit" type="submit">検索結果を見る</button>
 
 		<fieldset class="article-explorer__kind" data-kind-controls>
 			<legend>記事の種類</legend>
@@ -55,9 +60,9 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		<p class="article-explorer__noscript">検索操作なしで、すべての記事を表示しています。</p>
 	</noscript>
 
-	<div class="article-explorer__summary">
+	<div class="article-explorer__summary" data-results-summary tabindex="-1">
 		<SectionHeading id="article-results-title" label="検索結果" size="section" />
-		<p data-result-count aria-live="polite">全{items.length}件</p>
+		<p data-result-count role="status" aria-live="polite" aria-atomic="true">全{items.length}件</p>
 	</div>
 
 	{items.length > 0 ? (
@@ -77,7 +82,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		<p class="article-explorer__empty">表示できる記事はありません。</p>
 	)}
 
-	<p class="article-explorer__empty" data-no-results hidden>条件に一致する記事はありません。</p>
+	<p class="article-explorer__empty" data-no-results hidden>条件に一致する記事はありません。キーワードを短くするか、「条件をクリア」で一覧に戻れます。</p>
 </section>
 
 <script>
@@ -93,7 +98,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		const form = root.querySelector<HTMLFormElement>('[data-search-form]');
 		const searchInput = root.querySelector<HTMLInputElement>('[data-search-input]');
 		const topicSelect = root.querySelector<HTMLSelectElement>('[data-topic-select]');
-		const kindButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-kind]')];
+		const kindButtons = [...root.querySelectorAll<HTMLButtonElement>('button[data-kind]')];
 		const itemElements = [...root.querySelectorAll<HTMLElement>('[data-article-item]')];
 		const resultCount = root.querySelector<HTMLElement>('[data-result-count]');
 		const noResults = root.querySelector<HTMLElement>('[data-no-results]');
@@ -157,8 +162,12 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		form.addEventListener('submit', (event) => {
 			event.preventDefault();
 			update();
+			root.querySelector<HTMLElement>('[data-results-summary]')?.focus();
 		});
-		searchInput.addEventListener('input', () => update());
+		searchInput.addEventListener('input', (event) => {
+			if (!(event instanceof InputEvent) || !event.isComposing) update();
+		});
+		searchInput.addEventListener('compositionend', () => update());
 		topicSelect.addEventListener('change', () => update());
 		form.addEventListener('reset', () => {
 			window.setTimeout(() => {
@@ -195,7 +204,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 
 	.article-explorer__controls {
 		display: grid;
-		grid-template-columns: minmax(14rem, 1.5fr) minmax(15rem, 1fr) minmax(10rem, 0.75fr) auto;
+		grid-template-columns: minmax(0, 1fr);
 		min-inline-size: 0;
 		max-inline-size: 100%;
 		align-items: end;
@@ -216,7 +225,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	.article-explorer label,
 	.article-explorer legend {
 		color: var(--color-text-muted);
-		font-size: 0.75rem;
+		font-size: 1rem;
 		font-weight: 800;
 		letter-spacing: 0.06em;
 	}
@@ -224,8 +233,8 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	.article-explorer input,
 	.article-explorer select,
 	.article-explorer button {
-		min-block-size: 2.75rem;
-		border: 1px solid var(--color-border);
+		min-block-size: 3rem;
+		border: 1px solid var(--color-control-border);
 		border-radius: var(--radius-small);
 		background: var(--color-canvas);
 		color: var(--color-text);
@@ -254,30 +263,32 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 
 	.article-explorer__kind > div {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+		gap: 0.5rem;
 		margin-block-start: 0.35rem;
 	}
 
 	.article-explorer__kind button {
 		padding-inline: 0.55rem;
-		font-size: 0.75rem;
+		font-size: 1rem;
 		font-weight: 800;
 		cursor: pointer;
 	}
 
 	.article-explorer__kind button + button {
-		border-inline-start: 0;
+		border-inline-start: 1px solid var(--color-control-border);
 	}
 
 	.article-explorer__kind button[aria-pressed='true'] {
 		border-color: var(--color-accent);
-		background: var(--color-surface-raised);
-		color: var(--color-accent);
+		background: var(--color-accent);
+		color: var(--color-canvas);
+		text-decoration: underline;
 	}
 
 	.article-explorer__reset {
 		padding-inline: var(--space-2);
-		font-size: 0.8rem;
+		font-size: 0.875rem;
 		font-weight: 800;
 		cursor: pointer;
 	}
@@ -292,6 +303,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	}
 
 	.article-explorer__summary {
+		flex-wrap: wrap;
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
@@ -303,7 +315,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 
 	.article-explorer__summary p {
 		margin: 0;
-		font-size: 0.8125rem;
+		font-size: 0.875rem;
 		font-weight: 700;
 	}
 
@@ -332,20 +344,10 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		margin-block-end: var(--space-3);
 	}
 
-	@container article-explorer (max-width: 64rem) {
-		.article-explorer__controls {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-
-	@container article-explorer (max-width: 42rem) {
-		.article-explorer__controls,
-		.article-explorer__list {
-			grid-template-columns: minmax(0, 1fr);
-		}
-
-		.article-explorer__reset {
-			justify-self: start;
-		}
+	.article-explorer__help { margin: 0; font-size: 1rem; }
+	.article-explorer__submit { padding: 0.6rem 1rem; font-weight: 700; }
+	@container article-explorer (min-width: 42rem) {
+		.article-explorer__controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.article-explorer__search-field, .article-explorer__help { grid-column: 1 / -1; }
 	}
 </style>

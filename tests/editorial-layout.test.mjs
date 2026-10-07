@@ -163,8 +163,8 @@ test('article layouts respond to their allocated column instead of the viewport'
 	]);
 
 	assert.match(explorer, /container: article-explorer \/ inline-size/);
-	assert.match(explorer, /@container article-explorer \(max-width: 64rem\)/);
-	assert.match(explorer, /@container article-explorer \(max-width: 42rem\)/);
+	assert.match(explorer, /@container article-explorer \(min-width: 42rem\)/);
+
 	assert.doesNotMatch(explorer, /@media \(max-width: (?:64|42)rem\)/);
 	assert.match(showcase, /container: article-showcase \/ inline-size/);
 	assert.match(showcase, /\.article-marquee \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?margin-inline: 0/);
