@@ -9,7 +9,7 @@ sourceId: arch1
 
 直接のきっかけの一つになったのが、
 チャンネル登録者数 77.9万人のChris Titus Tech樣の動画[The Linux Tier List](https://www.youtube.com/watch?v=KyADkmRVe0U)だった。
-<video src="https://www.youtube.com/watch?v=KyADkmRVe0U" controls="true"></video>
+<p><a class="article-video-link" href="https://www.youtube.com/watch?v=KyADkmRVe0U">動画を見る：The Linux Tier List（YouTube）</a></p>
 > この方のほかの動画には、ウイルス対策とか、Windowsのいろんな機能について楽しそうにおしゃべりしているものもあるので、ぜひ見ていただきたい。
 これまでもUbuntuは触ったことがあったが、自分のPCのOSとして、本格的にLinuxを使うというところまでは踏み込んでいなかった。
 Linuxについて改めて調べているうちに、ふと疑問が湧いた。 「自分が普段使っているコンピュータは、電源を入れてからアプリケーションが動くまで、一体何をしているのか？」
