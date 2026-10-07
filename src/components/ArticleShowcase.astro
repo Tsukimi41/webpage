@@ -14,7 +14,7 @@ const includesMockData = items.some((item) => item.state === 'mock');
 const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 ---
 
-<section class="article-showcase" aria-labelledby="article-showcase-title">
+<section class="article-showcase" data-article-carousel aria-labelledby="article-showcase-title">
 	<header class="article-showcase__header">
 		<div>
 			<SectionHeading id="article-showcase-title" label="記事" />
@@ -26,17 +26,56 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 	</header>
 
 	{items.length > 0 ? (
-		<div class="article-marquee" aria-label="プロジェクト詳細と長文記事">
-			<div class="article-marquee__track">
-				<ul class="article-marquee__group" role="list">
-					{items.map((item) => <li><ArticleFeedCard item={item} /></li>)}
-				</ul>
+		<div class="article-carousel__controls" data-carousel-controls hidden>
+			<p class="article-carousel__help" id="article-carousel-help">1件ずつ切り替えて読めます。最後の記事の次は、最初に戻ります。</p>
+			<div class="article-carousel__navigation">
+				<button type="button" data-carousel-previous aria-controls="article-carousel-slides">前の記事</button>
+				<p data-carousel-position role="status" aria-atomic="true">1 / {items.length}件</p>
+				<button type="button" data-carousel-next aria-controls="article-carousel-slides">次の記事</button>
 			</div>
+			<label for="article-carousel-select">記事名から選ぶ</label>
+			<select id="article-carousel-select" data-carousel-select aria-controls="article-carousel-slides" aria-describedby="article-carousel-help">
+				{items.map((item, index) => <option value={index}>{index + 1}. {item.title}</option>)}
+			</select>
 		</div>
+		<div id="article-carousel-slides" class="article-carousel__slides">
+			{items.map((item, index) => (
+				<div data-carousel-slide role="group" aria-roledescription="スライド" aria-label={`${index + 1} / ${items.length}件`} hidden={index !== 0}>
+					<ArticleFeedCard item={item} />
+				</div>
+			))}
+		</div>
+		<noscript><p>先頭の1件を表示しています。「すべての記事を見る」から全記事を読めます。</p></noscript>
 	) : (
 		<p class="article-showcase__empty">表示できる記事はありません。</p>
 	)}
 </section>
+
+<script>
+	for (const root of document.querySelectorAll<HTMLElement>('[data-article-carousel]')) {
+		const slides = [...root.querySelectorAll<HTMLElement>('[data-carousel-slide]')];
+		const controls = root.querySelector<HTMLElement>('[data-carousel-controls]');
+		const previous = root.querySelector<HTMLButtonElement>('[data-carousel-previous]');
+		const next = root.querySelector<HTMLButtonElement>('[data-carousel-next]');
+		const select = root.querySelector<HTMLSelectElement>('[data-carousel-select]');
+		const position = root.querySelector<HTMLElement>('[data-carousel-position]');
+		if (slides.length < 2 || !controls || !previous || !next || !select || !position) continue;
+
+		let current = 0;
+		const show = (index: number): void => {
+			current = (index + slides.length) % slides.length;
+			// Hidden slides are excluded from layout, keyboard navigation and reading order.
+			for (const [i, slide] of slides.entries()) slide.hidden = i !== current;
+			select.value = String(current);
+			position.textContent = `${current + 1} / ${slides.length}件`;
+		};
+		previous.addEventListener('click', () => show(current - 1));
+		next.addEventListener('click', () => show(current + 1));
+		select.addEventListener('change', () => show(Number(select.value)));
+		root.setAttribute('aria-roledescription', 'カルーセル');
+		controls.hidden = false;
+	}
+</script>
 
 <style>
 	.article-showcase {
@@ -44,7 +83,7 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		inline-size: 100%;
 		min-inline-size: 0;
 		max-inline-size: 100%;
-		padding-block: clamp(var(--space-5), 10vw, 7rem);
+		padding-block: clamp(var(--space-4), 5vw, var(--space-5));
 	}
 
 	.article-showcase__header {
@@ -99,20 +138,53 @@ const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
 		outline-offset: 0.1875rem;
 	}
 
-	.article-marquee {
+	.article-carousel__slides {
 		inline-size: 100%;
 		max-inline-size: 100%;
 		margin-inline: 0;
 	}
-	.article-marquee__group {
+	.article-carousel__controls {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-		gap: var(--space-3);
-		margin: 0;
-		padding: 0;
-		list-style: none;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-1);
+		margin-block-end: var(--space-2);
 	}
-	.article-marquee__group > li { min-inline-size: 0; }
+	.article-carousel__help { margin: 0; }
+	.article-carousel__navigation {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-1);
+	}
+	.article-carousel__navigation p {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		margin: 0;
+		font-variant-numeric: tabular-nums;
+	}
+	.article-carousel__controls label { font-weight: 700; }
+	.article-carousel__controls button,
+	.article-carousel__controls select {
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: 100%;
+		min-block-size: 3rem;
+		padding: 0.5rem;
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		background: var(--color-surface);
+		color: var(--color-text);
+		font: inherit;
+	}
+	.article-carousel__controls button:hover {
+		border-color: var(--color-accent);
+		background: var(--color-surface-raised);
+	}
+	/* WebKit can let the native selected text overflow at large text spacing. */
+	.article-carousel__controls select { white-space: normal; }
+	@container article-showcase (min-width: 36rem) {
+		.article-carousel__navigation { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+		.article-carousel__navigation p { grid-column: 2; grid-row: 1; align-self: center; text-align: center; }
+	}
 
 	.article-showcase__empty {
 		margin: 0;
