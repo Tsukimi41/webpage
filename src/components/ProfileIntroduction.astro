@@ -54,7 +54,7 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 		gap: clamp(var(--space-2), 4%, var(--space-5));
 		align-content: center;
 		align-items: center;
-		overflow: hidden;
+		overflow: visible;
 		box-sizing: border-box;
 		inline-size: 100%;
 		min-inline-size: 0;
@@ -182,8 +182,11 @@ const iconSrc = createSitePath(import.meta.env.BASE_URL, profile.icon.src);
 
 	@media (max-width: 30rem) {
 		.introduction {
-			min-block-size: 24rem;
+			min-block-size: 0;
+			grid-template-columns: minmax(0, 1fr);
 		}
+
+		.introduction__visual { grid-row: 1; inline-size: 5rem; justify-self: start; }
 
 		.introduction__name {
 			font-size: clamp(1.4rem, 7vw, 1.8rem);
