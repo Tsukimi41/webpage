@@ -6,7 +6,7 @@ interface Props {
 const { href = '#main-content' } = Astro.props;
 ---
 
-<a class="skip-link" href={href}>本文へ移動</a>
+<a class="skip-link" href={href} tabindex="0">本文へ移動</a>
 
 <style>
 	.skip-link {
