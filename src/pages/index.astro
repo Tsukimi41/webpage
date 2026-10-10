@@ -8,6 +8,7 @@ import { getProjects } from '../content/projects';
 import { getSkills } from '../content/skills';
 import { profile, profileDisplayName } from '../data/profile';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import TerminalEntry from '../components/TerminalEntry.astro';
 
 const pageTitle = `${profileDisplayName} | ポートフォリオ`;
 const pageDescription = `${profileDisplayName}のポートフォリオ。${profile.affiliation.university} ${profile.affiliation.faculty}で学んでいます。`;
@@ -17,6 +18,7 @@ const articleFeed = getArticleFeed();
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
+	<TerminalEntry />
 	<ProfileIntroduction />
 	<ArticleShowcase items={articleFeed} />
 	<SkillShowcase skills={skills} />
