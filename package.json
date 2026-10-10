@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "dev": "astro dev",
@@ -18,6 +18,7 @@
     "check:release": "node --experimental-strip-types scripts/check-release-readiness.mjs",
     "generate:skill-icons": "node scripts/generate-skill-icons.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
+    "audit:lighthouse": "node scripts/lighthouse-audit.mjs",
     "audit:dependencies": "npm audit --audit-level=moderate",
     "test:browser": "playwright test"
   },
@@ -33,6 +34,7 @@
     "@iconify-json/simple-icons": "^1.2.96",
     "@playwright/test": "^1.63.0",
     "astro-icon": "^1.2.0",
+    "lighthouse": "^13.5.0",
     "sharp": "^0.35.4"
   }
 }

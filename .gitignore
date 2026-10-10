@@ -26,3 +26,4 @@ docs/*
 test-results/
 playwright-report/
 .tmp/
+.lighthouse/
