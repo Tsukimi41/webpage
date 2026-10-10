@@ -26,7 +26,8 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 		const destination = document.querySelector<HTMLElement>(keyboard ? '.skip-link' : '#main-content');
 		destination?.focus({ preventScroll: true });
 	};
-	const watchdog = setTimeout(() => finish(), 4000);
+	// Allow the deliberate opening and typo recovery to finish, but never trap visitors.
+	const watchdog = setTimeout(() => finish(), 16000);
 	const pause = (ms: number) => new Promise<boolean>(resolve => {
 		if (stopped) { resolve(false); return; }
 		resolvePause = resolve;
