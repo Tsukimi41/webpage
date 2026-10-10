@@ -27,3 +27,18 @@ test('search coalesces input, waits for IME, and submits immediately', async ({ 
 	await page.clock.runFor(200);
 	await expect(page).not.toHaveURL(/q=/);
 });
+
+test('submitting unchanged criteria does not rewrite results', async ({ page }) => {
+	await page.goto('/articles/?q=astro');
+	await expect(page.locator('[data-article-explorer]')).toHaveAttribute('data-enhanced', 'true');
+	const mutations = await page.evaluate(async () => {
+		let count = 0;
+		const observer = new MutationObserver(records => count += records.length);
+		observer.observe(document.querySelector('[data-article-explorer]'), {subtree:true, childList:true, attributes:true, characterData:true});
+		document.querySelector('[data-search-form]').requestSubmit();
+		await new Promise(resolve => setTimeout(resolve, 0));
+		observer.disconnect();
+		return count;
+	});
+	expect(mutations).toBe(0);
+});

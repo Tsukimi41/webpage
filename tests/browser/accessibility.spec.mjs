@@ -53,6 +53,7 @@ test('search, reset, URL restoration, keyboard and Japanese composition', async 
 	await expect(input).toHaveValue('');
 	await expect(page.locator('[data-no-results]')).toBeHidden();
 	await input.fill('arch');
+	await expect(page).toHaveURL(/q=arch/);
 	await page.reload();
 	await expect(input).toHaveValue('arch');
 	await page.getByRole('button', {name:'条件をクリア'}).click();
