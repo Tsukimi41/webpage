@@ -151,7 +151,10 @@ test('redesign preserves article search, project interaction, and skill physics'
 	assert.match(projects, /data-project-node/);
 	assert.match(projects, /node\.addEventListener\('click'/);
 	assert.match(skills, /data-skill-field/);
-	assert.match(skills, /startSkillPhysics/);
+	assert.match(skills, /load-skill-physics/);
+	const loader = await readFile(new URL('../src/scripts/load-skill-physics.ts', import.meta.url), 'utf8');
+	assert.match(loader, /import\('\.\/skill-physics'\)/);
+	assert.match(loader, /startSkillPhysics\(field\)/);
 });
 
 test('article layouts respond to their allocated column instead of the viewport', async () => {

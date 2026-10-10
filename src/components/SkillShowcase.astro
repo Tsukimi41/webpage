@@ -54,6 +54,7 @@ const skillObjects = skills.map((skill) => {
 	</ul>
 	<details class="skill-showcase__interactive">
 		<summary>技術アイコンを動かして見る</summary>
+		<p data-skill-load-note role="status" hidden></p>
 	<div class:list={['skill-box', { 'skill-box--empty': skills.length === 0 }]}>
 		<div class="skill-field" data-skill-field aria-label="技術アイコンのインタラクティブ表示">
 			<div class="skill-field__light" aria-hidden="true"></div>
@@ -108,21 +109,7 @@ const skillObjects = skills.map((skill) => {
 </section>
 
 <script>
-	import { startSkillPhysics } from '../scripts/skill-physics';
-
-	const fields = document.querySelectorAll<HTMLElement>('[data-skill-field]');
-	const disposers = new Map<HTMLElement, () => void>();
-	fields.forEach((field) => {
-		field.closest('details')?.addEventListener('toggle', (event) => {
-			const details = event.currentTarget as HTMLDetailsElement;
-			disposers.get(field)?.();
-			disposers.delete(field);
-			if (details.open) disposers.set(field, startSkillPhysics(field));
-		});
-	});
-	document.addEventListener('astro:before-swap', () => {
-		disposers.forEach((dispose) => dispose());
-	}, { once: true });
+	import '../scripts/load-skill-physics';
 </script>
 
 <style>
