@@ -16,7 +16,7 @@ const profileDefinition = {
 	handle: 'Tsukimi41',
 	penName: '薪',
 	icon: {
-		src: '/favicon.ico',
+		src: '/images/profile.webp',
 		width: 256,
 		height: 256,
 	},
