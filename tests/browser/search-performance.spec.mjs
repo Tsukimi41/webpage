@@ -13,7 +13,10 @@ test('search coalesces input, waits for IME, and submits immediately', async ({ 
 	await page.clock.runFor(50);
 	await expect(page).toHaveURL(/q=no-such-article/);
 	await input.dispatchEvent('compositionstart');
-	await input.fill('日本語');
+	await input.evaluate(element => {
+		element.value = '日本語';
+		element.dispatchEvent(new InputEvent('input', {bubbles:true, isComposing:true}));
+	});
 	await page.clock.runFor(200);
 	await expect(page).toHaveURL(/q=no-such-article/);
 	await input.dispatchEvent('compositionend');
