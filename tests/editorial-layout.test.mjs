@@ -167,8 +167,7 @@ test('article layouts respond to their allocated column instead of the viewport'
 
 	assert.doesNotMatch(explorer, /@media \(max-width: (?:64|42)rem\)/);
 	assert.match(showcase, /container: article-showcase \/ inline-size/);
-	assert.match(showcase, /\.article-marquee \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?margin-inline: 0/);
-	assert.match(showcase, /grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 18rem\), 1fr\)\)/);
+	assert.match(showcase, /\.article-carousel__slides \{[\s\S]*?inline-size: 100%;[\s\S]*?max-inline-size: 100%;[\s\S]*?margin-inline: 0/);
 	assert.doesNotMatch(showcase, /animation: article-marquee|aria-hidden="true"/);
 
 	assert.doesNotMatch(showcase, /100vw|50vw|28vw|78vw/);
