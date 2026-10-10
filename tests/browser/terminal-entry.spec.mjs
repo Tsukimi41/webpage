@@ -29,12 +29,14 @@ for (const key of ['Escape', 'Tab']) {
 		let release;
 		const gate = new Promise(resolve => release = resolve);
 		await page.route('**/terminal-sequence.ts*', async route => { await gate; await route.continue(); });
-		await page.goto('/');
-		await expect(page.locator('[data-terminal-entry]')).toBeVisible();
-		await page.keyboard.press(key);
-		await expect(page.locator('[data-terminal-entry]')).not.toBeVisible();
-		await expect(page.locator(key === 'Tab' ? '.skip-link' : '#main-content')).toBeFocused();
-		release();
+		try {
+			// Firefox/WebKit can include dynamic modules in the load event.
+			await page.goto('/', {waitUntil:'domcontentloaded'});
+			await expect(page.locator('[data-terminal-entry]')).toBeVisible();
+			await page.keyboard.press(key);
+			await expect(page.locator('[data-terminal-entry]')).not.toBeVisible();
+			await expect(page.locator(key === 'Tab' ? '.skip-link' : '#main-content')).toBeFocused();
+		} finally { release(); }
 	});
 }
 

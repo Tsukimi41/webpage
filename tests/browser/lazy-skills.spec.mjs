@@ -13,18 +13,20 @@ test('physics is fetched only on demand and ignores a closed loading panel', asy
 	expect(requests).toBe(0);
 	const summary = page.locator('.skill-showcase__interactive summary');
 	const field = page.locator('[data-skill-field]');
-	await summary.click();
-	await expect(field).toHaveAttribute('aria-busy', 'true');
-	await expect.poll(() => requests).toBe(1);
-	await summary.click();
-	release();
-	await expect(field).not.toHaveAttribute('aria-busy');
-	await expect(field).not.toHaveAttribute('data-physics-ready');
-	await summary.click();
-	await expect(field).toHaveAttribute('data-physics-ready', 'true');
-	await summary.click();
-	await expect(field).not.toHaveAttribute('data-physics-ready');
-	expect(requests).toBe(1);
+	try {
+		await summary.click();
+		await expect(field).toHaveAttribute('aria-busy', 'true');
+		await expect.poll(() => requests).toBe(1);
+		await summary.click();
+		release();
+		await expect(field).not.toHaveAttribute('aria-busy');
+		await expect(field).not.toHaveAttribute('data-physics-ready');
+		await summary.click();
+		await expect(field).toHaveAttribute('data-physics-ready', 'true');
+		await summary.click();
+		await expect(field).not.toHaveAttribute('data-physics-ready');
+		expect(requests).toBe(1);
+	} finally { release(); }
 });
 
 test('failed loading leaves the static list usable and explains retry', async ({ page }) => {
