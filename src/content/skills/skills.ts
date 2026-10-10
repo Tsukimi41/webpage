@@ -10,8 +10,8 @@ const suppliedImages: Readonly<Record<string, Readonly<{
 		height: number;
 }>>> = {
 	mixamo: { src: '/icons/skills/mixamo.svg', width: 42, height: 48 },
-	voicevox: { src: '/icons/skills/voicevox.png', width: 256, height: 256 },
-	'wsl-2': { src: '/icons/skills/wsl-2.png', width: 380, height: 380 },
+	voicevox: { src: '/icons/skills/voicevox.webp', width: 256, height: 256 },
+	'wsl-2': { src: '/icons/skills/wsl-2.webp', width: 380, height: 380 },
 	'xampp-control-panel': {
 		src: '/icons/skills/xampp-control-panel.svg',
 		width: 256,

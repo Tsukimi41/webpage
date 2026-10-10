@@ -17,6 +17,7 @@
     "check:site-url": "node --experimental-strip-types scripts/check-site-url.mjs",
     "check:release": "node --experimental-strip-types scripts/check-release-readiness.mjs",
     "generate:skill-icons": "node scripts/generate-skill-icons.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "audit:dependencies": "npm audit --audit-level=moderate",
     "test:browser": "playwright test"
   },
@@ -31,6 +32,7 @@
     "@iconify-json/devicon": "^1.2.66",
     "@iconify-json/simple-icons": "^1.2.96",
     "@playwright/test": "^1.63.0",
-    "astro-icon": "^1.2.0"
+    "astro-icon": "^1.2.0",
+    "sharp": "^0.35.4"
   }
 }

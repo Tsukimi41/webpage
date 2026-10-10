@@ -237,7 +237,7 @@ test('skill visuals accept icon, image, and text sources', () => {
 test('every configured skill uses a concrete local image without a fallback', async () => {
 	for (const skill of skills) {
 		assert.equal(skill.visual.kind, 'image');
-		assert.match(skill.visual.src, /^\/icons\/skills\/[a-z0-9-]+\.(?:svg|png)$/);
+		assert.match(skill.visual.src, /^\/icons\/skills\/[a-z0-9-]+\.(?:svg|png|webp)$/);
 		assert.equal('fallbackText' in skill.visual, false);
 
 		const assetUrl = new URL(`../public${skill.visual.src}`, import.meta.url);
@@ -249,6 +249,9 @@ test('every configured skill uses a concrete local image without a fallback', as
 			assert.match(svg, /<svg\b/);
 			assert.doesNotMatch(svg, /<script\b|javascript:/i);
 			assert.doesNotMatch(svg, /currentColor/);
+		} else if (skill.visual.src.endsWith('.webp')) {
+			assert.equal(asset.toString('ascii', 0, 4), 'RIFF');
+			assert.equal(asset.toString('ascii', 8, 12), 'WEBP');
 		} else {
 			assert.deepEqual([...asset.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
 		}
@@ -263,8 +266,8 @@ test('every configured skill uses a concrete local image without a fallback', as
 		),
 		{
 			mixamo: '/icons/skills/mixamo.svg',
-			voicevox: '/icons/skills/voicevox.png',
-			'wsl-2': '/icons/skills/wsl-2.png',
+			voicevox: '/icons/skills/voicevox.webp',
+			'wsl-2': '/icons/skills/wsl-2.webp',
 			'xampp-control-panel': '/icons/skills/xampp-control-panel.svg',
 		},
 	);

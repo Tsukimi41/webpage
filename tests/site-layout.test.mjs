@@ -44,7 +44,7 @@ test('base layout includes shared header, main content, and footer', async () =>
 	assert.match(source, /<main>/);
 	assert.match(source, /<SiteFooter \/>/);
 	assert.match(source, /<body id="site-top">/);
-	assert.match(source, /const faviconPath = createSitePath\(import\.meta\.env\.BASE_URL, profile\.icon\.src\)/);
+	assert.match(source, /const faviconPath = createSitePath\(import\.meta\.env\.BASE_URL, '\/favicon\.png'\)/);
 	assert.match(source, /href=\{faviconPath\}/);
 });
 
@@ -139,7 +139,7 @@ test('profile introduction places the favicon icon beside readable profile conte
 	const visualStyles = source.match(/\.introduction__visual \{([\s\S]*?)\n\t\}/)?.[1] ?? '';
 	assert.doesNotMatch(visualStyles, /(?:^|\s)(?:padding|border|background|box-shadow)\s*:/);
 	assert.doesNotMatch(visualStyles, /(?:^|\s)(?:margin-inline|inset-inline|translate)\s*:/);
-	assert.deepEqual(profile.icon, { src: '/favicon.ico', width: 256, height: 256 });
+	assert.deepEqual(profile.icon, { src: '/images/profile.webp', width: 256, height: 256 });
 	assert.equal(Object.isFrozen(profile.icon), true);
 	assert.throws(
 		() => defineProfile({ ...profile, icon: { ...profile.icon, src: 'https://example.com/icon.png' } }),
