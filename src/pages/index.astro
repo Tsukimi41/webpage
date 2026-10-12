@@ -18,7 +18,7 @@ const articleFeed = getArticleFeed();
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
-	<TerminalEntry />
+	<TerminalEntry slot="before-content" />
 	<ProfileIntroduction />
 	<ArticleShowcase items={articleFeed} />
 	<SkillShowcase skills={skills} />

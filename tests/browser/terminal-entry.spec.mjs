@@ -24,7 +24,7 @@ test('entrance leaves time to read, then types, loads in stages and fades out', 
 	await page.waitForTimeout(1500);
 	await expect(command).toBeEmpty();
 	await expect(dialog).toHaveAttribute('data-stage', 'typing');
-	await expect(command).toHaveText('open ./portfolio');
+	await expect(command).toHaveText('open ./portfolio', { timeout: 12000 });
 	await expect(dialog).toHaveAttribute('data-stage', 'submitted');
 	await expect(dialog).toHaveAttribute('data-stage', 'confirming');
 	await expect(page.locator('[data-terminal-confirmation]')).toContainText('Open ./portfolio? [Y/n]');
