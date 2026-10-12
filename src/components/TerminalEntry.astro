@@ -1,126 +1,148 @@
-<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-labelledby="terminal-title">
-	<div class="terminal-entry__aura" aria-hidden="true"></div>
-	<div class="terminal-entry__shell">
-		<header class="terminal-entry__chrome" aria-hidden="true">
-			<span class="terminal-entry__lights"><i></i><i></i><i></i></span>
-			<span>tsukimi41 — workspace</span><span class="terminal-entry__workspace">⌘ 01</span>
-		</header>
-		<div class="terminal-entry__tabs" aria-hidden="true"><span>01 &nbsp; ~/portfolio</span><span>02 &nbsp; wezterm.lua</span><span>＋</span></div>
-		<div class="terminal-entry__body">
-			<section class="terminal-entry__session">
-				<p class="terminal-entry__eyebrow">PERSONAL WORKSPACE <span>● ONLINE</span></p>
-				<h2 id="terminal-title">Hello, world<span>.</span></h2>
-				<p class="terminal-entry__intro">小さな好奇心から、次のものづくりへ。</p>
-				<div class="terminal-entry__output" aria-hidden="true">
-					<p class="terminal-entry__path"><span>tsukimi41</span> <span>~/portfolio</span> <span>git:(main)</span></p>
-					<p class="terminal-entry__command"><span>❯</span> <span data-terminal-command></span><span class="terminal-entry__cursor"></span><span class="terminal-entry__enter">↵ Enter</span></p>
-					<p class="terminal-entry__message" data-terminal-message> </p>
-					<div class="terminal-entry__loader">
-						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>route</span><span>~/portfolio</span></div>
-						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>view</span><span>curiosity → creation</span></div>
-						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>session</span><span>ready to explore</span></div>
-					</div>
-					<p class="terminal-entry__result" data-terminal-result> </p>
-				</div>
-			</section>
-			<aside class="terminal-entry__config" aria-hidden="true">
-				<p><span>◐</span> LUNAR / NIGHT</p>
-				<pre><span>local</span> wezterm = <span>require</span> <em>'wezterm'</em>
-
-<span>return</span> {'{'}
-  color_scheme = <em>'Lunar Night'</em>,
-  window_background_opacity = <b>0.96</b>,
-  cursor_blink_rate = <b>500</b>,
-  default_cursor_style = <em>'SteadyBar'</em>,
-{'}'}</pre>
-				<div class="terminal-entry__palette"><i></i><i></i><i></i><i></i><i></i></div>
-			</aside>
-		</div>
-		<footer class="terminal-entry__status"><span class="terminal-entry__phase"><span class="terminal-entry__diamond" aria-hidden="true">◆</span> <span role="status" data-terminal-status>セッションを準備しています</span></span><span>UTF-8 &nbsp; <span class="terminal-entry__diamond">●</span> zsh</span></footer>
-	</div>
+---
+import archLogoSource from '../assets/terminal/arch.txt?raw';
+import archSmallSource from '../assets/terminal/arch-small.txt?raw';
+const archLogo = archLogoSource.replace(/\$\d/g, '').trimEnd();
+const archSmall = archSmallSource.replace(/\$\d/g, '').trimEnd();
+const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7', '#7dcfff', '#c0caf5'];
+---
+<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-label="Arch Linux — WezTerm">
+  <div class="terminal-entry__shell">
+    <div class="terminal-entry__tabs" aria-hidden="true">
+      <span class="terminal-entry__active-tab">1: zsh</span><span class="terminal-entry__new-tab">+</span>
+      <span class="terminal-entry__window-title">tsukimi41@archlinux: ~</span>
+      <span class="terminal-entry__app-name">WezTerm</span>
+    </div>
+    <div class="terminal-entry__screen" data-terminal-screen aria-hidden="true">
+      <div class="terminal-entry__fetch-command"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~</span>
+        <div><span class="terminal-entry__prompt">❯</span> fastfetch</div>
+      </div>
+      <div class="terminal-entry__fetch">
+        <pre class="terminal-entry__arch terminal-entry__arch--full">{archLogo}</pre>
+        <pre class="terminal-entry__arch terminal-entry__arch--small">{archSmall}</pre>
+        <div class="terminal-entry__system">
+          <div class="terminal-entry__user">tsukimi41<span class="terminal-entry__muted">@</span>archlinux</div>
+          <div class="terminal-entry__muted">-------------------</div>
+          <div><span class="terminal-entry__key">OS</span>: Arch Linux x86_64</div>
+          <div><span class="terminal-entry__key">Kernel</span>: Linux</div>
+          <div><span class="terminal-entry__key">Shell</span>: zsh</div>
+          <div><span class="terminal-entry__key">WM</span>: Hyprland (Wayland)</div>
+          <div><span class="terminal-entry__key">Terminal</span>: WezTerm</div>
+          <div><span class="terminal-entry__key">Font</span>: JetBrains Mono</div>
+          <div><span class="terminal-entry__key">Theme</span>: Tokyo Night</div>
+          <div class="terminal-entry__colors">{palette.map(color => <span style={{backgroundColor:color}}>  </span>)}</div>
+          <div class="terminal-entry__colors terminal-entry__colors--bright">{palette.map(color => <span style={{backgroundColor:color}}>  </span>)}</div>
+        </div>
+      </div>
+      <div class="terminal-entry__history">
+        <div><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~</span></div>
+        <div><span class="terminal-entry__prompt">❯</span> <span class="terminal-entry__executable">cd</span> ~/portfolio</div>
+      </div>
+      <div class="terminal-entry__failure" data-terminal-failure hidden>
+        <div class="terminal-entry__path"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~/portfolio</span> <span class="terminal-entry__branch">git:(main)</span></div>
+        <div><span class="terminal-entry__prompt">❯</span> opne ./portfolio</div>
+        <div class="terminal-entry__error" data-terminal-message></div>
+      </div>
+      <div class="terminal-entry__input">
+        <div class="terminal-entry__path"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~/portfolio</span> <span class="terminal-entry__branch">git:(main)</span></div>
+        <div class="terminal-entry__command"><span class="terminal-entry__prompt">❯ </span><span data-terminal-command></span><span class="terminal-entry__cursor"> </span></div>
+      </div>
+      <div class="terminal-entry__loader">
+        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Resolving ./portfolio</div>
+        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Starting browser session</div>
+        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Opening index.html</div>
+      </div>
+      <div class="terminal-entry__result" data-terminal-result></div>
+      <div class="terminal-entry__next-prompt"><span class="terminal-entry__prompt">❯ </span><span class="terminal-entry__cursor"> </span></div>
+    </div>
+  </div>
+  <span class="terminal-entry__accessible-status" role="status" data-terminal-status>セッションを準備しています</span>
 </dialog>
 
 <script>
-	import '../scripts/terminal-entry';
+  import '../scripts/terminal-entry';
 </script>
 
 <style>
-	.terminal-entry { position: fixed; inset: 0; inline-size: 100%; max-inline-size: none; block-size: 100%; max-block-size: none; margin: 0; padding: clamp(1rem, 5vw, 5rem); border: 0; background: #080e14; color: #dce8f0; overflow: auto; font-family: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Consolas, monospace; }
-	.terminal-entry[open] { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-	.terminal-entry { transition: opacity 400ms ease; }
-	.terminal-entry::backdrop { background: #080e14; transition: opacity 400ms ease; }
-	.terminal-entry[data-stage='done'], .terminal-entry[data-stage='done']::backdrop { opacity: 0; }
-	.terminal-entry__aura { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: radial-gradient(ellipse at 20% 35%, #153c3b70, transparent 48%), radial-gradient(ellipse at 85% 70%, #31285260, transparent 50%); animation: terminal-glow 6s ease-in-out infinite alternate; }
-	.terminal-entry__shell { position: relative; inline-size: min(100%, 66rem); flex-shrink: 0; border: 1px solid #3a4a52; border-radius: 14px; background: #0e171ef5; box-shadow: 0 30px 90px #0009, 0 0 60px #85f0cb09; overflow: hidden; animation: terminal-arrive 550ms ease-out backwards; transition: opacity 400ms ease, transform 400ms ease, border-color 300ms ease; }
-	.terminal-entry[data-stage='ready'] .terminal-entry__shell { border-color: #a4f3d4; }
-	.terminal-entry[data-stage='done'] .terminal-entry__shell { opacity: 0; transform: translateY(-12px) scale(1.015); }
-	.terminal-entry__chrome { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 3.5rem; padding: 0.8rem 1.2rem; color: #a6b7c2; font-size: 0.75rem; border-block-end: 1px solid #263540; }
-	.terminal-entry__lights { display: flex; gap: 7px; }
-	.terminal-entry__lights i { inline-size: 9px; block-size: 9px; border-radius: 50%; background: #f0848d; }
-	.terminal-entry__lights i:nth-child(2) { background: #e7c785; } .terminal-entry__lights i:nth-child(3) { background: #85d8ba; }
-	.terminal-entry__tabs { display: flex; gap: 0.5rem; padding: 0.55rem 0.7rem 0; background: #0b1218; font-size: 0.75rem; color: #8b9eac; }
-	.terminal-entry__tabs > span { padding: 0.65rem 1rem; }
-	.terminal-entry__tabs > span:first-child { border-block-start: 2px solid #9cf2cf; border-radius: 5px 5px 0 0; background: #0e171e; color: #a4f3d4; }
-	.terminal-entry__body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); min-block-size: 23rem; }
-	.terminal-entry__session { padding: clamp(1.2rem, 4vw, 3rem); min-inline-size: 0; }
-	.terminal-entry__eyebrow { display: flex; flex-wrap: wrap; gap: 0.8rem; color: #95a9b6; font-size: 0.65rem; letter-spacing: 0.12em; }
-	.terminal-entry__eyebrow span { color: #a4f3d4; }
-	.terminal-entry h2 { margin: 2.2rem 0 0.75rem; font: 500 clamp(1.8rem, 4vw, 3rem)/1.2 ui-monospace, monospace; letter-spacing: -0.065em; color: #eff7fc; }
-	.terminal-entry h2 span { color: #a4f3d4; }
-	.terminal-entry__intro { margin: 0; font-size: 0.75rem; color: #a7b9c6; line-height: 1.8; }
-	.terminal-entry__output { margin-block-start: 2.5rem; font-size: clamp(0.75rem, 1.6vw, 0.9rem); line-height: 1.6; }
-	.terminal-entry__output p { margin: 0 0 0.35rem; min-block-size: 1.6em; overflow-wrap: anywhere; }
-	.terminal-entry__path { display: flex; flex-wrap: wrap; gap: 0.55rem; color: #a6b7c2; }
-	.terminal-entry__path span:first-child, .terminal-entry__command > span:first-child { color: #a4f3d4; }
-	.terminal-entry__path span:last-child { color: #c4acf0; }
-	.terminal-entry__command { display: flex; align-items: center; gap: 0.5rem; }
-	.terminal-entry__command [data-terminal-command] { white-space: pre-wrap; overflow-wrap: anywhere; min-inline-size: 0; }
-	.terminal-entry__cursor { display: inline-block; inline-size: 7px; block-size: 1.2em; background: #a4f3d4; animation: terminal-cursor 800ms step-end infinite; }
-	.terminal-entry__enter { margin-inline-start: auto; flex-shrink: 0; border: 1px solid #607d77; border-radius: 4px; padding: 0.1rem 0.3rem; font-size: 0.65rem; color: #a4f3d4; opacity: 0; transition: opacity 150ms ease; }
-	.terminal-entry[data-stage='submitted'] .terminal-entry__enter { opacity: 1; }
-	.terminal-entry:is([data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__cursor { visibility: hidden; }
-	.terminal-entry__loader { display: grid; gap: 0.4rem; margin-block: 0.65rem; font-size: 0.7rem; }
-	.terminal-entry__step { display: grid; grid-template-columns: 0.8rem 3.5rem minmax(0, 1fr); align-items: center; gap: 0.5rem; min-block-size: 1.5em; opacity: 0; transform: translateY(4px); transition: opacity 220ms ease, transform 220ms ease; }
-	.terminal-entry__step[data-state] { opacity: 1; transform: none; }
-	.terminal-entry__step > span:nth-child(2) { color: #c4acf0; }
-	.terminal-entry__step > span:last-child { color: #a6b7c2; overflow-wrap: anywhere; }
-	.terminal-entry__step-icon { inline-size: 0.65rem; block-size: 0.65rem; border: 1px solid #3a4a52; border-block-start-color: #a4f3d4; border-radius: 50%; }
-	.terminal-entry__step[data-state='active'] .terminal-entry__step-icon { animation: terminal-spin 650ms linear infinite; }
-	.terminal-entry__step[data-state='complete'] .terminal-entry__step-icon { border: 0; inline-size: auto; block-size: auto; color: #a4f3d4; }
-	.terminal-entry__step[data-state='complete'] .terminal-entry__step-icon::after { content: '✓'; }
-	.terminal-entry[data-stage='booting'] .terminal-entry__output { opacity: 0; transform: translateY(6px); }
-	.terminal-entry__output { transition: opacity 350ms ease, transform 350ms ease; }
-	.terminal-entry__message { color: #ffabb2; } .terminal-entry__result { color: #a4f3d4; }
-	.terminal-entry__config { margin: 2.5rem 0; padding: 0 2rem; border-inline-start: 1px solid #2c3b45; min-inline-size: 0; align-self: center; color: #a6b7c2; }
-	.terminal-entry__config > p { display: flex; align-items: center; gap: 0.75rem; font-size: 0.65rem; letter-spacing: 0.15em; }
-	.terminal-entry__config > p span { color: #e7c785; font-size: 1.8rem; }
-	.terminal-entry__config pre { padding: 0; margin-block: 1.5rem; border: 0; background: none; color: #a6b7c2; font: 0.65rem/1.9 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-	.terminal-entry__config pre span { color: #c4acf0; } .terminal-entry__config em { color: #a4f3d4; font-style: normal; } .terminal-entry__config b { color: #e7c785; font-weight: 400; }
-	.terminal-entry__palette { display: flex; gap: 0.5rem; } .terminal-entry__palette i { inline-size: 1.2rem; block-size: 0.4rem; border-radius: 2px; background: #a4f3d4; } .terminal-entry__palette i:nth-child(2) { background: #c4acf0; } .terminal-entry__palette i:nth-child(3) { background: #e7c785; } .terminal-entry__palette i:nth-child(4) { background: #ffabb2; } .terminal-entry__palette i:nth-child(5) { background: #91c9ef; }
-	.terminal-entry__status { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.2rem; border-block-start: 1px solid #293c43; background: #132329; color: #adc0c7; font-size: 0.65rem; letter-spacing: 0.07em; }
-	.terminal-entry__diamond { color: #a4f3d4; }
-	.terminal-entry__phase { display: flex; align-items: center; gap: 0.5rem; }
-	@keyframes terminal-arrive { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
-	@keyframes terminal-cursor { 50% { opacity: 0; } }
-	@keyframes terminal-spin { to { transform: rotate(360deg); } }
-	@keyframes terminal-glow { from { opacity: 0.5; } to { opacity: 1; } }
-	@media (max-width: 45rem) { .terminal-entry__config { display: none; } .terminal-entry__body { grid-template-columns: minmax(0, 1fr); min-block-size: 21rem; } .terminal-entry__workspace { display: none; } .terminal-entry__tabs > span { padding-inline: 0.5rem; } }
-	@media (max-width: 30rem) {
-		.terminal-entry { padding: 0.65rem; }
-		.terminal-entry__body { min-block-size: 0; }
-		.terminal-entry__session { padding: 0.85rem; }
-		.terminal-entry__eyebrow { margin: 0; }
-		.terminal-entry h2 { margin: 0.8rem 0 0.5rem; }
-		.terminal-entry__output { margin-block-start: 1rem; }
-		.terminal-entry__output .terminal-entry__message { min-block-size: 1em; }
-		.terminal-entry__output .terminal-entry__result { min-block-size: 3.2em; font-size: 0.65rem; }
-		.terminal-entry__loader { gap: 0.2rem; margin-block: 0.35rem; }
-		.terminal-entry__chrome { min-block-size: 2.75rem; padding: 0.6rem 0.8rem; font-size: 0.65rem; }
-		.terminal-entry__tabs { font-size: 0.65rem; }
-		.terminal-entry__tabs > span { white-space: nowrap; padding-inline: 0.35rem; }
-		.terminal-entry__status { flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 0.8rem; font-size: 0.6rem; letter-spacing: 0; }
-		.terminal-entry__enter { font-size: 0.55rem; }
-	}
-	@media (max-height: 38rem) { .terminal-entry[open] { justify-content: flex-start; } }
-	@media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry *, .terminal-entry *::after { animation: none !important; transition: none !important; } }
+  @font-face {
+    font-family: 'Terminal JetBrains Mono';
+    src: url('../assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+  }
+  .terminal-entry {
+    --terminal-blue: #7aa2f7;
+    --terminal-cyan: #7dcfff;
+    --terminal-green: #9ece6a;
+    --terminal-muted: #9aa5ce;
+    position: fixed; inset: 0; inline-size: 100%; max-inline-size: none; block-size: 100%; max-block-size: none;
+    margin: 0; padding: clamp(8px, 3vw, 40px); border: 0; background: #101116; color: #c0caf5;
+    overflow: auto; font: 400 15px/1.5 'Terminal JetBrains Mono', 'Cascadia Mono', Consolas, monospace;
+    font-variant-ligatures: none; letter-spacing: 0; text-align: start; transition: opacity 400ms ease;
+  }
+  .terminal-entry[open] { display: flex; align-items: center; justify-content: center; }
+  .terminal-entry::backdrop { background: #101116; transition: opacity 400ms ease; }
+  .terminal-entry[data-stage='done'], .terminal-entry[data-stage='done']::backdrop { opacity: 0; }
+  .terminal-entry__shell {
+    inline-size: min(100%, 1160px); block-size: min(760px, 100%); min-block-size: 0; display: flex; flex-direction: column;
+    border: 2px solid #7aa2f799; border-radius: 3px; overflow: hidden; background: #1a1b26;
+    box-shadow: 0 16px 50px #0008; animation: terminal-map 180ms ease-out;
+  }
+  .terminal-entry__tabs { flex-shrink: 0; display: flex; align-items: center; gap: 0; block-size: 30px; background: #16161e; color: var(--terminal-muted); white-space: nowrap; font: inherit; font-size: 12px; }
+  .terminal-entry__active-tab { align-self: stretch; display: flex; align-items: center; padding-inline: 18px; background: #292e42; color: #c0caf5; }
+  .terminal-entry__new-tab { padding-inline: 12px; }
+  .terminal-entry__window-title { margin-inline: auto 16px; overflow: hidden; text-overflow: ellipsis; }
+  .terminal-entry__app-name { padding-inline-end: 12px; color: var(--terminal-blue); }
+  .terminal-entry__screen { flex: 1; min-block-size: 0; padding: 18px 22px; overflow: auto; scrollbar-width: thin; scrollbar-color: #414868 transparent; }
+  .terminal-entry__fetch { display: flex; gap: 4ch; align-items: center; margin-block: 1.5em; }
+  .terminal-entry__arch { flex: 0 0 auto; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; color: var(--terminal-cyan); font: inherit; line-height: 1.5; white-space: pre; overflow: visible; }
+  .terminal-entry__arch--small { display: none; }
+  .terminal-entry__system { min-inline-size: 0; }
+  .terminal-entry__user, .terminal-entry__key { color: var(--terminal-blue); }
+  .terminal-entry__directory { color: var(--terminal-cyan); }
+  .terminal-entry__branch { color: #bb9af7; }
+  .terminal-entry__muted { color: var(--terminal-muted); }
+  .terminal-entry__prompt, .terminal-entry__executable { color: var(--terminal-green); }
+  .terminal-entry__colors { display: flex; margin-block-start: 1em; block-size: 1em; }
+  .terminal-entry__colors > span { inline-size: 2ch; white-space: pre; }
+  .terminal-entry__colors--bright { margin-block-start: 0; filter: brightness(1.18); }
+  .terminal-entry__history, .terminal-entry__failure { margin-block-end: 1em; }
+  .terminal-entry__path { overflow-wrap: anywhere; }
+  .terminal-entry__command { min-block-size: 1.5em; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .terminal-entry__cursor { display: inline-block; inline-size: 1ch; block-size: 1.15em; background: #c0caf5; vertical-align: -0.18em; animation: terminal-cursor 1s step-end infinite; }
+  .terminal-entry:is([data-stage='typing'], [data-stage='typo'], [data-stage='correcting'], [data-stage='submitted']) .terminal-entry__cursor { animation: none; }
+  .terminal-entry:is([data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__input .terminal-entry__cursor { visibility: hidden; }
+  .terminal-entry__error { color: #f7768e; }
+  .terminal-entry__step { display: none; overflow-wrap: anywhere; }
+  .terminal-entry__step[data-state] { display: block; }
+  .terminal-entry__step-mark::before { content: '[ .. ]'; color: #e0af68; }
+  .terminal-entry__step[data-state='active'] .terminal-entry__step-mark { animation: terminal-cursor 650ms step-end infinite; }
+  .terminal-entry__step[data-state='complete'] .terminal-entry__step-mark::before { content: '[ OK ]'; color: var(--terminal-green); }
+  .terminal-entry__result { color: var(--terminal-green); overflow-wrap: anywhere; }
+  .terminal-entry__next-prompt { display: none; margin-block-start: 1em; }
+  .terminal-entry:is([data-stage='ready'], [data-stage='done']) .terminal-entry__next-prompt { display: block; }
+  .terminal-entry[data-stage='booting'] .terminal-entry__fetch,
+  .terminal-entry[data-stage='booting'] .terminal-entry__history,
+  .terminal-entry[data-stage='booting'] .terminal-entry__input { visibility: hidden; }
+  .terminal-entry__accessible-status { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @keyframes terminal-map { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes terminal-cursor { 50% { opacity: 0; } }
+  @media (max-width: 700px) {
+    .terminal-entry { font-size: 12px; }
+    .terminal-entry__screen { padding: 12px; }
+    .terminal-entry__fetch { gap: 2ch; }
+    .terminal-entry__arch--full { display: none; }
+    .terminal-entry__arch--small { display: block; }
+  }
+  @media (max-width: 480px) {
+    .terminal-entry { padding: 6px; }
+    .terminal-entry__tabs { font-size: 10px; block-size: 26px; }
+    .terminal-entry__active-tab { padding-inline: 10px; }
+    .terminal-entry__window-title { display: none; }
+    .terminal-entry__app-name { margin-inline-start: auto; }
+    .terminal-entry__fetch { gap: 2ch; margin-block: 1em; }
+    .terminal-entry__branch { display: none; }
+    .terminal-entry__screen { padding: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry * { animation: none !important; transition: none !important; } }
 </style>

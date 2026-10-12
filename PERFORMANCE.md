@@ -19,9 +19,14 @@ GitHub Pagesの静的配信を維持する。APIやデータベース、常駐�
 | 障害時 | JSなしでも本文を表示。入口の演出失敗時は解除、演出が停滞しても16秒のタイマーで入場 |
 | 未使用依存 | 既存の直接依存はすべて使用箇所を確認。削除対象なし。sharpとLighthouseは開発用 |
 
-ターミナルはWezTermを参考にしたブラウザ内の演出。Luaとシェルの文字列は表示用で、実行しない。保存領域が利用できない場合も入場できるが、訪問回数は保持しない。
+ターミナルはArch Linux・Hyprland上のWezTermを参考にしたブラウザ内の演出。シェルの文字列は表示用で、実行しない。OS・WMの表示は演出用の設定であり、閲覧者の環境を検出した結果ではない。保存領域が利用できない場合も入場できるが、訪問回数は保持しない。
 
 入口は通常約7秒、3回目の打ち直しを含む場合は約11秒。起動700ms、入力前の待機1100ms、文字ごとに変化する入力、実行前650ms、3段階のログ表示1950ms、完了900ms、退出420msで構成する。ログは入口の演出であり、通信量や実際のダウンロード進捗を示さない。操作案内・手動入場ボタン・Tabによるスキップは設けず、演出後に自動で入場する。Escによる解除と、動きを減らす設定での入口省略は維持する。
+
+外観は[WezTermのretroタブ](https://wezterm.org/config/appearance.html#retro-tab-bar-appearance)とTokyo Night配色を基準にする。文字を同じセル幅で表示し、ブロックカーソル、fastfetchの出力、zshの履歴を構成する。誤ったコマンドとエラーは履歴に残し、次のプロンプトで履歴を呼び戻して打ち直す。出力が画面を超えた場合はターミナル内部でカーソルへスクロールする。
+
+- 等幅フォント：[JetBrains Mono v2.304](https://github.com/JetBrains/JetBrainsMono/tree/v2.304)、Regular WOFF2（92,164 bytes）。ローカル配信し、OFL-1.1ライセンスを`public/fonts/JetBrainsMono-OFL.txt`に同梱する。
+- Arch ASCIIロゴ：[fastfetch](https://github.com/fastfetch-cli/fastfetch/tree/3ccaf2d7dd67167be2b2208f0dd210aaecc9fadd/src/logo/ascii/a)の`arch.txt`と`arch_small.txt`。狭い画面は公式の小型版を使う。MITライセンスを`public/licenses/fastfetch.txt`に同梱する。
 
 ## 配信基盤と対象外の項目
 

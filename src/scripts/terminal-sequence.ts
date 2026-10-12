@@ -7,10 +7,14 @@ export async function playTerminal(
 	const message = dialog.querySelector<HTMLElement>('[data-terminal-message]')!;
 	const result = dialog.querySelector<HTMLElement>('[data-terminal-result]')!;
 	const status = dialog.querySelector<HTMLElement>('[data-terminal-status]')!;
+	const screen = dialog.querySelector<HTMLElement>('[data-terminal-screen]')!;
+	const failure = dialog.querySelector<HTMLElement>('[data-terminal-failure]')!;
 	const steps = [...dialog.querySelectorAll<HTMLElement>('[data-terminal-step]')];
+	const followCursor = () => { screen.scrollTop = screen.scrollHeight; };
 	const stage = (name: string, label: string) => {
 		dialog.dataset.stage = name;
 		status.textContent = label;
+		followCursor();
 	};
 	const type = async (text: string) => {
 		for (let index = 1; index <= text.length; index++) {
@@ -29,29 +33,32 @@ export async function playTerminal(
 		if (!await type('opne ./portfolio')) return;
 		if (!await pause(650)) return;
 		message.textContent = 'zsh: command not found: opne';
+		failure.hidden = false;
+		command.textContent = '';
 		stage('error', 'おっと、打ち間違い。もう一度');
 		if (!await pause(750)) return;
 		stage('correcting', 'コマンドを打ち直しています');
+		// Recall the failed command into a new prompt, keeping shell history intact.
+		command.textContent = 'opne ./portfolio';
 		while (command.textContent) {
 			if (!await pause(32)) return;
 			command.textContent = command.textContent.slice(0, -1);
 		}
-		message.textContent = '↳ もう一度。';
 		if (!await pause(450)) return;
 	}
 	stage('typing', 'コマンドを入力しています');
 	if (!await type('open ./portfolio')) return;
 	stage('submitted', 'コマンドを実行します');
 	if (!await pause(650)) return;
-	message.textContent = '';
 	stage('loading', 'ポートフォリオを開いています');
 	// These are the entrance's presentation steps, not network progress estimates.
 	for (const step of steps) {
 		step.dataset.state = 'active';
+		followCursor();
 		if (!await pause(650)) return;
 		step.dataset.state = 'complete';
 	}
-	result.textContent = '✓ Welcome. Opening your next discovery.';
+	result.textContent = ':: Session ready. Opening portfolio.';
 	stage('ready', '準備完了。ようこそ');
 	if (!await pause(900)) return;
 	stage('done', 'サイトへ移動します');

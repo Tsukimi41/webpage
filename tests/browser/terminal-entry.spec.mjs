@@ -15,7 +15,6 @@ test('entrance leaves time to read, then types, loads in stages and fades out', 
 	await expect(dialog).toHaveAttribute('data-stage', 'typing');
 	await expect(command).toHaveText('open ./portfolio');
 	await expect(dialog).toHaveAttribute('data-stage', 'submitted');
-	await expect(page.locator('.terminal-entry__enter')).toBeVisible();
 	await expect(dialog).toHaveAttribute('data-stage', 'loading');
 	const loadingStarted = await page.evaluate(() => performance.now());
 	const steps = page.locator('[data-terminal-step]');
@@ -26,6 +25,7 @@ test('entrance leaves time to read, then types, loads in stages and fades out', 
 	await expect(dialog).toHaveAttribute('data-stage', 'ready');
 	expect(await page.evaluate(() => performance.now()) - loadingStarted).toBeGreaterThan(1500);
 	await expect(page.locator('[data-terminal-status]')).toHaveText('準備完了。ようこそ');
+	expect(await page.locator('[data-terminal-screen]').evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
 	await expect(dialog).not.toBeVisible();
 	await expect(page.locator('#main-content')).toBeFocused();
 });
@@ -42,9 +42,12 @@ test('every third entrance mistypes, erases, retries and opens automatically', a
 			await page.keyboard.press('Escape');
 			await expect(dialog).not.toBeVisible();
 		} else {
+			await expect(dialog).toHaveAttribute('data-stage', 'typo');
 			await expect(page.locator('[data-terminal-message]')).toContainText('command not found');
 			await expect(dialog).toHaveAttribute('data-stage', 'correcting');
 			await expect(page.locator('[data-terminal-command]')).toHaveText('open ./portfolio');
+			await expect(page.locator('[data-terminal-failure]')).toContainText('opne ./portfolio');
+			await expect(page.locator('[data-terminal-message]')).toHaveText('zsh: command not found: opne');
 			await expect(dialog).not.toBeVisible();
 			await expect(page.locator('#main-content')).toBeFocused();
 		}
@@ -89,17 +92,22 @@ test('terminal markup reflows and passes accessibility checks', async ({ page })
 		dialog.showModal();
 	});
 	await expect(page.locator('[data-terminal-entry]')).toBeVisible();
+	await page.evaluate(async () => { await document.fonts.ready; });
+	expect(await page.evaluate(() => document.fonts.check('15px "Terminal JetBrains Mono"'))).toBe(true);
 	await page.screenshot({path:test.info().outputPath('terminal-desktop.png'), animations:'disabled'});
 	const results = await new AxeBuilder({page}).include('[data-terminal-entry]').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
 	expect(results.violations).toEqual([]);
 	await page.setViewportSize({width:320,height:568});
 	expect(await page.locator('[data-terminal-entry]').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
 	const shell = await page.locator('.terminal-entry__shell').boundingBox();
-	expect(shell.y + shell.height).toBeLessThanOrEqual(558);
+	expect(shell.y).toBeGreaterThanOrEqual(0);
+	expect(shell.y + shell.height).toBeLessThanOrEqual(568);
 	await page.screenshot({path:test.info().outputPath('terminal-mobile.png'), animations:'disabled'});
-	await page.locator('[data-terminal-result]').evaluate(el => { el.textContent = '✓ Welcome. Opening your next discovery.'; });
+	await page.locator('[data-terminal-result]').evaluate(el => { el.textContent = ':: Session ready. Opening portfolio.'; });
+	await page.locator('[data-terminal-entry]').evaluate(dialog => { dialog.dataset.stage = 'ready'; });
 	const completedShell = await page.locator('.terminal-entry__shell').boundingBox();
-	expect(completedShell.y + completedShell.height).toBeLessThanOrEqual(558);
+	expect(completedShell.y + completedShell.height).toBeLessThanOrEqual(568);
+	expect(await page.locator('[data-terminal-screen]').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
 });
 
 test('entrance has no manual controls and Tab does not dismiss it', async ({ page }) => {
