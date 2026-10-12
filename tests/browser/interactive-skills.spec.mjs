@@ -40,6 +40,7 @@ test('skill bubbles respond to touch and keyboard with membrane wobble', async (
 	const field = await openSkills(page);
 	const bubble = field.locator('[data-physics-role="skill"][data-physics-material="bubble"]').first();
 	const button = bubble.locator('button');
+	const initialPath = await bubble.locator('[data-bubble-membrane]').getAttribute('d');
 	const box = await button.boundingBox();
 	await button.dispatchEvent('pointerdown', { pointerId: 7, pointerType: 'touch', clientX: box.x + box.width / 2, clientY: box.y + box.height / 2, bubbles: true });
 	await expect(bubble).toHaveAttribute('data-wobble-state', 'active');
@@ -47,7 +48,8 @@ test('skill bubbles respond to touch and keyboard with membrane wobble', async (
 	await button.focus();
 	await page.keyboard.press('ArrowUp');
 	await expect(bubble).toHaveAttribute('data-wobble-state', 'active');
-	await expect.poll(() => bubble.evaluate(el => el.style.getPropertyValue('--deform-x'))).not.toBe('1');
+	await expect.poll(() => bubble.locator('[data-bubble-membrane]').getAttribute('d')).not.toBe(initialPath);
+	await expect.poll(() => bubble.locator('.skill-object__surface').evaluate(el => getComputedStyle(el).transform)).toBe('none');
 });
 
 test('restored field fits mobile and keeps the original reduced motion behavior', async ({ page }) => {
@@ -70,4 +72,53 @@ test('ambient bubbles burst and respawn while skill bubbles stay intact', async 
 	const index = await bursting.evaluate(el => [...el.parentElement.querySelectorAll('[data-physics-role="ambient"]')].indexOf(el));
 	await expect(field.locator('[data-physics-role="ambient"]').nth(index)).toHaveAttribute('data-burst-state', 'idle');
 	await expect(field.locator('[data-physics-role="skill"][data-burst-state="bursting"]')).toHaveCount(0);
+});
+
+
+test('an isolated bubble settles after an oblique touch without spinning or continued path changes', async ({ page }) => {
+	// Use the real component/controller in an otherwise empty field to isolate decay from new impacts.
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/#skill-showcase-title');
+	await page.evaluate(async () => {
+		const { startSkillPhysics } = await import('/src/scripts/skill-physics.ts');
+		const source = document.querySelector('[data-physics-role="skill"][data-physics-material="bubble"]');
+		const field = document.createElement('div');
+		field.id = 'isolated-bubble-field';
+		field.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#10241e';
+		const bubble = source.cloneNode(true);
+		bubble.style.cssText = '--object-base-size:80px;width:80px;height:80px';
+		bubble.dataset.physicsX = '50';
+		bubble.dataset.physicsY = '50';
+		// Avoid duplicate SVG references to the source field.
+		bubble.querySelectorAll('[id]').forEach(el => { el.id += '-isolated'; });
+		bubble.querySelectorAll('use').forEach(el => {
+			el.setAttribute('href', el.getAttribute('href') + '-isolated');
+		});
+		for (const el of bubble.querySelectorAll('[fill], [stroke]')) {
+			for (const name of ['fill', 'stroke']) {
+				const value = el.getAttribute(name);
+				if (value?.startsWith('url(')) el.setAttribute(name, value.replace(')', '-isolated)'));
+			}
+		}
+		field.append(bubble);
+		document.body.append(field);
+		startSkillPhysics(field);
+	});
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	const field = page.locator('#isolated-bubble-field');
+	const bubble = field.locator('[data-physics-object]');
+	const button = bubble.locator('button');
+	const box = await button.boundingBox();
+	await button.dispatchEvent('pointerdown', { pointerId: 17, pointerType: 'touch',
+		clientX: box.x + box.width * .8, clientY: box.y + box.height * .2, bubbles: true });
+	await expect(bubble).toHaveAttribute('data-wobble-state', 'active');
+	await button.dispatchEvent('pointerup', { pointerId: 17, pointerType: 'touch', bubbles: true });
+	await expect(bubble).toHaveAttribute('data-wobble-state', 'idle', { timeout: 6000 });
+	// Includes its later ceiling contact. Wait until all impacts have settled.
+	await page.waitForTimeout(6000);
+	await expect(bubble).toHaveAttribute('data-wobble-state', 'idle');
+	const stablePath = await bubble.locator('[data-bubble-membrane]').getAttribute('d');
+	await page.waitForTimeout(600);
+	await expect(bubble.locator('[data-bubble-membrane]')).toHaveAttribute('d', stablePath);
+	await expect.poll(() => bubble.locator('.skill-object__surface').evaluate(el => getComputedStyle(el).transform)).toBe('none');
 });
