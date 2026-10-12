@@ -36,6 +36,20 @@ test('completed skill field is visible immediately and marbles can be dragged an
 	await field.screenshot({ path: test.info().outputPath('restored-skills.png') });
 });
 
+test('skill bubbles respond to touch and keyboard with membrane wobble', async ({ page }) => {
+	const field = await openSkills(page);
+	const bubble = field.locator('[data-physics-role="skill"][data-physics-material="bubble"]').first();
+	const button = bubble.locator('button');
+	const box = await button.boundingBox();
+	await button.dispatchEvent('pointerdown', { pointerId: 7, pointerType: 'touch', clientX: box.x + box.width / 2, clientY: box.y + box.height / 2, bubbles: true });
+	await expect(bubble).toHaveAttribute('data-wobble-state', 'active');
+	await button.dispatchEvent('pointerup', { pointerId: 7, pointerType: 'touch', bubbles: true });
+	await button.focus();
+	await page.keyboard.press('ArrowUp');
+	await expect(bubble).toHaveAttribute('data-wobble-state', 'active');
+	await expect.poll(() => bubble.evaluate(el => el.style.getPropertyValue('--deform-x'))).not.toBe('1');
+});
+
 test('restored field fits mobile and keeps the original reduced motion behavior', async ({ page }) => {
 	await page.setViewportSize({ width: 375, height: 812 });
 	await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -47,4 +61,13 @@ test('restored field fits mobile and keeps the original reduced motion behavior'
 	await expect(field).toHaveAttribute('data-physics-state', 'reduced-motion');
 	expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 	await field.screenshot({ path: test.info().outputPath('restored-skills-mobile.png') });
+});
+
+test('ambient bubbles burst and respawn while skill bubbles stay intact', async ({ page }) => {
+	const field = await openSkills(page);
+	const bursting = field.locator('[data-physics-role="ambient"][data-burst-state="bursting"]').first();
+	await expect(bursting).toBeAttached({ timeout: 12000 });
+	const index = await bursting.evaluate(el => [...el.parentElement.querySelectorAll('[data-physics-role="ambient"]')].indexOf(el));
+	await expect(field.locator('[data-physics-role="ambient"]').nth(index)).toHaveAttribute('data-burst-state', 'idle');
+	await expect(field.locator('[data-physics-role="skill"][data-burst-state="bursting"]')).toHaveCount(0);
 });

@@ -163,6 +163,7 @@ function createCircle(
 	return {
 		element,
 		material,
+		role,
 		radius,
 		x: initial.x,
 		y: initial.y,
