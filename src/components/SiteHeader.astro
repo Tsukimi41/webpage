@@ -4,10 +4,11 @@ import { profileDisplayName } from '../data/profile';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 
 const currentPath = Astro.url.pathname;
-const homeHref = createSitePath(import.meta.env.BASE_URL, '/');
+// サイト内のホーム移動はページ先頭へ。直接訪問時の入口演出と区別する。
+const homeHref = createSitePath(import.meta.env.BASE_URL, '/#site-top');
 const profileHref = createSitePath(import.meta.env.BASE_URL, '/profile/');
 const articlesHref = createSitePath(import.meta.env.BASE_URL, '/articles/');
-const isHome = currentPath === homeHref;
+const isHome = currentPath === createSitePath(import.meta.env.BASE_URL, '/');
 const isProfile = currentPath.startsWith(profileHref);
 const isArticles = currentPath.startsWith(articlesHref);
 ---

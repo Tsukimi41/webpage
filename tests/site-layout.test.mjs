@@ -56,7 +56,7 @@ test('shared navigation exposes home, profile, articles, theme, and back-to-top 
 		readFile(backToTopUrl, 'utf8'),
 	]);
 
-	assert.match(header, /const homeHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/'\)/);
+	assert.match(header, /const homeHref = createSitePath\(import\.meta\.env\.BASE_URL, '\/#site-top'\)/);
 	assert.match(header, /href=\{homeHref\}[^>]*>ホーム</);
 	assert.match(header, /href=\{profileHref\}[^>]*>プロフィール</);
 	assert.match(header, /href=\{articlesHref\}[^>]*>記事を探す</);
