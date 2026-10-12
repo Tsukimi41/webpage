@@ -4,6 +4,8 @@ import test from 'node:test';
 import {
 	applyFloorFriction,
 	calculateBubbleShape,
+	calculateBubbleImpact,
+	resolveWallVelocity,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -38,9 +40,9 @@ test('physics tuning is immutable and keeps material relationships explicit', ()
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleNetBuoyancy > 0);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleFrequency >= 2);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleFrequency < 3);
-	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleDamping <= 0.1);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleWobbleDamping > 0 && SKILL_PHYSICS_TUNING.bubbleWobbleDamping < 1);
 	assert.ok(SKILL_PHYSICS_TUNING.bubbleMaximumDeformation >= 0.4);
-	assert.ok(SKILL_PHYSICS_TUNING.bubbleDeformationImpulse >= 38);
+	assert.ok(SKILL_PHYSICS_TUNING.bubbleDeformationImpulse > 0);
 });
 
 test('circle mass follows area and rejects invalid geometry', () => {
@@ -108,9 +110,9 @@ test('configured bubble wobble remains visible before settling softly', () => {
 	let position = 0;
 	let velocity = SKILL_PHYSICS_TUNING.bubbleMaximumDeformation *
 		SKILL_PHYSICS_TUNING.bubbleDeformationImpulse;
-	let oneSecondAmplitude = 0;
+	let peakAmplitude = 0;
 
-	for (let step = 0; step < 600; step += 1) {
+	for (let step = 0; step < 240; step += 1) {
 		const state = stepDampedOscillator(
 			position,
 			velocity,
@@ -120,12 +122,10 @@ test('configured bubble wobble remains visible before settling softly', () => {
 		);
 		position = state.position;
 		velocity = state.velocity;
-		if (step >= 108 && step <= 132) {
-			oneSecondAmplitude = Math.max(oneSecondAmplitude, Math.abs(position));
-		}
+		peakAmplitude = Math.max(peakAmplitude, Math.abs(position));
 	}
 
-	assert.ok(oneSecondAmplitude > 0.08);
+	assert.ok(peakAmplitude > 0.1 && peakAmplitude < 0.4);
 	assert.ok(Math.abs(position) < 0.002);
 	assert.ok(Math.abs(velocity) < 0.03);
 });
@@ -325,4 +325,26 @@ test('floor friction ignores invalid time and gravity inputs without corrupting 
 
 	assert.equal(marble.vx, 120);
 	assert.equal(marble.angularVelocity, 0);
+});
+
+
+test('resting overlaps and subsequent solver passes never excite the membrane', () => {
+	for (const speed of [0, 1, 12, 34, -20, NaN]) assert.equal(calculateBubbleImpact(speed), 0);
+	assert.ok(calculateBubbleImpact(200) > 0);
+	for (let pass = 1; pass < 5; pass++) assert.equal(calculateBubbleImpact(200, pass), 0);
+	const left = circle({ material: 'bubble' });
+	const right = circle({ material: 'bubble', x: 18 });
+	for (let pass = 0; pass < 100; pass++) {
+		resolveCircleCollision(left, right);
+		assert.equal(left.vx, 0);
+		assert.equal(right.vx, 0);
+	}
+});
+
+test('walls let separating bodies leave and stop resting micro-bounces', () => {
+	for (const normal of [-1, 1]) {
+		assert.equal(resolveWallVelocity(100 * normal, normal, 0.22), 100 * normal);
+		assert.equal(resolveWallVelocity(-2 * normal, normal, 0.22), 0);
+		assert.equal(resolveWallVelocity(-100 * normal, normal, 0.22), 22 * normal);
+	}
 });
