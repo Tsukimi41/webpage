@@ -1,8 +1,13 @@
-const dialog = document.querySelector<HTMLDialogElement>('[data-terminal-entry]');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+type TerminalSession = {
+	readonly active: boolean;
+	finish: () => void;
+	begin: (timeoutMs: number) => boolean;
+	pause: (ms: number) => Promise<boolean>;
+};
+const dialog = document.querySelector<HTMLDialogElement & { terminalSession?: TerminalSession }>('[data-terminal-entry]');
+const session = dialog?.terminalSession;
 
-if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== 'back_forward') {
+if (dialog && session?.active) {
 	let typo = false;
 	try {
 		const key = 'portfolio:terminal-visits:v1';
@@ -11,46 +16,12 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 		typo = visit === 3;
 		localStorage.setItem(key, String(visit % 3));
 	} catch { /* Storage can be blocked; the entrance must still work. */ }
-	const events = new AbortController();
-	let stopped = false;
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	let resolvePause: ((value: boolean) => void) | undefined;
-	const finish = () => {
-		if (stopped) return;
-		stopped = true;
-		clearTimeout(timer);
-		clearTimeout(watchdog);
-		resolvePause?.(false);
-		events.abort();
-		dialog.close();
-		const destination = document.querySelector<HTMLElement>('#main-content');
-		destination?.focus({ preventScroll: true });
-	};
-	// Bound a stalled download independently from the longer presentation.
-	let watchdog = setTimeout(() => finish(), 16000);
-	const pause = (ms: number) => new Promise<boolean>(resolve => {
-		if (stopped) { resolve(false); return; }
-		resolvePause = resolve;
-		timer = setTimeout(() => { resolvePause = undefined; resolve(true); }, ms);
-	});
-	dialog.showModal();
 	dialog.dataset.typo = String(typo);
-	dialog.addEventListener('cancel', event => { event.preventDefault(); finish(); }, { signal: events.signal });
-	document.addEventListener('keydown', event => {
-		if (event.key === 'Escape') {
-			event.preventDefault();
-			finish();
-		}
-	}, { capture: true, signal: events.signal });
-	reducedMotion.addEventListener('change', () => finish(), { signal: events.signal });
-	window.addEventListener('pagehide', () => finish(), { signal: events.signal });
 	void import('./terminal-sequence')
 		.then(({ playTerminal }) => {
-			if (stopped) return;
-			clearTimeout(watchdog);
-			watchdog = setTimeout(() => finish(), 45000);
-			return playTerminal(dialog, typo, pause);
+			if (!session.begin(45000)) return;
+			return playTerminal(dialog, typo, session.pause);
 		})
 		.catch(() => undefined)
-		.finally(() => finish());
+		.finally(session.finish);
 }

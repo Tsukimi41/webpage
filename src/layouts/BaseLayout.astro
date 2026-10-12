@@ -87,6 +87,7 @@ const structuredData = serializeJsonLd({
 		<title>{title}</title>
 	</head>
 	<body id="site-top">
+		<slot name="before-content" />
 		<SkipLink />
 		<SiteHeader />
 		<main>

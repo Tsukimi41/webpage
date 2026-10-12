@@ -1,6 +1,7 @@
 ---
 import archLogoSource from '../assets/terminal/arch.txt?raw';
 import archSmallSource from '../assets/terminal/arch-small.txt?raw';
+import bootstrapSource from '../scripts/terminal-bootstrap.js?raw';
 const archLogo = archLogoSource.replace(/\$\d/g, '').trimEnd();
 const archSmall = archSmallSource.replace(/\$\d/g, '').trimEnd();
 const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7', '#7dcfff', '#c0caf5'];
@@ -62,6 +63,8 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
   </div>
   <span class="terminal-entry__accessible-status" role="status" data-terminal-status>セッションを準備しています</span>
 </dialog>
+
+<script is:inline data-download-timeout-ms="16000" set:html={bootstrapSource}></script>
 
 <script>
   import '../scripts/terminal-entry';
