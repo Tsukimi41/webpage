@@ -12,6 +12,7 @@ const profileDetailDefinitions = [
 			'「さくりもよよ」「Tsukimi41」「薪」などのころころ変わる名前で活動している、電気通信大学の学生です。ロボット、組込み、画像認識、Web、最適化、OSINTなど、気になった技術に手を伸ばしています。',
 		biography: [
 			'プログラミングとの出会いは小学生の頃。Scratchで「自分の命令どおりに何かが動く」面白さと、「思ったとおりではなく、書いたとおりに動く」厳しさを知りました。当時のアカウントは消えましたが、バグを追いかける習慣だけは残っています。',
+			'アメリカ滞在中は、Moreland Middle SchoolのPLTW（Project Lead The Way）というぷリジェクトに参加していた。Computer ScienceコースとAutomation & Roboticsの両コースに参加し、Automation & Roboticsでは、ROBOTCを使ってVEXロボットのプログラミングに取り組みました。',
 			'大学では、ROS 2を使ったロボコン、画像認識と音声合成を担当するロボット開発、配送経路最適化、Webアプリ制作、OSINT CTFなどに参加しています。養蜂、アマチュア無線、英語ディベートにも手を出してきました。一見ばらばらですが、観察して、仕組みを理解して、動く形にするという点ではだいたい同じです。',
 			'これから軸にしたいのは、宇宙・セキュリティ・ロボット。知らない分野へ入り込み、必要な技術をつなぎ合わせ、地上でも宇宙でもちゃんと動くものを作れる人を目指しています。',
 		],
@@ -21,14 +22,16 @@ const profileDetailDefinitions = [
 				title: '主な受賞・活動実績',
 				paragraphs: [],
 				items: [
-					'F3RC 企業賞',
+					'ASE-LAB. での活動',
+					'文科省・経産省協力・青梅法人会主催『省人化・省力化チャレンジプロジェクト』最優秀賞（巡の開発）',
+					'F3RCロボコン大会 企業賞',
 					'U☆PoC～UECアイディア実証コンテスト～2025 企業賞',
 					'ソフトバンク主催 首都圏国立大学合同ハッカソン プロジェクトリーダー',
 					'観光庁 観光クロスオーバーコンテスト2026 セミファイナリスト',
 					'DIVER OSINT CTF 2026 世界13位（UEC OSINT CLUB）',
 					'PDA Tokai Parliamentary Debate Competition 2023 優勝',
 					'経済産業省主催 政策提案型パブリックディベート大会 全国優勝',
-					'第6回全国高校教育模擬国連大会 優秀初心者賞',
+					'第6回全国高校教育模擬国連大会AJEMUN 優秀初心者賞',
 					'第17回全日本高校模擬国連大会 本大会出場',
 					'令和5年度模擬国連岐阜会議 優秀賞',
 					'ALGORIプログラミングコンテスト スペシャルロジック賞',
@@ -39,8 +42,8 @@ const profileDetailDefinitions = [
 				title: '資格・語学',
 				paragraphs: [],
 				items: [
-					'実用英語技能検定1級',
-					'TOEIC IP 970',
+					'実用英語技能検定 1級',
+					'TOEIC IP 970点',
 					'中国語検定4級',
 					'第三級アマチュア無線技士',
 				],
@@ -57,6 +60,7 @@ const profileDetailDefinitions = [
 					'Urban Bee Club',
 					'無線部',
 					'サイクリング部',
+					'ASE-LAB.'
 				],
 			},
 			{
@@ -72,6 +76,7 @@ const profileDetailDefinitions = [
 				title: '海外生活と高校までの活動',
 				paragraphs: [
 					'マレーシアとアメリカでの海外生活を経て、帰国後もScratchでの制作を続けました。中学3年生で英語のゲーム「The Ultimate Fruit Catch」を制作し、賞を取ったのが嬉しかったのを覚えています。高校では英語ディベート、模擬国連、政策提案型パブリックディベートにも取り組みました。',
+					'アメリカではMoreland Middle SchoolのPLTW（Project Lead The Way）に参加し、Computer ScienceコースとAutomation & Roboticsコースの両方を受講しました。Automation & Roboticsでは、ROBOTCを使ってVEXロボットを扱いました。',
 				],
 				items: [],
 			},
@@ -81,6 +86,7 @@ const profileDetailDefinitions = [
 				paragraphs: [
 					'大学では「ロボメカ工房」でROS 2などを使ったロボット開発に参加し、F3RCでは企業賞を受賞しました。授業では、映像・動作・音声を同期させたウェルカムロボット「Yorumot」を開発したり、ドローンの自律飛行制御を学んだりしています。',
 					'「電通大 de labo」では、コミュニケーションロボット「Miaou」の画像認識と音声合成を担当。3D CADによる筐体設計も学んでいます。',
+					'電通大 de laboでは、犬型の四足歩行ロボットUnitree Go 2も扱いました。',
 				],
 				items: [],
 			},

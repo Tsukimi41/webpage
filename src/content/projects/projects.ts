@@ -42,11 +42,16 @@ const projectDefinitions = [
 		order: 20,
 		slug: 'international-life',
 		title: 'マレーシアとアメリカでの生活',
-		summary: '小学4年生からマレーシアとアメリカで暮らし、言語や文化、前提の異なる環境で物事を見る経験を積みました。',
+		summary: 'マレーシアとアメリカでの海外生活を経験。アメリカではMoreland Middle SchoolのPLTWでComputer ScienceとAutomation & Roboticsを学びました。',
 		period: '小学4年生〜中学2年生',
-		skillIds: [],
+		skillIds: ['robotc', 'vex'],
 		featured: false,
-		links: [],
+		links: [
+			{ id: 'moreland-pltw', label: 'Moreland Middle SchoolのPLTW', href: 'https://mms.moreland.org/apps/pages/index.jsp?uREC_ID=579234&type=d&pREC_ID=1152167' },
+			{ id: 'pltw-about', label: 'PLTW（Project Lead The Way）について', href: 'https://www.pltw.org/about' },
+			{ id: 'pltw-software', label: 'PLTWのソフトウェア・ハードウェア', href: 'https://www.pltw.org/plan-for-pltw/software' },
+			{ id: 'robotc', label: 'ROBOTC公式サイト', href: 'https://www.robotc.net/' },
+		],
 		detailSections: [
 			{
 				id: 'experience',
@@ -54,6 +59,14 @@ const projectDefinitions = [
 				paragraphs: [
 					'小学4年生から約5年半をマレーシアで、小学6年生から中学2年生までの約2年間をアメリカで過ごしました。',
 					'異なる言語や文化の中では、自分にとって当然のことが相手には当然ではありません。伝え方を変えたり、相手の背景を考えたりする必要がありました。',
+				],
+			},
+			{
+				id: 'pltw',
+				title: 'Moreland Middle SchoolでのPLTW',
+				paragraphs: [
+					'アメリカ滞在中、Moreland Middle SchoolでPLTW（Project Lead The Way）に参加しました。Computer ScienceコースとAutomation & Roboticsコースの両方を受講しました。',
+					'Automation & Roboticsコースでは、ROBOTCを使ってVEXロボットのプログラミングに取り組みました。',
 				],
 			},
 			{
@@ -297,7 +310,7 @@ const projectDefinitions = [
 		skillIds: [
 			'arch-linux', 'github', 'python', 'node-js', 'docker', 'vite', 'typescript', 'html',
 			'css', 'wsl-2', 'ubuntu', 'xampp-control-panel', 'astro', 'markdown', 'github-actions',
-			'vercel',
+			'vercel', 'hyprland',
 		],
 		featured: true,
 		links: [],
@@ -321,7 +334,7 @@ const projectDefinitions = [
 			{
 				id: 'environment',
 				title: '開発環境',
-				paragraphs: ['WindowsとWSL 2、Ubuntu、Arch Linuxを用途に応じて使い分けています。Dockerや各種Web開発ツールを使い、依存関係と実行環境を再現できる形に整えることを意識しています。'],
+				paragraphs: ['WindowsとWSL 2、Ubuntu、Arch Linuxを用途に応じて使い分け、Linuxのデスクトップ環境としてHyprlandも利用しています。Dockerや各種Web開発ツールを使い、依存関係と実行環境を再現できる形に整えることを意識しています。'],
 			},
 		],
 	},
@@ -390,6 +403,11 @@ const projectDefinitions = [
 					'主にカメラを用いた画像認識と、利用者へ応答するための音声合成を担当しています。',
 					'認識結果をロボットの行動へつなぎ、動きと声が別々に見えないよう、システム全体の流れを意識して開発しています。',
 				],
+			},
+			{
+				id: 'unitree-go-2',
+				title: '電通大 de laboでのUnitree Go 2',
+				paragraphs: ['電通大 de laboでは、犬型の四足歩行ロボットUnitree Go 2も扱いました。'],
 			},
 			{
 				id: 'hardware-design',
