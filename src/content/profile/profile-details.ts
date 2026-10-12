@@ -9,10 +9,11 @@ const profileDetailDefinitions = [
 		state: 'published',
 		order: 10,
 		summary:
-			'「さくりもよよ」「Tsukimi41」「薪」などのころころ変わる名前で活動している、電気通信大学の学生です。ロボット、組込み、画像認識、Web、最適化、OSINTなど、気になった技術に手を伸ばしています。',
+			'「さくりもよよ」「Tsukimi41」「薪」などと、ころころ変わる名前で活動している、電気通信大学の学生です。',
 		biography: [
+			'ロボット、組込み、画像認識、Web、最適化、OSINTなど、気になった技術に手を伸ばしています。',
 			'プログラミングとの出会いは小学生の頃。Scratchで「自分の命令どおりに何かが動く」面白さと、「思ったとおりではなく、書いたとおりに動く」厳しさを知りました。当時のアカウントは消えましたが、バグを追いかける習慣だけは残っています。',
-			'アメリカ滞在中は、Moreland Middle SchoolのPLTW（Project Lead The Way）というぷリジェクトに参加していた。Computer ScienceコースとAutomation & Roboticsの両コースに参加し、Automation & Roboticsでは、ROBOTCを使ってVEXロボットのプログラミングに取り組みました。',
+			'アメリカ滞在中は、Moreland Middle SchoolのPLTW（Project Lead The Way）というプロジェクトに参加していました。Computer ScienceコースとAutomation & Roboticsの両コースに参加し、Automation & Roboticsでは、ROBOTCを使ってVEXロボットのプログラミングに取り組みました。',
 			'大学では、ROS 2を使ったロボコン、画像認識と音声合成を担当するロボット開発、配送経路最適化、Webアプリ制作、OSINT CTFなどに参加しています。養蜂、アマチュア無線、英語ディベートにも手を出してきました。一見ばらばらですが、観察して、仕組みを理解して、動く形にするという点ではだいたい同じです。',
 			'これから軸にしたいのは、宇宙・セキュリティ・ロボット。知らない分野へ入り込み、必要な技術をつなぎ合わせ、地上でも宇宙でもちゃんと動くものを作れる人を目指しています。',
 		],
