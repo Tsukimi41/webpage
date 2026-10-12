@@ -15,7 +15,7 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 	let stopped = false;
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let resolvePause: ((value: boolean) => void) | undefined;
-	const finish = (keyboard = false) => {
+	const finish = () => {
 		if (stopped) return;
 		stopped = true;
 		clearTimeout(timer);
@@ -23,10 +23,11 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 		resolvePause?.(false);
 		events.abort();
 		dialog.close();
-		const destination = document.querySelector<HTMLElement>(keyboard ? '.skip-link' : '#main-content');
+		const destination = document.querySelector<HTMLElement>('#main-content');
 		destination?.focus({ preventScroll: true });
 	};
-	const watchdog = setTimeout(() => finish(), 4000);
+	// Bound a stalled download independently from the longer presentation.
+	let watchdog = setTimeout(() => finish(), 16000);
 	const pause = (ms: number) => new Promise<boolean>(resolve => {
 		if (stopped) { resolve(false); return; }
 		resolvePause = resolve;
@@ -36,16 +37,20 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 	dialog.dataset.typo = String(typo);
 	dialog.addEventListener('cancel', event => { event.preventDefault(); finish(); }, { signal: events.signal });
 	document.addEventListener('keydown', event => {
-		if (event.key === 'Escape' || event.key === 'Tab') {
+		if (event.key === 'Escape') {
 			event.preventDefault();
-			finish(event.key === 'Tab');
+			finish();
 		}
 	}, { capture: true, signal: events.signal });
-	dialog.querySelector('[data-terminal-skip]')?.addEventListener('click', () => finish(), { signal: events.signal });
 	reducedMotion.addEventListener('change', () => finish(), { signal: events.signal });
 	window.addEventListener('pagehide', () => finish(), { signal: events.signal });
 	void import('./terminal-sequence')
-		.then(({ playTerminal }) => stopped ? undefined : playTerminal(dialog, typo, pause))
+		.then(({ playTerminal }) => {
+			if (stopped) return;
+			clearTimeout(watchdog);
+			watchdog = setTimeout(() => finish(), 45000);
+			return playTerminal(dialog, typo, pause);
+		})
 		.catch(() => undefined)
 		.finally(() => finish());
 }
