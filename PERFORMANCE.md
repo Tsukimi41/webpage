@@ -16,7 +16,7 @@ GitHub Pagesの静的配信を維持する。APIやデータベース、常駐�
 | 技術の玉 | 開閉パネル・静的一覧・専用スケルトンを撤去し、マーブルとシャボン玉を最初から表示。ドラッグ・投げる操作・接触・キーボード操作を復元 |
 | ターミナル入口 | ホームの本文より前でインライン初期化し、外部JSの読み込み前から表示。ブラウザの保存領域で3回目ごとの打ち直しを管理 |
 | スキップ | Esc。動きを減らす設定、アンカーリンク、履歴復元では省略 |
-| 障害時 | JSなしでも本文を表示。演出失敗時は解除。演出JSの取得停滞は16秒、取得後の演出停滞は45秒のタイマーで入場 |
+| 障害時 | JSなしでも本文を表示。演出失敗時は解除。JS取得停滞は16秒、取得後の停滞は設定から計算した演出総時間＋12秒で解除（初期設定） |
 | 未使用依存 | 既存の直接依存はすべて使用箇所を確認。削除対象なし。sharpとLighthouseは開発用 |
 
 技術のインタラクティブ表示は、開閉式に変更する直前の`100aa9a`の`SkillShowcase.astro`へ復元した。物理演算・配置・素材の設定は維持し、既存コードで欠落していた物理オブジェクトの`role`を初期化時に渡す修正を加えた。これによりスキルのシャボン玉の減衰振動と装飾シャボン玉の破裂・再生成が動作する。
@@ -31,6 +31,41 @@ GitHub Pagesの静的配信を維持する。APIやデータベース、常駐�
 
 - 等幅フォント：[JetBrains Mono v2.304](https://github.com/JetBrains/JetBrainsMono/tree/v2.304)、Regular WOFF2（92,164 bytes）。ローカル配信し、OFL-1.1ライセンスを`public/fonts/JetBrainsMono-OFL.txt`に同梱する。
 - Arch ASCIIロゴ：[fastfetch](https://github.com/fastfetch-cli/fastfetch/tree/3ccaf2d7dd67167be2b2208f0dd210aaecc9fadd/src/logo/ascii/a)の`arch.txt`と`arch_small.txt`。狭い画面は公式の小型版を使う。MITライセンスを`public/licenses/fastfetch.txt`に同梱する。
+
+## WezTermの速度・待機時間を変更する
+
+編集する場所は **[`src/config/terminal.ts`](src/config/terminal.ts)** の `TERMINAL_CONFIG` だけ。すべて日本語コメント付きで、時間の単位はミリ秒（1000ms = 1秒）。値を大きくすると長く・ゆっくりになる。
+
+| 調整したい部分 | 設定キー |
+| --- | --- |
+| 全体を一括で速く／遅くする | `durationScale`。`0.5`で2倍速、`2`で半分の速さ |
+| 最初の空白時間 | `timing.blankPromptMs` |
+| Arch情報の表示時間 | `timing.systemInfoMs` |
+| openを打ち始める前 | `timing.beforeTypingMs` |
+| タイピング速度・ばらつき | `timing.characterDelaysMs`。配列の順で繰り返す。空白だけは`timing.spaceDelayMs` |
+| 入力完了から実行まで | `timing.beforeExecuteMs` |
+| 確認への返答待ち・返答表示 | `timing.confirmationWaitMs`・`timing.confirmationAnswerMs` |
+| 起動ログの文言・各行の時間・行数 | `timing.loadingSteps`の`label`と`durationMs`。配列に行を追加／削除できる |
+| 完了後の待機 | `timing.readyMs` |
+| カーソルの点滅周期 | `timing.motion.cursorBlinkMs` |
+| ローディング記号の回転周期 | `timing.motion.spinnerCycleMs` |
+| 登場・退出のフェード | `timing.motion.windowEnterMs`・`timing.motion.exitFadeMs` |
+| 打ち直し中の各待機と削除速度 | `timing.typo`内の各項目 |
+| 打ち間違いの頻度 | `typoEveryVisits`。`3`なら3回に1回、`0`なら無効 |
+| コマンド・確認・完了の文言 | `command`・`mistypedCommand`・`confirmation`・`confirmationAnswer`・`errorMessage`・`readyMessage` |
+
+例：`beforeTypingMs: 5000`なら入力前に5秒待つ。`characterDelaysMs: [80, 100, 90]`なら現在より速い入力になる。`loadingSteps`の各`durationMs: 2500`なら各ログを2.5秒表示する。これらに`durationScale`が掛かる。
+
+CSSの点滅・スピナー・フェードにも同じ設定を渡すため、CSS側の数値を別に編集する必要はない。JSで閉じる時刻は`exitFadeMs + exitBufferMs`から計算する。停止時の解除時刻も、入力文字数・全ログ・打ち直しを含む演出総時間に`safety.presentationSlackMs`を足して自動で決める。待機を長くしても古い固定タイマーには切られない。`safety.downloadTimeoutMs`と`presentationSlackMs`は通信・実行停滞対策なので全体の時間倍率を掛けない。
+
+編集後は次のコマンドで合計時間と設定の妥当性を確認する。初期設定は通常24.284秒、打ち直し時33.158秒（JS取得後の目安）。不正な負数・無限値・空の入力間隔・空のログは、確認コマンドとビルド時にエラーになる。
+
+```sh
+npm run terminal:timing
+npm run build:release
+```
+
+設定変更は再ビルド・公開後にサイトへ反映される。演出ロジックは`src/scripts/terminal-sequence.ts`、時間計算は`src/scripts/terminal-timing.ts`、初回表示と解除は`src/scripts/terminal-bootstrap.js`に分離している。単なる速度調整ではこれらを編集しない。
 
 ## 配信基盤と対象外の項目
 
