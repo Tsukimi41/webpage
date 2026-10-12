@@ -1,4 +1,4 @@
-<dialog class="terminal-entry" data-terminal-entry aria-labelledby="terminal-title" aria-describedby="terminal-help">
+<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-labelledby="terminal-title" aria-describedby="terminal-help">
 	<div class="terminal-entry__aura" aria-hidden="true"></div>
 	<div class="terminal-entry__shell">
 		<header class="terminal-entry__chrome" aria-hidden="true">
@@ -13,8 +13,13 @@
 				<p class="terminal-entry__intro">小さな好奇心から、次のものづくりへ。</p>
 				<div class="terminal-entry__output" aria-hidden="true">
 					<p class="terminal-entry__path"><span>tsukimi41</span> <span>~/portfolio</span> <span>git:(main)</span></p>
-					<p class="terminal-entry__command"><span>❯</span> <span data-terminal-command></span><span class="terminal-entry__cursor"></span></p>
+					<p class="terminal-entry__command"><span>❯</span> <span data-terminal-command></span><span class="terminal-entry__cursor"></span><span class="terminal-entry__enter">↵ Enter</span></p>
 					<p class="terminal-entry__message" data-terminal-message> </p>
+					<div class="terminal-entry__loader">
+						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>route</span><span>~/portfolio</span></div>
+						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>view</span><span>curiosity → creation</span></div>
+						<div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-icon"></span><span>session</span><span>ready to explore</span></div>
+					</div>
 					<p class="terminal-entry__result" data-terminal-result> </p>
 				</div>
 			</section>
@@ -31,7 +36,7 @@
 				<div class="terminal-entry__palette"><i></i><i></i><i></i><i></i><i></i></div>
 			</aside>
 		</div>
-		<footer class="terminal-entry__status"><span><span class="terminal-entry__diamond">◆</span> TSUKIMI41 <span class="terminal-entry__status-detail">/ portfolio</span></span><span>UTF-8 &nbsp; <span class="terminal-entry__diamond">●</span> zsh</span></footer>
+		<footer class="terminal-entry__status"><span class="terminal-entry__phase"><span class="terminal-entry__diamond" aria-hidden="true">◆</span> <span role="status" data-terminal-status>セッションを準備しています</span></span><span>UTF-8 &nbsp; <span class="terminal-entry__diamond">●</span> zsh</span></footer>
 	</div>
 	<div class="terminal-entry__below">
 		<p id="terminal-help">自動でサイトを開きます。<kbd>Esc</kbd> / <kbd>Tab</kbd> でスキップ</p>
@@ -46,10 +51,14 @@
 <style>
 	.terminal-entry { position: fixed; inset: 0; inline-size: 100%; max-inline-size: none; block-size: 100%; max-block-size: none; margin: 0; padding: clamp(1rem, 5vw, 5rem); border: 0; background: #080e14; color: #dce8f0; overflow: auto; font-family: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Consolas, monospace; }
 	.terminal-entry[open] { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-	.terminal-entry::backdrop { background: #080e14; }
-	.terminal-entry__aura { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: radial-gradient(ellipse at 20% 35%, #153c3b70, transparent 48%), radial-gradient(ellipse at 85% 70%, #31285260, transparent 50%); }
-	.terminal-entry__shell { position: relative; inline-size: min(100%, 66rem); flex-shrink: 0; border: 1px solid #3a4a52; border-radius: 14px; background: #0e171ef5; box-shadow: 0 30px 90px #0009, 0 0 60px #85f0cb09; overflow: hidden; animation: terminal-arrive 180ms ease-out both; transition: opacity 130ms ease, transform 130ms ease; }
-	.terminal-entry[data-stage='done'] .terminal-entry__shell { opacity: 0; transform: translateY(-8px); }
+	.terminal-entry { transition: opacity 400ms ease; }
+	.terminal-entry::backdrop { background: #080e14; transition: opacity 400ms ease; }
+	.terminal-entry[data-stage='done'], .terminal-entry[data-stage='done']::backdrop { opacity: 0; }
+	.terminal-entry__aura { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: radial-gradient(ellipse at 20% 35%, #153c3b70, transparent 48%), radial-gradient(ellipse at 85% 70%, #31285260, transparent 50%); animation: terminal-glow 6s ease-in-out infinite alternate; }
+	.terminal-entry__shell { position: relative; inline-size: min(100%, 66rem); flex-shrink: 0; border: 1px solid #3a4a52; border-radius: 14px; background: #0e171ef5; box-shadow: 0 30px 90px #0009, 0 0 60px #85f0cb09; overflow: hidden; animation: terminal-arrive 550ms ease-out backwards; transition: opacity 400ms ease, transform 400ms ease, border-color 300ms ease; }
+	.terminal-entry[data-stage='ready'] .terminal-entry__shell { border-color: #a4f3d4; }
+	.terminal-entry[data-stage='done'] .terminal-entry__shell { opacity: 0; transform: translateY(-12px) scale(1.015); }
+	.terminal-entry[data-stage='done'] .terminal-entry__below { opacity: 0; }
 	.terminal-entry__chrome { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 3.5rem; padding: 0.8rem 1.2rem; color: #a6b7c2; font-size: 0.75rem; border-block-end: 1px solid #263540; }
 	.terminal-entry__lights { display: flex; gap: 7px; }
 	.terminal-entry__lights i { inline-size: 9px; block-size: 9px; border-radius: 50%; background: #f0848d; }
@@ -70,7 +79,22 @@
 	.terminal-entry__path span:first-child, .terminal-entry__command > span:first-child { color: #a4f3d4; }
 	.terminal-entry__path span:last-child { color: #c4acf0; }
 	.terminal-entry__command { display: flex; align-items: center; gap: 0.5rem; }
+	.terminal-entry__command [data-terminal-command] { white-space: pre-wrap; overflow-wrap: anywhere; min-inline-size: 0; }
 	.terminal-entry__cursor { display: inline-block; inline-size: 7px; block-size: 1.2em; background: #a4f3d4; animation: terminal-cursor 800ms step-end infinite; }
+	.terminal-entry__enter { margin-inline-start: auto; flex-shrink: 0; border: 1px solid #607d77; border-radius: 4px; padding: 0.1rem 0.3rem; font-size: 0.65rem; color: #a4f3d4; opacity: 0; transition: opacity 150ms ease; }
+	.terminal-entry[data-stage='submitted'] .terminal-entry__enter { opacity: 1; }
+	.terminal-entry:is([data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__cursor { visibility: hidden; }
+	.terminal-entry__loader { display: grid; gap: 0.4rem; margin-block: 0.65rem; font-size: 0.7rem; }
+	.terminal-entry__step { display: grid; grid-template-columns: 0.8rem 3.5rem minmax(0, 1fr); align-items: center; gap: 0.5rem; min-block-size: 1.5em; opacity: 0; transform: translateY(4px); transition: opacity 220ms ease, transform 220ms ease; }
+	.terminal-entry__step[data-state] { opacity: 1; transform: none; }
+	.terminal-entry__step > span:nth-child(2) { color: #c4acf0; }
+	.terminal-entry__step > span:last-child { color: #a6b7c2; overflow-wrap: anywhere; }
+	.terminal-entry__step-icon { inline-size: 0.65rem; block-size: 0.65rem; border: 1px solid #3a4a52; border-block-start-color: #a4f3d4; border-radius: 50%; }
+	.terminal-entry__step[data-state='active'] .terminal-entry__step-icon { animation: terminal-spin 650ms linear infinite; }
+	.terminal-entry__step[data-state='complete'] .terminal-entry__step-icon { border: 0; inline-size: auto; block-size: auto; color: #a4f3d4; }
+	.terminal-entry__step[data-state='complete'] .terminal-entry__step-icon::after { content: '✓'; }
+	.terminal-entry[data-stage='booting'] .terminal-entry__output { opacity: 0; transform: translateY(6px); }
+	.terminal-entry__output { transition: opacity 350ms ease, transform 350ms ease; }
 	.terminal-entry__message { color: #ffabb2; } .terminal-entry__result { color: #a4f3d4; }
 	.terminal-entry__config { margin: 2.5rem 0; padding: 0 2rem; border-inline-start: 1px solid #2c3b45; min-inline-size: 0; align-self: center; color: #a6b7c2; }
 	.terminal-entry__config > p { display: flex; align-items: center; gap: 0.75rem; font-size: 0.65rem; letter-spacing: 0.15em; }
@@ -80,25 +104,35 @@
 	.terminal-entry__palette { display: flex; gap: 0.5rem; } .terminal-entry__palette i { inline-size: 1.2rem; block-size: 0.4rem; border-radius: 2px; background: #a4f3d4; } .terminal-entry__palette i:nth-child(2) { background: #c4acf0; } .terminal-entry__palette i:nth-child(3) { background: #e7c785; } .terminal-entry__palette i:nth-child(4) { background: #ffabb2; } .terminal-entry__palette i:nth-child(5) { background: #91c9ef; }
 	.terminal-entry__status { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.2rem; border-block-start: 1px solid #293c43; background: #132329; color: #adc0c7; font-size: 0.65rem; letter-spacing: 0.07em; }
 	.terminal-entry__diamond { color: #a4f3d4; }
-	.terminal-entry__below { position: relative; inline-size: min(100%, 66rem); display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1rem; margin-block-start: 1.3rem; color: #a6b7c2; font-size: 0.75rem; }
+	.terminal-entry__phase { display: flex; align-items: center; gap: 0.5rem; }
+	.terminal-entry__below { position: relative; inline-size: min(100%, 66rem); display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1rem; margin-block-start: 1.3rem; color: #a6b7c2; font-size: 0.75rem; transition: opacity 400ms ease; }
 	.terminal-entry__below p { margin: 0; line-height: 2; }
 	.terminal-entry kbd { padding: 0.15rem 0.4rem; border: 1px solid #566a79; border-radius: 4px; color: #dce8f0; font: inherit; }
 	.terminal-entry button { min-block-size: 48px; padding: 0.7rem 1rem; border: 1px solid #607d77; border-radius: 6px; background: #172c2b; color: #b9f7df; font: inherit; cursor: pointer; transition: background 120ms ease; }
 	.terminal-entry button:hover { background: #25443f; } .terminal-entry button:focus-visible { outline: 2px solid #a4f3d4; outline-offset: 4px; }
 	@keyframes terminal-arrive { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
 	@keyframes terminal-cursor { 50% { opacity: 0; } }
+	@keyframes terminal-spin { to { transform: rotate(360deg); } }
+	@keyframes terminal-glow { from { opacity: 0.5; } to { opacity: 1; } }
 	@media (max-width: 45rem) { .terminal-entry__config { display: none; } .terminal-entry__body { grid-template-columns: minmax(0, 1fr); min-block-size: 21rem; } .terminal-entry__workspace { display: none; } .terminal-entry__tabs > span { padding-inline: 0.5rem; } }
 	@media (max-width: 30rem) {
+		.terminal-entry { padding: 0.65rem; }
 		.terminal-entry__body { min-block-size: 0; }
-		.terminal-entry__session { padding: 1rem; }
-		.terminal-entry h2 { margin-block-start: 1.2rem; }
-		.terminal-entry__output { margin-block-start: 1.5rem; }
+		.terminal-entry__session { padding: 0.85rem; }
+		.terminal-entry__eyebrow { margin: 0; }
+		.terminal-entry h2 { margin: 0.8rem 0 0.5rem; }
+		.terminal-entry__output { margin-block-start: 1rem; }
+		.terminal-entry__output .terminal-entry__message { min-block-size: 1em; }
+		.terminal-entry__output .terminal-entry__result { min-block-size: 3.2em; font-size: 0.65rem; }
+		.terminal-entry__loader { gap: 0.2rem; margin-block: 0.35rem; }
 		.terminal-entry__chrome { min-block-size: 2.75rem; padding: 0.6rem 0.8rem; font-size: 0.65rem; }
 		.terminal-entry__tabs { font-size: 0.65rem; }
 		.terminal-entry__tabs > span { white-space: nowrap; padding-inline: 0.35rem; }
-		.terminal-entry__status-detail { display: none; }
+		.terminal-entry__status { flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 0.8rem; font-size: 0.6rem; letter-spacing: 0; }
+		.terminal-entry__enter { font-size: 0.55rem; }
 		.terminal-entry__below { gap: 0.5rem; margin-block-start: 0.8rem; }
+		.terminal-entry__below p { font-size: 0.7rem; }
 	}
 	@media (max-height: 38rem) { .terminal-entry[open] { justify-content: flex-start; } }
-	@media (prefers-reduced-motion: reduce) { .terminal-entry__shell, .terminal-entry__cursor { animation: none; transition: none; } }
+	@media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry *, .terminal-entry *::after { animation: none !important; transition: none !important; } }
 </style>
