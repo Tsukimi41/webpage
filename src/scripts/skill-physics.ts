@@ -1,6 +1,8 @@
 import {
 	applyFloorFriction,
 	calculateBubbleShape,
+	bubbleShapePath,
+	getBodySupport,
 	calculateBubbleImpact,
 	resolveWallVelocity,
 	calculateBubblePointerInfluence,
@@ -21,6 +23,8 @@ import {
 export {
 	applyFloorFriction,
 	calculateBubbleShape,
+	bubbleShapePath,
+	getBodySupport,
 	calculateBubbleImpact,
 	resolveWallVelocity,
 	calculateBubblePointerInfluence,
@@ -45,6 +49,8 @@ export type {
 
 interface RenderedCircle extends PhysicsCircle {
 	readonly element: HTMLElement;
+	readonly membranePath: SVGPathElement | null;
+	renderedOutline?: PhysicsCircle['outline'];
 	readonly phase: number;
 	readonly density: number;
 	readonly role: 'ambient' | 'skill';
@@ -166,6 +172,7 @@ function createCircle(
 
 	return {
 		element,
+		membranePath: element.querySelector<SVGPathElement>('[data-bubble-membrane]'),
 		material,
 		role,
 		radius,
@@ -213,6 +220,7 @@ function resetCircle(body: RenderedCircle, width: number, height: number): void 
 	body.vy = 0;
 	body.angle = 0;
 	body.angularVelocity = 0;
+	body.outline = undefined;
 	body.deformationModeX = 0;
 	body.deformationModeY = 0;
 	body.deformationVelocityX = 0;
@@ -263,26 +271,30 @@ function constrainToField(
 ): number {
 	const restitution = body.material === 'marble' ? MARBLE_RESTITUTION : BUBBLE_RESTITUTION;
 	const contacts = getCircleBoundaryContacts(body, width, height);
+	const left = getBodySupport(body, -1, 0);
+	const right = getBodySupport(body, 1, 0);
+	const top = getBodySupport(body, 0, -1);
+	const bottom = getBodySupport(body, 0, 1);
 
 	if (!Number.isFinite(width) || width <= body.radius * 2) {
 		body.x = Math.max(Number.isFinite(width) ? width : 0, 0) / 2;
 		body.vx = 0;
-	} else if (body.x < body.radius) {
-		body.x = body.radius;
+	} else if (body.x < left) {
+		body.x = left;
 		body.vx = resolveWallVelocity(body.vx, 1, restitution);
-	} else if (body.x > width - body.radius) {
-		body.x = width - body.radius;
+	} else if (body.x > width - right) {
+		body.x = width - right;
 		body.vx = resolveWallVelocity(body.vx, -1, restitution);
 	}
 
 	if (!Number.isFinite(height) || height <= body.radius * 2) {
 		body.y = Math.max(Number.isFinite(height) ? height : 0, 0) / 2;
 		body.vy = 0;
-	} else if (body.y < body.radius) {
-		body.y = body.radius;
+	} else if (body.y < top) {
+		body.y = top;
 		body.vy = resolveWallVelocity(body.vy, 1, restitution);
-	} else if (body.y > height - body.radius) {
-		body.y = height - body.radius;
+	} else if (body.y > height - bottom) {
+		body.y = height - bottom;
 		body.vy = resolveWallVelocity(body.vy, -1, restitution);
 
 		if (body.material === 'marble') {
@@ -314,10 +326,10 @@ function exciteBubbleDeformation(
 	const rippleDirection = contactAngle * 3;
 	const velocityImpulse =
 		clamp(impact, 0, BUBBLE_MAXIMUM_DEFORMATION) * BUBBLE_DEFORMATION_IMPULSE;
-	body.deformationVelocityX += Math.cos(quadrupoleDirection) * velocityImpulse;
-	body.deformationVelocityY += Math.sin(quadrupoleDirection) * velocityImpulse;
-	body.deformationRippleVelocityX += Math.cos(rippleDirection) * velocityImpulse * 0.52;
-	body.deformationRippleVelocityY += Math.sin(rippleDirection) * velocityImpulse * 0.52;
+	body.deformationVelocityX -= Math.cos(quadrupoleDirection) * velocityImpulse;
+	body.deformationVelocityY -= Math.sin(quadrupoleDirection) * velocityImpulse;
+	body.deformationRippleVelocityX += Math.cos(rippleDirection) * velocityImpulse * 0.3;
+	body.deformationRippleVelocityY += Math.sin(rippleDirection) * velocityImpulse * 0.3;
 
 	const deformationSpeed = Math.hypot(
 		body.deformationVelocityX,
@@ -408,6 +420,10 @@ function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
 		body.deformationVelocityX = body.deformationVelocityY = 0;
 		body.deformationRippleVelocityX = body.deformationRippleVelocityY = 0;
 		body.element.dataset.wobbleState = 'idle';
+		body.outline = undefined;
+	} else {
+		body.outline = calculateBubbleShape(body.deformationModeX, body.deformationModeY,
+			body.deformationRippleX, body.deformationRippleY).points;
 	}
 }
 
@@ -493,22 +509,12 @@ function renderCircle(body: RenderedCircle, fieldHeight: number): void {
 	body.element.style.transform = `translate3d(${body.x - body.radius}px, ${body.y - body.radius}px, 0)`;
 
 	if (body.material === 'bubble' && body.role === 'skill') {
-		const shape = calculateBubbleShape(
-			body.deformationModeX,
-			body.deformationModeY,
-			body.deformationRippleX,
-			body.deformationRippleY,
-		);
-		const [topLeftX, topRightX, bottomRightX, bottomLeftX,
-			topLeftY, topRightY, bottomRightY, bottomLeftY] = shape.radii;
-		body.element.style.setProperty('--deform-x', String(shape.scaleX));
-		body.element.style.setProperty('--deform-y', String(shape.scaleY));
-		body.element.style.setProperty('--deform-angle', `${shape.angle}rad`);
-		body.element.style.setProperty(
-			'--deform-radius',
-			`${topLeftX}% ${topRightX}% ${bottomRightX}% ${bottomLeftX}% / ` +
-			`${topLeftY}% ${topRightY}% ${bottomRightY}% ${bottomLeftY}%`,
-		);
+		if (body.membranePath && body.outline !== body.renderedOutline) {
+			body.membranePath.setAttribute('d', bubbleShapePath(
+				body.outline ?? calculateBubbleShape(0, 0, 0, 0).points,
+			));
+			body.renderedOutline = body.outline;
+		}
 	} else if (body.material === 'marble') {
 		const floorDistance = Math.max(fieldHeight - body.y - body.radius, 0);
 		const heightRatio = Math.min(floorDistance / Math.max(fieldHeight * 0.65, 1), 1);
@@ -840,6 +846,11 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 				resetCircle(body, fieldBounds.width, fieldBounds.height);
 				continue;
 			}
+			const boundary = getCircleBoundaryContacts(body, fieldBounds.width, fieldBounds.height);
+			if (boundary & CIRCLE_BOUNDARY.left) exciteBubbleDeformation(body, calculateBubbleImpact(-body.vx), 1, 0);
+			if (boundary & CIRCLE_BOUNDARY.right) exciteBubbleDeformation(body, calculateBubbleImpact(body.vx), -1, 0);
+			if (boundary & CIRCLE_BOUNDARY.top) exciteBubbleDeformation(body, calculateBubbleImpact(-body.vy), 0, 1);
+			if (boundary & CIRCLE_BOUNDARY.bottom) exciteBubbleDeformation(body, calculateBubbleImpact(body.vy), 0, -1);
 			const contacts = constrainToField(
 				body,
 				fieldBounds.width,

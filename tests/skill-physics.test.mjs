@@ -4,6 +4,8 @@ import test from 'node:test';
 import {
 	applyFloorFriction,
 	calculateBubbleShape,
+	bubbleShapePath,
+	getBodySupport,
 	calculateBubbleImpact,
 	resolveWallVelocity,
 	calculateBubblePointerInfluence,
@@ -141,27 +143,55 @@ test('bubble oscillator fails closed for malformed inputs', () => {
 	});
 });
 
-test('bubble shape combines large area-preserving stretch with asymmetric membrane ripples', () => {
-	const shape = calculateBubbleShape(0.4, -0.08, 0.08, -0.06);
+function contourArea(points) {
+	return Math.abs(points.reduce((sum, point, index) => {
+		const next = points[(index + 1) % points.length];
+		return sum + point.x * next.y - point.y * next.x;
+	}, 0)) / 2;
+}
 
-	assert.ok(Math.abs(shape.scaleX * shape.scaleY - 1) < 0.000001);
-	assert.ok(shape.scaleX > 1.48);
-	assert.ok(shape.scaleY < 0.68);
-	assert.ok(new Set(shape.radii).size >= 4);
-	assert.ok(shape.radii.every((radius) => radius >= 22 && radius <= 78));
-	assert.ok(Math.max(...shape.radii) - Math.min(...shape.radii) >= 40);
-	assert.notEqual(shape.angle, 0);
+test('membrane conserves area with bounded, asymmetric deformation in arbitrary directions', () => {
+	const restArea = contourArea(calculateBubbleShape(0, 0, 0, 0).points);
+	for (let angle = 0; angle < Math.PI * 2; angle += 0.07) {
+		const shape = calculateBubbleShape(0.18 * Math.cos(2 * angle), 0.18 * Math.sin(2 * angle),
+			0.07 * Math.cos(3 * angle), 0.07 * Math.sin(3 * angle));
+		assert.ok(Math.abs(contourArea(shape.points) / restArea - 1) < 0.002);
+		assert.ok(shape.points.every(p => Math.hypot(p.x, p.y) > 0.7 && Math.hypot(p.x, p.y) < 1.3));
+		assert.ok(new Set(shape.points.map(p => Math.hypot(p.x, p.y).toFixed(3))).size > 10);
+		assert.match(bubbleShapePath(shape.points), /^M[0-9.,-]+C.*Z$/);
+	}
 });
 
-test('bubble shape returns a stable circle for rest and malformed input', () => {
-	const circleRadii = [50, 50, 50, 50, 50, 50, 50, 50];
-	assert.deepEqual(calculateBubbleShape(0, 0, 0, 0), {
-		scaleX: 1,
-		scaleY: 1,
-		angle: 0,
-		radii: circleRadii,
+test('membrane is continuous across the old half-angle rotation discontinuity', () => {
+	const before = calculateBubbleShape(-0.1, -0.000001, 0.04, 0).points;
+	const after = calculateBubbleShape(-0.1, 0.000001, 0.04, 0).points;
+	assert.ok(before.every((p, i) => Math.hypot(p.x - after[i].x, p.y - after[i].y) < 0.000003));
+	const rest = calculateBubbleShape(0, 0, 0, 0);
+	assert.ok(rest.points.every(p => Math.abs(Math.hypot(p.x, p.y) - 1) < 1e-12));
+	assert.deepEqual(calculateBubbleShape(NaN, 0, 0, 0), rest);
+});
+
+test('membrane rotates covariantly without horizontal or vertical preference', () => {
+	const angle = Math.PI / 4; // Six samples of the 48-point contour.
+	const original = calculateBubbleShape(0.15, 0, 0.06, 0).points;
+	const rotated = calculateBubbleShape(0.15 * Math.cos(2 * angle), 0.15 * Math.sin(2 * angle),
+		0.06 * Math.cos(3 * angle), 0.06 * Math.sin(3 * angle)).points;
+	original.forEach((p, i) => {
+		const q = rotated[(i + 6) % 48];
+		assert.ok(Math.hypot(q.x - (p.x * Math.cos(angle) - p.y * Math.sin(angle)),
+			q.y - (p.x * Math.sin(angle) + p.y * Math.cos(angle))) < 1e-12);
 	});
-	assert.deepEqual(calculateBubbleShape(Number.NaN, 0, 0, 0).radii, circleRadii);
+});
+
+test('collision support follows the deformed membrane instead of the nominal circle', () => {
+	const left = circle({ material: 'bubble', outline: calculateBubbleShape(0.2, 0, 0, 0).points });
+	const right = circle({ material: 'bubble', x: 21 });
+	assert.ok(getBodySupport(left, 1, 0) > left.radius);
+	assert.ok(getBodySupport(left, 0, 1) < left.radius);
+	assert.ok(resolveCircleCollision(left, right));
+	assert.ok(right.x - left.x >= getBodySupport(left, 1, 0) + right.radius - 0.011);
+	left.x = 11;
+	assert.equal(getCircleBoundaryContacts(left, 200, 200) & CIRCLE_BOUNDARY.left, CIRCLE_BOUNDARY.left);
 });
 
 test('circle boundary contacts identify every wall independently', () => {

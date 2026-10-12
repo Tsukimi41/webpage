@@ -1,0 +1,43 @@
+---
+import { bubbleShapePath, calculateBubbleShape } from '../scripts/skill-physics-core';
+
+interface Props { id: string }
+const { id } = Astro.props;
+const prefix = `bubble-${id}`;
+const circle = bubbleShapePath(calculateBubbleShape(0, 0, 0, 0).points);
+---
+
+<svg class="bubble-membrane" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+	<defs>
+		<path id={`${prefix}-shape`} data-bubble-membrane d={circle} />
+		<radialGradient id={`${prefix}-film`} cx="35%" cy="28%" r="76%">
+			<stop offset="0" stop-color="#ffffff" stop-opacity=".12" />
+			<stop offset=".55" stop-color="#9beaff" stop-opacity=".05" />
+			<stop offset=".79" stop-color="#d8a4ff" stop-opacity=".12" />
+			<stop offset=".92" stop-color="#91eaff" stop-opacity=".28" />
+			<stop offset="1" stop-color="#ffa4d9" stop-opacity=".38" />
+		</radialGradient>
+		<linearGradient id={`${prefix}-rim`} x1="15%" y1="0%" x2="80%" y2="100%">
+			<stop offset="0" stop-color="#ffffff" stop-opacity=".92" />
+			<stop offset=".26" stop-color="#ffd7f4" stop-opacity=".65" />
+			<stop offset=".52" stop-color="#b5a0ff" stop-opacity=".2" />
+			<stop offset=".76" stop-color="#9efff0" stop-opacity=".72" />
+			<stop offset="1" stop-color="#ffc4ed" stop-opacity=".85" />
+		</linearGradient>
+	</defs>
+	<use href={`#${prefix}-shape`} fill={`url(#${prefix}-film)`} stroke={`url(#${prefix}-rim)`} stroke-width="1.2" />
+	<use href={`#${prefix}-shape`} fill="none" stroke={`url(#${prefix}-rim)`} stroke-width=".4" opacity=".55" transform="translate(2 2) scale(.96)" />
+	<ellipse cx="30" cy="20" rx="12" ry="4" fill="white" opacity=".45" transform="rotate(-28 30 20)" />
+	<ellipse cx="23" cy="29" rx="2.3" ry="1.4" fill="white" opacity=".65" />
+</svg>
+
+<style>
+	.bubble-membrane {
+		position: absolute;
+		inset: 0;
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: visible;
+		pointer-events: none;
+	}
+</style>

@@ -10,6 +10,8 @@ export interface PhysicsCircle {
 	radius: number;
 	inverseMass: number;
 	material: PhysicsMaterial;
+	/** Normalized membrane contour; absent for an undeformed circle. */
+	outline?: readonly MembranePoint[];
 }
 
 export interface CollisionResult {
@@ -40,11 +42,13 @@ export interface OscillatorState {
 	readonly velocity: number;
 }
 
+export interface MembranePoint {
+	readonly x: number;
+	readonly y: number;
+}
+
 export interface BubbleShape {
-	readonly scaleX: number;
-	readonly scaleY: number;
-	readonly angle: number;
-	readonly radii: readonly [number, number, number, number, number, number, number, number];
+	readonly points: readonly MembranePoint[];
 }
 
 export const CIRCLE_BOUNDARY = Object.freeze({
@@ -87,7 +91,7 @@ export function getAmbientBurstTrigger(
 }
 
 export function getCircleBoundaryContacts(
-	body: Pick<PhysicsCircle, 'x' | 'y' | 'radius'>,
+	body: Pick<PhysicsCircle, 'x' | 'y' | 'radius' | 'outline'>,
 	width: number,
 	height: number,
 ): number {
@@ -101,10 +105,10 @@ export function getCircleBoundaryContacts(
 	}
 
 	let contacts = 0;
-	if (body.x < body.radius) contacts |= CIRCLE_BOUNDARY.left;
-	if (body.x > width - body.radius) contacts |= CIRCLE_BOUNDARY.right;
-	if (body.y < body.radius) contacts |= CIRCLE_BOUNDARY.top;
-	if (body.y > height - body.radius) contacts |= CIRCLE_BOUNDARY.bottom;
+	if (body.x < getBodySupport(body, -1, 0)) contacts |= CIRCLE_BOUNDARY.left;
+	if (body.x > width - getBodySupport(body, 1, 0)) contacts |= CIRCLE_BOUNDARY.right;
+	if (body.y < getBodySupport(body, 0, -1)) contacts |= CIRCLE_BOUNDARY.top;
+	if (body.y > height - getBodySupport(body, 0, 1)) contacts |= CIRCLE_BOUNDARY.bottom;
 	return contacts;
 }
 
@@ -132,6 +136,7 @@ export const SKILL_PHYSICS_TUNING = Object.freeze({
 	bubbleWobbleFrequency: 2.25,
 	bubbleWobbleDamping: 0.48,
 	bubbleMaximumDeformation: 0.4,
+	bubbleMaximumRadialDeformation: 0.28,
 	bubbleDeformationImpulse: 12,
 	maximumLinearSpeed: 1_600,
 	maximumAngularSpeed: 32,
@@ -157,45 +162,56 @@ function clamp(value: number, minimum: number, maximum: number): number {
 	return Math.min(Math.max(value, minimum), maximum);
 }
 
+// Fourier modes 2 and 3 describe stretch and asymmetric capillary ripples.
+// Each sine/cosine pair has the same frequency: no preferred screen axis.
+const MEMBRANE_SAMPLES = Array.from({ length: 48 }, (_, index) => {
+	const angle = index * Math.PI * 2 / 48;
+	return { x: Math.cos(angle), y: Math.sin(angle),
+		c2: Math.cos(2 * angle), s2: Math.sin(2 * angle),
+		c3: Math.cos(3 * angle), s3: Math.sin(3 * angle) };
+});
+
 export function calculateBubbleShape(
-	quadrupoleX: number,
-	quadrupoleY: number,
-	rippleX: number,
-	rippleY: number,
+	quadrupoleX: number, quadrupoleY: number, rippleX: number, rippleY: number,
 ): BubbleShape {
-	if (![quadrupoleX, quadrupoleY, rippleX, rippleY].every(Number.isFinite)) {
-		return {
-			scaleX: 1,
-			scaleY: 1,
-			angle: 0,
-			radii: [50, 50, 50, 50, 50, 50, 50, 50],
-		};
+	let modes = [quadrupoleX, quadrupoleY, rippleX, rippleY];
+	if (!modes.every(Number.isFinite)) modes = [0, 0, 0, 0];
+	const amplitude = Math.hypot(modes[0], modes[1]) + Math.hypot(modes[2], modes[3]);
+	const maximum = SKILL_PHYSICS_TUNING.bubbleMaximumRadialDeformation;
+	const limit = amplitude > maximum ? maximum / amplitude : 1;
+	const [qx, qy, rx, ry] = modes.map(value => value * limit);
+	// Integral of r(theta)^2 / 2: preserve enclosed area as the membrane flexes.
+	const areaScale = 1 / Math.sqrt(1 + (qx * qx + qy * qy + rx * rx + ry * ry) / 2);
+	return { points: MEMBRANE_SAMPLES.map(({ x, y, c2, s2, c3, s3 }) => {
+		const radius = (1 + qx * c2 + qy * s2 + rx * c3 + ry * s3) * areaScale;
+		return { x: radius * x, y: radius * y };
+	}) };
+}
+
+/** Closed Catmull–Rom contour expressed as cubic Béziers in a 100 × 100 SVG. */
+export function bubbleShapePath(points: readonly MembranePoint[]): string {
+	const coordinate = (value: number): string => (50 + value * 50).toFixed(3);
+	const pair = (point: MembranePoint): string => `${coordinate(point.x)},${coordinate(point.y)}`;
+	let path = `M${pair(points[0])}`;
+	for (let index = 0; index < points.length; index++) {
+		const previous = points[(index + points.length - 1) % points.length];
+		const current = points[index];
+		const next = points[(index + 1) % points.length];
+		const after = points[(index + 2) % points.length];
+		path += `C${pair({ x: current.x + (next.x - previous.x) / 6,
+			y: current.y + (next.y - previous.y) / 6 })} ${pair({
+			x: next.x - (after.x - current.x) / 6,
+			y: next.y - (after.y - current.y) / 6 })} ${pair(next)}`;
 	}
+	return `${path}Z`;
+}
 
-	const quadrupoleMagnitude = Math.min(
-		Math.hypot(quadrupoleX, quadrupoleY),
-		SKILL_PHYSICS_TUNING.bubbleMaximumDeformation,
-	);
-	const angle = quadrupoleMagnitude > 0.0001
-		? Math.atan2(quadrupoleY, quadrupoleX) / 2
-		: 0;
-	const radius = (value: number): number => clamp(50 + value * 76, 22, 78);
-
-	return {
-		scaleX: Math.exp(quadrupoleMagnitude),
-		scaleY: Math.exp(-quadrupoleMagnitude),
-		angle,
-		radii: [
-			radius(quadrupoleX + rippleY),
-			radius(-quadrupoleY + rippleX),
-			radius(-quadrupoleX - rippleY),
-			radius(quadrupoleY - rippleX),
-			radius(quadrupoleY - rippleX),
-			radius(quadrupoleX + rippleY),
-			radius(-quadrupoleY + rippleX),
-			radius(-quadrupoleX - rippleY),
-		],
-	};
+/** Project the visible membrane onto a contact normal, rather than using its old circle. */
+export function getBodySupport(body: Pick<PhysicsCircle, 'radius' | 'outline'>, nx: number, ny: number): number {
+	if (!body.outline) return body.radius;
+	let support = 0;
+	for (const point of body.outline) support = Math.max(support, point.x * nx + point.y * ny);
+	return body.radius * (support + 0.003); // Cubic interpolation tolerance.
 }
 
 function getRestitution(left: PhysicsCircle, right: PhysicsCircle): number {
@@ -366,16 +382,20 @@ export function resolveCircleCollision(
 ): CollisionResult | undefined {
 	const deltaX = right.x - left.x;
 	const deltaY = right.y - left.y;
-	const minimumDistance = left.radius + right.radius;
+	const broadPhaseDistance = (left.radius + right.radius) *
+		(1 + SKILL_PHYSICS_TUNING.bubbleMaximumRadialDeformation + 0.003);
 	const squaredDistance = deltaX * deltaX + deltaY * deltaY;
 
-	if (squaredDistance >= minimumDistance * minimumDistance) {
+	if (squaredDistance >= broadPhaseDistance * broadPhaseDistance) {
 		return undefined;
 	}
 
 	const distance = Math.max(Math.sqrt(squaredDistance), 0.0001);
 	const normalX = squaredDistance === 0 ? 1 : deltaX / distance;
 	const normalY = squaredDistance === 0 ? 0 : deltaY / distance;
+	const minimumDistance = getBodySupport(left, normalX, normalY) +
+		getBodySupport(right, -normalX, -normalY);
+	if (distance >= minimumDistance) return undefined;
 	const overlap = minimumDistance - distance;
 	const inverseMassSum = left.inverseMass + right.inverseMass;
 
