@@ -13,6 +13,10 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
       <span class="terminal-entry__app-name">WezTerm</span>
     </div>
     <div class="terminal-entry__screen" data-terminal-screen aria-hidden="true">
+      <div class="terminal-entry__boot-prompt">
+        <div><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~</span></div>
+        <div><span class="terminal-entry__prompt">❯ </span><span class="terminal-entry__cursor"> </span></div>
+      </div>
       <div class="terminal-entry__fetch-command"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~</span>
         <div><span class="terminal-entry__prompt">❯</span> fastfetch</div>
       </div>
@@ -46,6 +50,7 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
         <div class="terminal-entry__path"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~/portfolio</span> <span class="terminal-entry__branch">git:(main)</span></div>
         <div class="terminal-entry__command"><span class="terminal-entry__prompt">❯ </span><span data-terminal-command></span><span class="terminal-entry__cursor"> </span></div>
       </div>
+      <div class="terminal-entry__confirmation" data-terminal-confirmation hidden><span class="terminal-entry__prompt">:: </span>Open ./portfolio? [Y/n] <span data-terminal-answer></span><span class="terminal-entry__cursor"> </span></div>
       <div class="terminal-entry__loader">
         <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Resolving ./portfolio</div>
         <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Starting browser session</div>
@@ -78,10 +83,10 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
     position: fixed; inset: 0; inline-size: 100%; max-inline-size: none; block-size: 100%; max-block-size: none;
     margin: 0; padding: clamp(8px, 3vw, 40px); border: 0; background: #101116; color: #c0caf5;
     overflow: auto; font: 400 15px/1.5 'Terminal JetBrains Mono', 'Cascadia Mono', Consolas, monospace;
-    font-variant-ligatures: none; letter-spacing: 0; text-align: start; transition: opacity 400ms ease;
+    font-variant-ligatures: none; letter-spacing: 0; text-align: start; transition: opacity 800ms ease;
   }
   .terminal-entry[open] { display: flex; align-items: center; justify-content: center; }
-  .terminal-entry::backdrop { background: #101116; transition: opacity 400ms ease; }
+  .terminal-entry::backdrop { background: #101116; transition: opacity 800ms ease; }
   .terminal-entry[data-stage='done'], .terminal-entry[data-stage='done']::backdrop { opacity: 0; }
   .terminal-entry__shell {
     inline-size: min(100%, 1160px); block-size: min(760px, 100%); min-block-size: 0; display: flex; flex-direction: column;
@@ -109,24 +114,32 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
   .terminal-entry__history, .terminal-entry__failure { margin-block-end: 1em; }
   .terminal-entry__path { overflow-wrap: anywhere; }
   .terminal-entry__command { min-block-size: 1.5em; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .terminal-entry__cursor { display: inline-block; inline-size: 1ch; block-size: 1.15em; background: #c0caf5; vertical-align: -0.18em; animation: terminal-cursor 1s step-end infinite; }
-  .terminal-entry:is([data-stage='typing'], [data-stage='typo'], [data-stage='correcting'], [data-stage='submitted']) .terminal-entry__cursor { animation: none; }
-  .terminal-entry:is([data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__input .terminal-entry__cursor { visibility: hidden; }
+  .terminal-entry__cursor { display: inline-block; inline-size: 1ch; block-size: 1.15em; background: #c0caf5; vertical-align: -0.18em; animation: terminal-cursor 1.2s step-end infinite; }
+  .terminal-entry:is([data-stage='typing'], [data-stage='typo'], [data-stage='correcting']) .terminal-entry__input .terminal-entry__cursor { animation: none; }
+  .terminal-entry:is([data-stage='confirming'], [data-stage='confirmed'], [data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__input .terminal-entry__cursor { visibility: hidden; }
+  .terminal-entry__confirmation { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .terminal-entry:not([data-stage='confirming']) .terminal-entry__confirmation .terminal-entry__cursor { visibility: hidden; }
   .terminal-entry__error { color: #f7768e; }
   .terminal-entry__step { display: none; overflow-wrap: anywhere; }
   .terminal-entry__step[data-state] { display: block; }
   .terminal-entry__step-mark::before { content: '[ .. ]'; color: #e0af68; }
-  .terminal-entry__step[data-state='active'] .terminal-entry__step-mark { animation: terminal-cursor 650ms step-end infinite; }
+  .terminal-entry__step[data-state='active'] .terminal-entry__step-mark::before { animation: terminal-spinner 800ms step-end infinite; }
   .terminal-entry__step[data-state='complete'] .terminal-entry__step-mark::before { content: '[ OK ]'; color: var(--terminal-green); }
   .terminal-entry__result { color: var(--terminal-green); overflow-wrap: anywhere; }
   .terminal-entry__next-prompt { display: none; margin-block-start: 1em; }
   .terminal-entry:is([data-stage='ready'], [data-stage='done']) .terminal-entry__next-prompt { display: block; }
+  .terminal-entry__boot-prompt { display: none; }
+  .terminal-entry[data-stage='booting'] .terminal-entry__boot-prompt { display: block; }
+  .terminal-entry[data-stage='booting'] .terminal-entry__fetch-command,
   .terminal-entry[data-stage='booting'] .terminal-entry__fetch,
   .terminal-entry[data-stage='booting'] .terminal-entry__history,
-  .terminal-entry[data-stage='booting'] .terminal-entry__input { visibility: hidden; }
+  .terminal-entry[data-stage='booting'] .terminal-entry__input,
+  .terminal-entry[data-stage='inspecting'] .terminal-entry__history,
+  .terminal-entry[data-stage='inspecting'] .terminal-entry__input { display: none; }
   .terminal-entry__accessible-status { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   @keyframes terminal-map { from { opacity: 0; } to { opacity: 1; } }
   @keyframes terminal-cursor { 50% { opacity: 0; } }
+  @keyframes terminal-spinner { 0%, 100% { content: '[ / ]'; } 25% { content: '[ - ]'; } 50% { content: '[ \\ ]'; } 75% { content: '[ | ]'; } }
   @media (max-width: 700px) {
     .terminal-entry { font-size: 12px; }
     .terminal-entry__screen { padding: 12px; }
@@ -144,5 +157,5 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
     .terminal-entry__branch { display: none; }
     .terminal-entry__screen { padding: 10px; }
   }
-  @media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry * { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry *, .terminal-entry *::before { animation: none !important; transition: none !important; } }
 </style>

@@ -2,19 +2,35 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.use({ reducedMotion: 'no-preference' });
+// Include browser startup as well as the deliberately extended entrance.
+test.setTimeout(180_000);
 
 test('entrance leaves time to read, then types, loads in stages and fades out', async ({ page }) => {
 	await page.goto('/', {waitUntil:'domcontentloaded'});
 	const dialog = page.locator('[data-terminal-entry]');
 	const command = page.locator('[data-terminal-command]');
+	await expect(dialog).toHaveAttribute('data-stage', 'booting');
+	await expect(page.locator('.terminal-entry__fetch')).not.toBeVisible();
+	const cursor = page.locator('.terminal-entry__boot-prompt .terminal-entry__cursor');
+	await expect(cursor).toBeVisible();
+	await expect.poll(() => cursor.evaluate(el => getComputedStyle(el).opacity)).toBe('0');
+	await expect.poll(() => cursor.evaluate(el => getComputedStyle(el).opacity)).toBe('1');
+	await expect(dialog).toHaveAttribute('data-stage', 'inspecting');
+	await expect(page.locator('.terminal-entry__fetch')).toBeVisible();
+	await expect(page.locator('.terminal-entry__input')).not.toBeVisible();
 	await expect(dialog).toHaveAttribute('data-stage', 'waiting');
 	await expect(command).toBeEmpty();
 	// This deliberate pause is part of the reading-time contract.
-	await page.waitForTimeout(450);
+	await page.waitForTimeout(1500);
 	await expect(command).toBeEmpty();
 	await expect(dialog).toHaveAttribute('data-stage', 'typing');
 	await expect(command).toHaveText('open ./portfolio');
 	await expect(dialog).toHaveAttribute('data-stage', 'submitted');
+	await expect(dialog).toHaveAttribute('data-stage', 'confirming');
+	await expect(page.locator('[data-terminal-confirmation]')).toContainText('Open ./portfolio? [Y/n]');
+	await expect(page.locator('[data-terminal-answer]')).toBeEmpty();
+	await expect(page.locator('[data-terminal-answer]')).toHaveText('y');
+	await expect(dialog).toHaveAttribute('data-stage', 'confirmed');
 	await expect(dialog).toHaveAttribute('data-stage', 'loading');
 	const loadingStarted = await page.evaluate(() => performance.now());
 	const steps = page.locator('[data-terminal-step]');
@@ -23,7 +39,7 @@ test('entrance leaves time to read, then types, loads in stages and fades out', 
 	await expect(steps.nth(0)).toHaveAttribute('data-state', 'complete');
 	await expect(steps.nth(1)).toHaveAttribute('data-state', 'complete');
 	await expect(dialog).toHaveAttribute('data-stage', 'ready');
-	expect(await page.evaluate(() => performance.now()) - loadingStarted).toBeGreaterThan(1500);
+	expect(await page.evaluate(() => performance.now()) - loadingStarted).toBeGreaterThan(4800);
 	await expect(page.locator('[data-terminal-status]')).toHaveText('準備完了。ようこそ');
 	expect(await page.locator('[data-terminal-screen]').evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
 	await expect(dialog).not.toBeVisible();
@@ -42,13 +58,13 @@ test('every third entrance mistypes, erases, retries and opens automatically', a
 			await page.keyboard.press('Escape');
 			await expect(dialog).not.toBeVisible();
 		} else {
-			await expect(dialog).toHaveAttribute('data-stage', 'typo');
-			await expect(page.locator('[data-terminal-message]')).toContainText('command not found');
+			await expect(dialog).toHaveAttribute('data-stage', 'typo', {timeout:12000});
+			await expect(page.locator('[data-terminal-message]')).toContainText('command not found', {timeout:7000});
 			await expect(dialog).toHaveAttribute('data-stage', 'correcting');
-			await expect(page.locator('[data-terminal-command]')).toHaveText('open ./portfolio');
+			await expect(page.locator('[data-terminal-command]')).toHaveText('open ./portfolio', {timeout:10000});
 			await expect(page.locator('[data-terminal-failure]')).toContainText('opne ./portfolio');
 			await expect(page.locator('[data-terminal-message]')).toHaveText('zsh: command not found: opne');
-			await expect(dialog).not.toBeVisible();
+			await expect(dialog).not.toBeVisible({timeout:18000});
 			await expect(page.locator('#main-content')).toBeFocused();
 		}
 	}
@@ -85,6 +101,8 @@ test('terminal markup reflows and passes accessibility checks', async ({ page })
 	await page.locator('[data-terminal-entry]').evaluate(dialog => {
 		dialog.dataset.stage = 'loading';
 		dialog.querySelector('[data-terminal-command]').textContent = 'open ./portfolio';
+		dialog.querySelector('[data-terminal-confirmation]').hidden = false;
+		dialog.querySelector('[data-terminal-answer]').textContent = 'y';
 		dialog.querySelector('[data-terminal-status]').textContent = 'ポートフォリオを開いています';
 		dialog.querySelectorAll('[data-terminal-step]').forEach((step, index) => {
 			if (index < 2) step.dataset.state = index === 0 ? 'complete' : 'active';
@@ -130,7 +148,7 @@ test('entrance has no manual controls and Tab does not dismiss it', async ({ pag
 test('Escape also cancels the longer post-command loading sequence', async ({ page }) => {
 	await page.goto('/');
 	const dialog = page.locator('[data-terminal-entry]');
-	await expect(dialog).toHaveAttribute('data-stage', 'loading', {timeout:8000});
+	await expect(dialog).toHaveAttribute('data-stage', 'loading', {timeout:22000});
 	await page.keyboard.press('Escape');
 	await expect(dialog).not.toBeVisible();
 	await expect(page.locator('#main-content')).toBeFocused();

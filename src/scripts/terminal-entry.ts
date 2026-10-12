@@ -26,8 +26,8 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 		const destination = document.querySelector<HTMLElement>('#main-content');
 		destination?.focus({ preventScroll: true });
 	};
-	// Allow the deliberate opening and typo recovery to finish, but never trap visitors.
-	const watchdog = setTimeout(() => finish(), 16000);
+	// Bound a stalled download independently from the longer presentation.
+	let watchdog = setTimeout(() => finish(), 16000);
 	const pause = (ms: number) => new Promise<boolean>(resolve => {
 		if (stopped) { resolve(false); return; }
 		resolvePause = resolve;
@@ -45,7 +45,12 @@ if (dialog && !reducedMotion.matches && !location.hash && navigation?.type !== '
 	reducedMotion.addEventListener('change', () => finish(), { signal: events.signal });
 	window.addEventListener('pagehide', () => finish(), { signal: events.signal });
 	void import('./terminal-sequence')
-		.then(({ playTerminal }) => stopped ? undefined : playTerminal(dialog, typo, pause))
+		.then(({ playTerminal }) => {
+			if (stopped) return;
+			clearTimeout(watchdog);
+			watchdog = setTimeout(() => finish(), 45000);
+			return playTerminal(dialog, typo, pause);
+		})
 		.catch(() => undefined)
 		.finally(() => finish());
 }
