@@ -1,4 +1,4 @@
-<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-labelledby="terminal-title" aria-describedby="terminal-help">
+<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-labelledby="terminal-title">
 	<div class="terminal-entry__aura" aria-hidden="true"></div>
 	<div class="terminal-entry__shell">
 		<header class="terminal-entry__chrome" aria-hidden="true">
@@ -38,10 +38,6 @@
 		</div>
 		<footer class="terminal-entry__status"><span class="terminal-entry__phase"><span class="terminal-entry__diamond" aria-hidden="true">◆</span> <span role="status" data-terminal-status>セッションを準備しています</span></span><span>UTF-8 &nbsp; <span class="terminal-entry__diamond">●</span> zsh</span></footer>
 	</div>
-	<div class="terminal-entry__below">
-		<p id="terminal-help">自動でサイトを開きます。<kbd>Esc</kbd> / <kbd>Tab</kbd> でスキップ</p>
-		<button type="button" data-terminal-skip autofocus>サイトへ進む <span aria-hidden="true">↗</span></button>
-	</div>
 </dialog>
 
 <script>
@@ -58,7 +54,6 @@
 	.terminal-entry__shell { position: relative; inline-size: min(100%, 66rem); flex-shrink: 0; border: 1px solid #3a4a52; border-radius: 14px; background: #0e171ef5; box-shadow: 0 30px 90px #0009, 0 0 60px #85f0cb09; overflow: hidden; animation: terminal-arrive 550ms ease-out backwards; transition: opacity 400ms ease, transform 400ms ease, border-color 300ms ease; }
 	.terminal-entry[data-stage='ready'] .terminal-entry__shell { border-color: #a4f3d4; }
 	.terminal-entry[data-stage='done'] .terminal-entry__shell { opacity: 0; transform: translateY(-12px) scale(1.015); }
-	.terminal-entry[data-stage='done'] .terminal-entry__below { opacity: 0; }
 	.terminal-entry__chrome { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 3.5rem; padding: 0.8rem 1.2rem; color: #a6b7c2; font-size: 0.75rem; border-block-end: 1px solid #263540; }
 	.terminal-entry__lights { display: flex; gap: 7px; }
 	.terminal-entry__lights i { inline-size: 9px; block-size: 9px; border-radius: 50%; background: #f0848d; }
@@ -105,11 +100,6 @@
 	.terminal-entry__status { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.2rem; border-block-start: 1px solid #293c43; background: #132329; color: #adc0c7; font-size: 0.65rem; letter-spacing: 0.07em; }
 	.terminal-entry__diamond { color: #a4f3d4; }
 	.terminal-entry__phase { display: flex; align-items: center; gap: 0.5rem; }
-	.terminal-entry__below { position: relative; inline-size: min(100%, 66rem); display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1rem; margin-block-start: 1.3rem; color: #a6b7c2; font-size: 0.75rem; transition: opacity 400ms ease; }
-	.terminal-entry__below p { margin: 0; line-height: 2; }
-	.terminal-entry kbd { padding: 0.15rem 0.4rem; border: 1px solid #566a79; border-radius: 4px; color: #dce8f0; font: inherit; }
-	.terminal-entry button { min-block-size: 48px; padding: 0.7rem 1rem; border: 1px solid #607d77; border-radius: 6px; background: #172c2b; color: #b9f7df; font: inherit; cursor: pointer; transition: background 120ms ease; }
-	.terminal-entry button:hover { background: #25443f; } .terminal-entry button:focus-visible { outline: 2px solid #a4f3d4; outline-offset: 4px; }
 	@keyframes terminal-arrive { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
 	@keyframes terminal-cursor { 50% { opacity: 0; } }
 	@keyframes terminal-spin { to { transform: rotate(360deg); } }
@@ -130,8 +120,6 @@
 		.terminal-entry__tabs > span { white-space: nowrap; padding-inline: 0.35rem; }
 		.terminal-entry__status { flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 0.8rem; font-size: 0.6rem; letter-spacing: 0; }
 		.terminal-entry__enter { font-size: 0.55rem; }
-		.terminal-entry__below { gap: 0.5rem; margin-block-start: 0.8rem; }
-		.terminal-entry__below p { font-size: 0.7rem; }
 	}
 	@media (max-height: 38rem) { .terminal-entry[open] { justify-content: flex-start; } }
 	@media (prefers-reduced-motion: reduce) { .terminal-entry, .terminal-entry::backdrop, .terminal-entry *, .terminal-entry *::after { animation: none !important; transition: none !important; } }

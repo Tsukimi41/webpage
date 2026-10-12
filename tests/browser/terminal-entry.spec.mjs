@@ -51,8 +51,7 @@ test('every third entrance mistypes, erases, retries and opens automatically', a
 	}
 });
 
-for (const key of ['Escape', 'Tab']) {
-	test(`${key} skips even while the animation chunk is loading`, async ({ page }) => {
+test('Escape skips even while the animation chunk is loading', async ({ page }) => {
 		let release;
 		const gate = new Promise(resolve => release = resolve);
 		await page.route('**/terminal-sequence.ts*', async route => { await gate; await route.continue(); });
@@ -60,12 +59,11 @@ for (const key of ['Escape', 'Tab']) {
 			// Firefox/WebKit can include dynamic modules in the load event.
 			await page.goto('/', {waitUntil:'domcontentloaded'});
 			await expect(page.locator('[data-terminal-entry]')).toBeVisible();
-			await page.keyboard.press(key);
+			await page.keyboard.press('Escape');
 			await expect(page.locator('[data-terminal-entry]')).not.toBeVisible();
-			await expect(page.locator(key === 'Tab' ? '.skip-link' : '#main-content')).toBeFocused();
+			await expect(page.locator('#main-content')).toBeFocused();
 		} finally { release(); }
-	});
-}
+});
 
 test('reduced motion and direct anchors bypass the entrance', async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -96,18 +94,29 @@ test('terminal markup reflows and passes accessibility checks', async ({ page })
 	expect(results.violations).toEqual([]);
 	await page.setViewportSize({width:320,height:568});
 	expect(await page.locator('[data-terminal-entry]').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
-	const skipButton = await page.getByRole('button', {name:'サイトへ進む'}).boundingBox();
-	expect(skipButton.y + skipButton.height).toBeLessThanOrEqual(558);
+	const shell = await page.locator('.terminal-entry__shell').boundingBox();
+	expect(shell.y + shell.height).toBeLessThanOrEqual(558);
 	await page.screenshot({path:test.info().outputPath('terminal-mobile.png'), animations:'disabled'});
 	await page.locator('[data-terminal-result]').evaluate(el => { el.textContent = '✓ Welcome. Opening your next discovery.'; });
-	const completedSkipButton = await page.getByRole('button', {name:'サイトへ進む'}).boundingBox();
-	expect(completedSkipButton.y + completedSkipButton.height).toBeLessThanOrEqual(558);
+	const completedShell = await page.locator('.terminal-entry__shell').boundingBox();
+	expect(completedShell.y + completedShell.height).toBeLessThanOrEqual(558);
 });
 
-test('skip button opens the site immediately', async ({ page }) => {
-	await page.goto('/');
-	await page.getByRole('button', {name:'サイトへ進む'}).click();
-	await expect(page.locator('[data-terminal-entry]')).not.toBeVisible();
+test('entrance has no manual controls and Tab does not dismiss it', async ({ page }) => {
+	let release;
+	const gate = new Promise(resolve => release = resolve);
+	await page.route('**/terminal-sequence.ts*', async route => { await gate; await route.continue(); });
+	try {
+		await page.goto('/', {waitUntil:'domcontentloaded'});
+		const dialog = page.locator('[data-terminal-entry]');
+		await expect(dialog).toBeVisible();
+		await expect(dialog.getByRole('button')).toHaveCount(0);
+		await expect(dialog.locator('#terminal-help')).toHaveCount(0);
+		await page.keyboard.press('Tab');
+		await expect(dialog).toBeVisible();
+		await page.keyboard.press('Shift+Tab');
+		await expect(dialog).toBeVisible();
+	} finally { release(); }
 });
 
 test('Escape also cancels the longer post-command loading sequence', async ({ page }) => {
