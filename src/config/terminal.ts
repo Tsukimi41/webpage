@@ -15,33 +15,33 @@ export const TERMINAL_CONFIG = {
 	errorMessage: 'zsh: command not found: opne',
 	readyMessage: ':: Session ready. Opening portfolio.',
 	timing: {
-		blankPromptMs: 2500, // 最初の空のプロンプト
-		systemInfoMs: 2000, // Arch情報を読む時間
-		beforeTypingMs: 3500, // openを打ち始める前
-		characterDelaysMs: [138, 180, 150, 220], // 1文字ずつ、この順を繰り返す
-		spaceDelayMs: 450, // スペースを入力するときの間
-		beforeExecuteMs: 2000, // コマンドが打ち終わってから実行まで
-		confirmationWaitMs: 2000, // [Y/n]への返答前
+		blankPromptMs: 500, // 最初の空のプロンプト
+		systemInfoMs: 200, // Arch情報を読む時間
+		beforeTypingMs: 700, // openを打ち始める前
+		characterDelaysMs: [178, 90, 68, 20], // 1文字ずつ、この順を繰り返す
+		spaceDelayMs: 250, // スペースを入力するときの間
+		beforeExecuteMs: 200, // コマンドが打ち終わってから実行まで
+		confirmationWaitMs: 400, // [Y/n]への返答前
 		confirmationAnswerMs: 800, // 自動入力したyを表示する時間
 		// 行の追加・削除や、それぞれの待ち時間もここだけで変更する。
 		loadingSteps: [
-			{ label: 'Resolving ./portfolio', durationMs: 1800 },
-			{ label: 'Starting browser session', durationMs: 1800 },
-			{ label: 'Opening index.html', durationMs: 1800 },
+			{ label: 'Resolving ./portfolio', durationMs: 150 },
+			{ label: 'Starting browser session', durationMs: 700 },
+			{ label: 'Opening index.html', durationMs: 80 },
 		],
-		readyMs: 2200, // 完了メッセージを読む時間
+		readyMs: 1000, // 完了メッセージを読む時間
 		typo: {
 			beforeErrorMs: 1200, // 誤入力を実行する前
-			errorMs: 1500, // エラーを読む時間
+			errorMs: 1000, // エラーを読む時間
 			recallMs: 650, // 履歴を呼び戻した後
-			eraseCharacterMs: 60, // 1文字消す時間
-			beforeRetryMs: 1500, // 消し終わってから再入力まで
+			eraseCharacterMs: 30, // 1文字消す時間
+			beforeRetryMs: 800, // 消し終わってから再入力まで
 		},
 		motion: {
 			windowEnterMs: 180, // ターミナル枠の登場
 			cursorBlinkMs: 1200, // カーソルの点滅1周期
 			spinnerCycleMs: 800, // 文字スピナー1周
-			exitFadeMs: 800, // ターミナルと背景のフェード
+			exitFadeMs: 600, // ターミナルと背景のフェード
 			exitBufferMs: 20, // フェード完了後に閉じるまでの余裕
 		},
 	},
