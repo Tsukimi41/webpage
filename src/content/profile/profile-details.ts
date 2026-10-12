@@ -31,7 +31,7 @@ const profileDetailDefinitions = [
 					'観光庁 観光クロスオーバーコンテスト2026 セミファイナリスト',
 					'DIVER OSINT CTF 2026 世界13位（UEC OSINT CLUB）',
 					'PDA Tokai Parliamentary Debate Competition 2023 優勝',
-					'経済産業省主催 政策提案型パブリックディベート大会 全国優勝',
+					'経済産業省主催 政策提案型パブリックディベート全国大会 全国優勝',
 					'第6回全国高校教育模擬国連大会AJEMUN 優秀初心者賞',
 					'第17回全日本高校模擬国連大会 本大会出場',
 					'令和5年度模擬国連岐阜会議 優秀賞',
