@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { TERMINAL_CONFIG } from '../../src/config/terminal.ts';
+import { createTerminalTiming } from '../../src/scripts/terminal-timing.ts';
 
 test.use({ reducedMotion: 'no-preference' });
 test.setTimeout(180_000);
@@ -12,6 +14,13 @@ test('terminal covers the first frame even while its entry module is delayed', a
 		const dialog = page.locator('[data-terminal-entry]');
 		await expect(dialog).toBeVisible();
 		await expect(dialog).toHaveAttribute('data-stage', 'booting');
+		const motion = createTerminalTiming().motion;
+		const durations = await dialog.evaluate(el => ({
+			fade: parseFloat(getComputedStyle(el).transitionDuration) * 1000,
+			backdrop: parseFloat(getComputedStyle(el, '::backdrop').transitionDuration) * 1000,
+			cursor: parseFloat(getComputedStyle(el.querySelector('.terminal-entry__cursor')).animationDuration) * 1000,
+		}));
+		expect(durations).toEqual({ fade: motion.exitFadeMs, backdrop: motion.exitFadeMs, cursor: motion.cursorBlinkMs });
 		await page.waitForTimeout(500);
 		expect(await page.evaluate(() => {
 			const dialog = document.querySelector('[data-terminal-entry]');
@@ -37,7 +46,7 @@ test('the inline watchdog releases a stalled entry module without reopening late
 		await page.goto('/', { waitUntil: 'commit' });
 		const dialog = page.locator('[data-terminal-entry]');
 		await expect(dialog).toBeVisible();
-		await page.clock.fastForward(16001);
+		await page.clock.fastForward(TERMINAL_CONFIG.safety.downloadTimeoutMs + 1);
 		await expect(dialog).not.toBeVisible();
 		release();
 		await page.waitForLoadState('domcontentloaded');

@@ -2,11 +2,21 @@
 import archLogoSource from '../assets/terminal/arch.txt?raw';
 import archSmallSource from '../assets/terminal/arch-small.txt?raw';
 import bootstrapSource from '../scripts/terminal-bootstrap.js?raw';
+import { TERMINAL_CONFIG } from '../config/terminal';
+import { createTerminalTiming, terminalWatchdogMs } from '../scripts/terminal-timing';
+const timing = createTerminalTiming();
+terminalWatchdogMs(true); // ビルド時に総時間と解除タイマーの上限も検証する。
+const animationStyle = {
+  '--terminal-enter-ms': `${timing.motion.windowEnterMs}ms`,
+  '--terminal-cursor-ms': `${timing.motion.cursorBlinkMs}ms`,
+  '--terminal-spinner-ms': `${timing.motion.spinnerCycleMs}ms`,
+  '--terminal-exit-ms': `${timing.motion.exitFadeMs}ms`,
+};
 const archLogo = archLogoSource.replace(/\$\d/g, '').trimEnd();
 const archSmall = archSmallSource.replace(/\$\d/g, '').trimEnd();
 const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7', '#7dcfff', '#c0caf5'];
 ---
-<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-label="Arch Linux — WezTerm">
+<dialog class="terminal-entry" data-terminal-entry data-stage="booting" aria-label="Arch Linux — WezTerm" style={animationStyle}>
   <div class="terminal-entry__shell">
     <div class="terminal-entry__tabs" aria-hidden="true">
       <span class="terminal-entry__active-tab">1: zsh</span><span class="terminal-entry__new-tab">+</span>
@@ -44,18 +54,16 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
       </div>
       <div class="terminal-entry__failure" data-terminal-failure hidden>
         <div class="terminal-entry__path"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~/portfolio</span> <span class="terminal-entry__branch">git:(main)</span></div>
-        <div><span class="terminal-entry__prompt">❯</span> opne ./portfolio</div>
+        <div><span class="terminal-entry__prompt">❯</span> {TERMINAL_CONFIG.mistypedCommand}</div>
         <div class="terminal-entry__error" data-terminal-message></div>
       </div>
       <div class="terminal-entry__input">
         <div class="terminal-entry__path"><span class="terminal-entry__user">tsukimi41@archlinux</span> <span class="terminal-entry__directory">~/portfolio</span> <span class="terminal-entry__branch">git:(main)</span></div>
         <div class="terminal-entry__command"><span class="terminal-entry__prompt">❯ </span><span data-terminal-command></span><span class="terminal-entry__cursor"> </span></div>
       </div>
-      <div class="terminal-entry__confirmation" data-terminal-confirmation hidden><span class="terminal-entry__prompt">:: </span>Open ./portfolio? [Y/n] <span data-terminal-answer></span><span class="terminal-entry__cursor"> </span></div>
+      <div class="terminal-entry__confirmation" data-terminal-confirmation hidden><span class="terminal-entry__prompt">:: </span>{TERMINAL_CONFIG.confirmation} <span data-terminal-answer></span><span class="terminal-entry__cursor"> </span></div>
       <div class="terminal-entry__loader">
-        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Resolving ./portfolio</div>
-        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Starting browser session</div>
-        <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> Opening index.html</div>
+        {timing.loadingSteps.map(step => <div class="terminal-entry__step" data-terminal-step><span class="terminal-entry__step-mark"></span> {step.label}</div>)}
       </div>
       <div class="terminal-entry__result" data-terminal-result></div>
       <div class="terminal-entry__next-prompt"><span class="terminal-entry__prompt">❯ </span><span class="terminal-entry__cursor"> </span></div>
@@ -64,7 +72,7 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
   <span class="terminal-entry__accessible-status" role="status" data-terminal-status>セッションを準備しています</span>
 </dialog>
 
-<script is:inline data-download-timeout-ms="16000" set:html={bootstrapSource}></script>
+<script is:inline data-download-timeout-ms={TERMINAL_CONFIG.safety.downloadTimeoutMs} set:html={bootstrapSource}></script>
 
 <script>
   import '../scripts/terminal-entry';
@@ -86,15 +94,15 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
     position: fixed; inset: 0; inline-size: 100%; max-inline-size: none; block-size: 100%; max-block-size: none;
     margin: 0; padding: clamp(8px, 3vw, 40px); border: 0; background: #101116; color: #c0caf5;
     overflow: auto; font: 400 15px/1.5 'Terminal JetBrains Mono', 'Cascadia Mono', Consolas, monospace;
-    font-variant-ligatures: none; letter-spacing: 0; text-align: start; transition: opacity 800ms ease;
+    font-variant-ligatures: none; letter-spacing: 0; text-align: start; transition: opacity var(--terminal-exit-ms) ease;
   }
   .terminal-entry[open] { display: flex; align-items: center; justify-content: center; }
-  .terminal-entry::backdrop { background: #101116; transition: opacity 800ms ease; }
+  .terminal-entry::backdrop { background: #101116; transition: opacity var(--terminal-exit-ms) ease; }
   .terminal-entry[data-stage='done'], .terminal-entry[data-stage='done']::backdrop { opacity: 0; }
   .terminal-entry__shell {
     inline-size: min(100%, 1160px); block-size: min(760px, 100%); min-block-size: 0; display: flex; flex-direction: column;
     border: 2px solid #7aa2f799; border-radius: 3px; overflow: hidden; background: #1a1b26;
-    box-shadow: 0 16px 50px #0008; animation: terminal-map 180ms ease-out;
+    box-shadow: 0 16px 50px #0008; animation: terminal-map var(--terminal-enter-ms) ease-out;
   }
   .terminal-entry__tabs { flex-shrink: 0; display: flex; align-items: center; gap: 0; block-size: 30px; background: #16161e; color: var(--terminal-muted); white-space: nowrap; font: inherit; font-size: 12px; }
   .terminal-entry__active-tab { align-self: stretch; display: flex; align-items: center; padding-inline: 18px; background: #292e42; color: #c0caf5; }
@@ -117,7 +125,7 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
   .terminal-entry__history, .terminal-entry__failure { margin-block-end: 1em; }
   .terminal-entry__path { overflow-wrap: anywhere; }
   .terminal-entry__command { min-block-size: 1.5em; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .terminal-entry__cursor { display: inline-block; inline-size: 1ch; block-size: 1.15em; background: #c0caf5; vertical-align: -0.18em; animation: terminal-cursor 1.2s step-end infinite; }
+  .terminal-entry__cursor { display: inline-block; inline-size: 1ch; block-size: 1.15em; background: #c0caf5; vertical-align: -0.18em; animation: terminal-cursor var(--terminal-cursor-ms) step-end infinite; }
   .terminal-entry:is([data-stage='typing'], [data-stage='typo'], [data-stage='correcting']) .terminal-entry__input .terminal-entry__cursor { animation: none; }
   .terminal-entry:is([data-stage='confirming'], [data-stage='confirmed'], [data-stage='loading'], [data-stage='ready'], [data-stage='done']) .terminal-entry__input .terminal-entry__cursor { visibility: hidden; }
   .terminal-entry__confirmation { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -126,7 +134,7 @@ const palette = ['#414868', '#f7768e', '#9ece6a', '#e0af68', '#7aa2f7', '#bb9af7
   .terminal-entry__step { display: none; overflow-wrap: anywhere; }
   .terminal-entry__step[data-state] { display: block; }
   .terminal-entry__step-mark::before { content: '[ .. ]'; color: #e0af68; }
-  .terminal-entry__step[data-state='active'] .terminal-entry__step-mark::before { animation: terminal-spinner 800ms step-end infinite; }
+  .terminal-entry__step[data-state='active'] .terminal-entry__step-mark::before { animation: terminal-spinner var(--terminal-spinner-ms) step-end infinite; }
   .terminal-entry__step[data-state='complete'] .terminal-entry__step-mark::before { content: '[ OK ]'; color: var(--terminal-green); }
   .terminal-entry__result { color: var(--terminal-green); overflow-wrap: anywhere; }
   .terminal-entry__next-prompt { display: none; margin-block-start: 1em; }
