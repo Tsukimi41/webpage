@@ -130,14 +130,28 @@ export const SKILL_PHYSICS_TUNING = Object.freeze({
 	bubbleStaticFriction: 0.025,
 	bubbleDynamicFriction: 0.012,
 	bubbleWobbleFrequency: 2.25,
-	bubbleWobbleDamping: 0.1,
+	bubbleWobbleDamping: 0.48,
 	bubbleMaximumDeformation: 0.4,
-	bubbleDeformationImpulse: 38,
+	bubbleDeformationImpulse: 12,
 	maximumLinearSpeed: 1_600,
 	maximumAngularSpeed: 32,
 });
 
 const FULL_ROTATION = Math.PI * 2;
+
+// Position correction is not an impact. Resting contacts must not feed the membrane.
+export function calculateBubbleImpact(closingSpeed: number, solverPass = 0): number {
+	if (!Number.isFinite(closingSpeed) || solverPass !== 0 ||
+		closingSpeed <= SKILL_PHYSICS_TUNING.restingCollisionSpeed) return 0;
+	return Math.min(SKILL_PHYSICS_TUNING.bubbleMaximumDeformation,
+		(closingSpeed - SKILL_PHYSICS_TUNING.restingCollisionSpeed) / 700);
+}
+
+export function resolveWallVelocity(velocity: number, inwardNormal: number, restitution: number): number {
+	if (velocity * inwardNormal >= 0) return velocity;
+	return Math.abs(velocity) < SKILL_PHYSICS_TUNING.restingCollisionSpeed
+		? 0 : -velocity * restitution;
+}
 
 function clamp(value: number, minimum: number, maximum: number): number {
 	return Math.min(Math.max(value, minimum), maximum);

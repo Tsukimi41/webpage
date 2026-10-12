@@ -1,6 +1,8 @@
 import {
 	applyFloorFriction,
 	calculateBubbleShape,
+	calculateBubbleImpact,
+	resolveWallVelocity,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -19,6 +21,8 @@ import {
 export {
 	applyFloorFriction,
 	calculateBubbleShape,
+	calculateBubbleImpact,
+	resolveWallVelocity,
 	calculateBubblePointerInfluence,
 	calculateCircleInverseMass,
 	CIRCLE_BOUNDARY,
@@ -265,10 +269,10 @@ function constrainToField(
 		body.vx = 0;
 	} else if (body.x < body.radius) {
 		body.x = body.radius;
-		body.vx = Math.abs(body.vx) * restitution;
+		body.vx = resolveWallVelocity(body.vx, 1, restitution);
 	} else if (body.x > width - body.radius) {
 		body.x = width - body.radius;
-		body.vx = -Math.abs(body.vx) * restitution;
+		body.vx = resolveWallVelocity(body.vx, -1, restitution);
 	}
 
 	if (!Number.isFinite(height) || height <= body.radius * 2) {
@@ -276,10 +280,10 @@ function constrainToField(
 		body.vy = 0;
 	} else if (body.y < body.radius) {
 		body.y = body.radius;
-		body.vy = Math.abs(body.vy) * restitution;
+		body.vy = resolveWallVelocity(body.vy, 1, restitution);
 	} else if (body.y > height - body.radius) {
 		body.y = height - body.radius;
-		body.vy = -Math.abs(body.vy) * restitution;
+		body.vy = resolveWallVelocity(body.vy, -1, restitution);
 
 		if (body.material === 'marble') {
 			applyFloorFriction(body, elapsed);
@@ -298,7 +302,7 @@ function exciteBubbleDeformation(
 	normalX: number,
 	normalY: number,
 ): void {
-	if (body.material !== 'bubble' || body.role !== 'skill') {
+	if (body.material !== 'bubble' || body.role !== 'skill' || impact <= 0) {
 		return;
 	}
 
@@ -363,8 +367,8 @@ function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
 		body.deformationRippleY,
 		body.deformationRippleVelocityY,
 		elapsed,
-		BUBBLE_WOBBLE_FREQUENCY * 1.48,
-		Math.min(BUBBLE_WOBBLE_DAMPING * 1.4, 1),
+		BUBBLE_WOBBLE_FREQUENCY * 1.34,
+		Math.min(BUBBLE_WOBBLE_DAMPING * 1.3, 1),
 	);
 	body.deformationModeX = horizontal.position;
 	body.deformationVelocityX = horizontal.velocity;
@@ -386,6 +390,10 @@ function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
 		body.deformationModeY *= scale;
 		body.deformationRippleX *= scale;
 		body.deformationRippleY *= scale;
+		body.deformationVelocityX *= scale;
+		body.deformationVelocityY *= scale;
+		body.deformationRippleVelocityX *= scale;
+		body.deformationRippleVelocityY *= scale;
 	}
 
 	const deformationSpeed = Math.hypot(
@@ -395,6 +403,10 @@ function advanceBubbleDeformation(body: RenderedCircle, elapsed: number): void {
 		body.deformationRippleVelocityY,
 	);
 	if (deformation < 0.0005 && deformationSpeed < 0.01) {
+		body.deformationModeX = body.deformationModeY = 0;
+		body.deformationRippleX = body.deformationRippleY = 0;
+		body.deformationVelocityX = body.deformationVelocityY = 0;
+		body.deformationRippleVelocityX = body.deformationRippleVelocityY = 0;
 		body.element.dataset.wobbleState = 'idle';
 	}
 }
@@ -866,15 +878,16 @@ export function startSkillPhysics(field: HTMLElement): () => void {
 					right.inverseMass = rightInverseMass;
 
 					if (collision) {
-						const relativeOverlap = collision.overlap / Math.max(Math.min(left.radius, right.radius), 1);
-						const impact = Math.min(
-							BUBBLE_MAXIMUM_DEFORMATION,
-							closingSpeed / 700 + relativeOverlap * 0.18,
-						);
-					exciteBubbleDeformation(left, impact, -collision.normalX, -collision.normalY);
-					exciteBubbleDeformation(right, impact, collision.normalX, collision.normalY);
+						const impact = calculateBubbleImpact(closingSpeed, pass);
+						exciteBubbleDeformation(left, impact, -collision.normalX, -collision.normalY);
+						exciteBubbleDeformation(right, impact, collision.normalX, collision.normalY);
 					}
 				}
+			}
+			// Solve walls in the same loop: neighbours must not push resting bodies
+			// outside the field until the next frame.
+			for (const body of bodies) {
+				if (!body.isBursting) constrainToField(body, fieldBounds.width, fieldBounds.height);
 			}
 		}
 
