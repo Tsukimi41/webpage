@@ -63,9 +63,12 @@ test('skill data is frozen and returned in deterministic order', () => {
 			'markdown',
 			'github-actions',
 			'vercel',
+			'hyprland',
+			'robotc',
+			'vex',
 		],
 	);
-	assert.equal(skills.length, 32);
+	assert.equal(skills.length, 35);
 	assert.equal(skills.every((skill) => skill.state === 'published'), true);
 	assert.deepEqual(new Set(skills.map((skill) => skill.scale)), new Set(['small', 'medium', 'large']));
 	assert.deepEqual(new Set(skills.map((skill) => skill.presentation)), new Set(['bubble', 'marble']));
@@ -82,10 +85,12 @@ test('skill data is frozen and returned in deterministic order', () => {
 			medium: [
 				'aruco-marker', 'vite', 'html', 'css', 'mixamo', 'wsl-2', 'voicevox',
 				'vroid-studio-2-8-0', 'astro', 'markdown', 'github-actions', 'vercel',
+				'hyprland',
 			],
 			small: [
 				'amt-viewpoint', 'xampp-control-panel', 'solidworks', 'matlab', 'godot',
 				'lapis-lexide', 'n1mm-logger-plus',
+				'robotc', 'vex',
 			],
 		},
 	);
@@ -100,10 +105,12 @@ test('skill data is frozen and returned in deterministic order', () => {
 				'aruco-marker', 'docker', 'opencv', 'wsl-2', 'amt-viewpoint', 'ubuntu',
 				'xampp-control-panel', 'solidworks', 'matlab', 'raspberry-pi-pico-2-w',
 				'lapis-lexide', 'n1mm-logger-plus', 'github-actions',
+				'hyprland', 'vex',
 			],
 			bubble: [
 				'latex', 'vite', 'typescript', 'html', 'css', 'mixamo', 'voicevox', 'godot',
 				'vroid-studio-2-8-0', 'astro', 'markdown', 'vercel',
+				'robotc',
 			],
 		},
 	);

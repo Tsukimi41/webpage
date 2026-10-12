@@ -17,7 +17,7 @@ test('completed skill field is visible immediately and marbles can be dragged an
 	const field = await openSkills(page);
 	await expect(page.locator('.skill-showcase details')).toHaveCount(0);
 	await expect(page.locator('.skill-showcase__list, .skill-skeleton')).toHaveCount(0);
-	await expect(field.locator('[data-physics-role="skill"]')).toHaveCount(32);
+	await expect(field.locator('[data-physics-role="skill"]')).toHaveCount(35);
 	await expect(field.locator('[data-physics-role="ambient"]')).toHaveCount(6);
 	const marble = field.locator('[data-physics-material="marble"]').first();
 	const box = await marble.boundingBox();

@@ -26,6 +26,7 @@ const deviconSpecs = [
 ];
 
 const simpleIconSpecs = [
+	['hyprland', 'Hyprland', 'hyprland', '#00a6b2'],
 	['ros-2', 'ROS 2', 'ros', '#22314e'],
 	['arch-linux', 'Arch Linux', 'archlinux', '#1793d1'],
 	['github', 'GitHub', 'github', '#181717'],
@@ -37,6 +38,8 @@ const simpleIconSpecs = [
 ];
 
 const customIconSpecs = [
+	['robotc', 'ROBOTC', '#205ba8', 'robotc'],
+	['vex', 'VEX', '#bf202f', 'vex'],
 	['aruco-marker', 'ArUco Marker', '#111827', 'aruco'],
 	['amt-viewpoint', 'AMT Viewpoint', '#006f84', 'encoder'],
 	['solidworks', 'SOLIDWORKS', '#f8fafc', 'solidworks'],
@@ -86,6 +89,11 @@ function createCollectionIcon(title, iconSet, iconName, color, provenance) {
 
 function createCustomMark(kind, color) {
 	switch (kind) {
+		case 'robotc':
+			return `<rect x="23" y="30" width="82" height="68" rx="14" fill="none" stroke="#fff" stroke-width="7"/>
+	<path d="M64 30V18M40 51h8m32 0h8m-9 18a15 15 0 1 0 0 17" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`;
+		case 'vex':
+			return `<path d="m15 45 13 38 13-38m30 0H50v38h21M50 64h18m14-19 27 38m0-38L82 83" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`;
 		case 'aruco':
 			return `<rect x="24" y="24" width="80" height="80" rx="4" fill="#fff" stroke="#111827" stroke-width="8"/>
 	<path fill="#111827" d="M32 32h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 48h16v16H48zM32 64h16v16H32zm32 0h16v16H64zm16 16h16v16H80zM48 80h16v16H48z"/>`;

@@ -256,6 +256,27 @@ const skillDefinitions = [
 		scale: 'medium',
 		visual: skillImage('vercel', 'Vercel'),
 	},
+	{
+		id: 'hyprland', state: 'published', order: 340, label: 'Hyprland', category: 'tool',
+		summary: 'Linuxのデスクトップ環境としてHyprlandを利用しています。',
+		presentation: 'marble',
+		scale: 'medium',
+		visual: skillImage('hyprland', 'Hyprland'),
+	},
+	{
+		id: 'robotc', state: 'published', order: 350, label: 'ROBOTC', category: 'language',
+		summary: 'Moreland Middle SchoolのPLTW Automation & Roboticsコースで、VEXのプログラミングに使用しました。',
+		presentation: 'bubble',
+		scale: 'small',
+		visual: skillImage('robotc', 'ROBOTC'),
+	},
+	{
+		id: 'vex', state: 'published', order: 360, label: 'VEX', category: 'hardware',
+		summary: 'PLTW Automation & Roboticsコースで、ROBOTCを使ってVEXロボットを扱いました。',
+		presentation: 'marble',
+		scale: 'small',
+		visual: skillImage('vex', 'VEX'),
+	},
 ] as const satisfies readonly SkillDefinition[];
 
 export const skills = defineSkillCollection(skillDefinitions);
