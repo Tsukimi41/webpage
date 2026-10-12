@@ -6,7 +6,6 @@ test('compressed profile, sidebar and skill images decode successfully', async (
 	await expect(profile).toHaveAttribute('src', /profile\.webp$/);
 	await expect.poll(() => profile.evaluate(image => image.naturalWidth)).toBe(256);
 	await expect(page.locator('.site-sidebar__profile-icon img')).toHaveAttribute('loading', 'lazy');
-	await page.locator('.skill-showcase__interactive summary').click();
 	for (const name of ['voicevox', 'wsl-2']) {
 		const image = page.locator(`[data-skill-visual-image][src$="${name}.webp"]`).first();
 		await image.scrollIntoViewIfNeeded();

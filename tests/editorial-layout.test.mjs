@@ -113,7 +113,7 @@ test('page and section titles share one responsive display system', async () => 
 	for (const [source, label] of [
 		[articles, '記事'],
 		[projects, 'TIMELINE'],
-		[skills, '技術'],
+		[skills, 'SKILLS'],
 	]) {
 		assert.match(source, /import SectionHeading from/);
 		assert.match(source, new RegExp(`<SectionHeading[^>]*label="${label}"`));
@@ -151,10 +151,9 @@ test('redesign preserves article search, project interaction, and skill physics'
 	assert.match(projects, /data-project-node/);
 	assert.match(projects, /node\.addEventListener\('click'/);
 	assert.match(skills, /data-skill-field/);
-	assert.match(skills, /load-skill-physics/);
-	const loader = await readFile(new URL('../src/scripts/load-skill-physics.ts', import.meta.url), 'utf8');
-	assert.match(loader, /import\('\.\/skill-physics'\)/);
-	assert.match(loader, /startSkillPhysics\(field\)/);
+	assert.match(skills, /import \{ startSkillPhysics \} from '\.\.\/scripts\/skill-physics'/);
+	assert.match(skills, /Array\.from\(fields, startSkillPhysics\)/);
+	assert.doesNotMatch(skills, /<details|skill-showcase__list|skill-skeleton/);
 });
 
 test('article layouts respond to their allocated column instead of the viewport', async () => {
