@@ -1,3 +1,6 @@
+import { TERMINAL_CONFIG } from '../config/terminal.ts';
+import { terminalWatchdogMs } from './terminal-timing.ts';
+
 type TerminalSession = {
 	readonly active: boolean;
 	finish: () => void;
@@ -9,17 +12,20 @@ const session = dialog?.terminalSession;
 
 if (dialog && session?.active) {
 	let typo = false;
+	const cadence = TERMINAL_CONFIG.typoEveryVisits;
 	try {
 		const key = 'portfolio:terminal-visits:v1';
 		const stored = Number(localStorage.getItem(key));
-		const visit = (Number.isSafeInteger(stored) && stored >= 0 ? stored % 3 : 0) + 1;
-		typo = visit === 3;
-		localStorage.setItem(key, String(visit % 3));
+		if (cadence > 0) {
+			const visit = (Number.isSafeInteger(stored) && stored >= 0 ? stored % cadence : 0) + 1;
+			typo = visit === cadence;
+			localStorage.setItem(key, String(visit % cadence));
+		}
 	} catch { /* Storage can be blocked; the entrance must still work. */ }
 	dialog.dataset.typo = String(typo);
 	void import('./terminal-sequence')
 		.then(({ playTerminal }) => {
-			if (!session.begin(45000)) return;
+			if (!session.begin(terminalWatchdogMs(typo))) return;
 			return playTerminal(dialog, typo, session.pause);
 		})
 		.catch(() => undefined)
